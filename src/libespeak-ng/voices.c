@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see: <http://www.gnu.org/licenses/>.
  */
-
 #include "config.h"
 
 #include <ctype.h>
@@ -31,7 +30,7 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
-#else
+#elif HAVE_DIRENT
 #include <dirent.h>
 #endif
 
@@ -1218,7 +1217,8 @@ static void GetVoices(const char *path, int len_path_voices, int is_language_fil
 		}
 	} while (FindNextFileA(hFind, &FindFileData) != 0);
 	FindClose(hFind);
-#else
+#elif HAVE_DIRENT
+
 	DIR *dir;
 	struct dirent *ent;
 

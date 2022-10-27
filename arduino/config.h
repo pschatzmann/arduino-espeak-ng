@@ -8,7 +8,7 @@
 #define HAVE_DUP2 0
 
 /* Define to 1 if you have the <endian.h> header file. */
-/* #undef HAVE_ENDIAN_H */
+#define HAVE_ENDIAN_H 0
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #define HAVE_FCNTL_H 0
@@ -145,6 +145,12 @@
 
 /* Define to 1 if `vfork' works. */
 #define HAVE_WORKING_VFORK 0
+
+#if defined(ESP32) 
+#  define HAVE_DIRENT 1
+#else
+#  define HAVE_DIRENT 0
+#endif
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"

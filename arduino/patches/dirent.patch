@@ -1,0 +1,62 @@
+diff --git a/src/libespeak-ng/spect.c b/src/libespeak-ng/spect.c
+index df1eaf2..ecf7b69 100644
+--- a/src/libespeak-ng/spect.c
++++ b/src/libespeak-ng/spect.c
+@@ -25,7 +25,9 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++#if HAVE_ENDIAN_H 
+ #include <endian.h>
++#endif               // for BYTE_ORDER, BIG_ENDIAN
+ 
+ #include <espeak-ng/espeak_ng.h>
+ #include <espeak-ng/speak_lib.h>
+diff --git a/src/libespeak-ng/speech.h b/src/libespeak-ng/speech.h
+index 01f8ae9..30e2870 100644
+--- a/src/libespeak-ng/speech.h
++++ b/src/libespeak-ng/speech.h
+@@ -19,8 +19,10 @@
+ 
+ #ifndef ESPEAK_NG_SPEECH_H
+ #define ESPEAK_NG_SPEECH_H
+-
+-#include <endian.h>               // for BYTE_ORDER, BIG_ENDIAN
++#include "config.h"
++#if HAVE_ENDIAN_H 
++#include <endian.h>
++#endif               // for BYTE_ORDER, BIG_ENDIAN
+ #include <espeak-ng/espeak_ng.h>
+ 
+ #if defined(__has_feature)
+diff --git a/src/libespeak-ng/voices.c b/src/libespeak-ng/voices.c
+index 9665e6e..b7d7b36 100644
+--- a/src/libespeak-ng/voices.c
++++ b/src/libespeak-ng/voices.c
+@@ -17,7 +17,6 @@
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, see: <http://www.gnu.org/licenses/>.
+  */
+-
+ #include "config.h"
+ 
+ #include <ctype.h>
+@@ -31,7 +30,7 @@
+ 
+ #if defined(_WIN32) || defined(_WIN64)
+ #include <windows.h>
+-#else
++#elif HAVE_DIRENT
+ #include <dirent.h>
+ #endif
+ 
+@@ -1218,7 +1217,8 @@ static void GetVoices(const char *path, int len_path_voices, int is_language_fil
+ 		}
+ 	} while (FindNextFileA(hFind, &FindFileData) != 0);
+ 	FindClose(hFind);
+-#else
++#elif HAVE_DIRENT
++
+ 	DIR *dir;
+ 	struct dirent *ent;
+ 
