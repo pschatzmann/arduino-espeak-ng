@@ -1,1 +1,1 @@
-#include "../data/bootstrap/config.h"
+#include "../arduino/config.h"

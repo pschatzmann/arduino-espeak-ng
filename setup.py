@@ -28,37 +28,38 @@ def copy_files():
     shutil.copytree('original/src/include/espeak-ng', 'src/espeak-ng', dirs_exist_ok=True) 
     shutil.copytree('original/src/libespeak-ng', 'src/libespeak-ng', dirs_exist_ok=True) 
     shutil.copytree('original/docs', 'docs', dirs_exist_ok=True) 
-    shutil.copytree('original/phsource', 'data/phsource', dirs_exist_ok=True) 
-    shutil.copytree('original/dictsource', 'data/dictsource', dirs_exist_ok=True) 
-    shutil.copytree('original/espeak-ng-data', 'data/espeak-ng-data', dirs_exist_ok=True) 
+    #shutil.copytree('original/phsource', 'data/phsource', dirs_exist_ok=True) 
+    #shutil.copytree('original/dictsource', 'data/dictsource', dirs_exist_ok=True) 
+    shutil.copytree('original/espeak-ng-data', 'espeak-ng-data', dirs_exist_ok=True) 
     shutil.copytree('original/src/speechPlayer/src', 'src/speechPlayer', dirs_exist_ok=True) 
     shutil.copy2('original/src/speechPlayer/include/speechPlayer.h', 'src/speechPlayer.h') 
     # ucd
     shutil.copytree('original/src/ucd-tools/src', 'src/ucd', dirs_exist_ok=True) 
     shutil.copy2('original/src/ucd-tools/src/include/ucd/ucd.h', 'src/ucd/ucd.h') 
 
+# create link with the help of an #include
 def link(linkTo, fileName):
     text_file = open(fileName, "w")
     content = "#include \""+linkTo+"\""
     text_file.write(content)
     text_file.close()
 
-
+# create links for files available elsewhere
 def link_files():
     # pcmaudio
-    link('../../data/bootstrap/audio.h', 'src/pcaudiolib/audio.h') 
-    link('../../data/bootstrap/audio_object.h', 'src/pcaudiolib/audio_object.h') 
-    link('../../data/bootstrap/audio_audiotools_i2s.cpp', 'src/pcaudiolib/audio_audiotools_i2s.cpp') 
+    link('../../arduino/audio.h', 'src/pcaudiolib/audio.h') 
+    link('../../arduino/audio_object.h', 'src/pcaudiolib/audio_object.h') 
+    link('../../arduino/audio_audiotools_i2s.cpp', 'src/pcaudiolib/audio_audiotools_i2s.cpp') 
     # config
-    link('../data/bootstrap/config.h', 'src/config.h') 
-    link('../data/bootstrap/espeak.h', 'src/espeak.h') 
+    link('../arduino/config.h', 'src/config.h') 
+    link('../arduino/espeak.h', 'src/espeak.h') 
 
-
+# deletes a file if it exists
 def remove(file):
     if os.path.exists(file):
         os.remove(file)
 
-
+# delete unnecessary files and directories
 def cleanup():
     remove("src/libespeak-ng/mbrowrap.c")
     remove("src/libespeak-ng/mbrowrap.h")
@@ -69,7 +70,7 @@ def cleanup():
     shutil.rmtree("src/ucd/.deps", ignore_errors=True)
     remove("src/ucd/.dirstamp")
 
-
+# replace texts in a file
 def file_replace_text(fileName, fromStr, toStr):
     text_file = open(fileName, "r")
     # read whole file to a string
@@ -90,8 +91,7 @@ def convert_double():
             fpath = "src/speechPlayer/"+file
             file_replace_text(fpath, "double","float")
 
-## setup
-
+## Main logic starts here
 res = execute_git("https://github.com/espeak-ng/espeak-ng.git", "original")
 if res.exit==0:
     clean_src()
