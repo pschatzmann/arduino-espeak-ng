@@ -1,6 +1,5 @@
 #include "audio.h"
 #include <stdio.h>
-#include "AudioTools.h"
 #include "audio_object.h"
 
 AudioStream* (*audio_stream_factory_callback)(AudioBaseInfo &cfg) = nullptr;

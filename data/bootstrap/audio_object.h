@@ -1,4 +1,5 @@
 #pragma once
+#include "AudioTools.h"
 
 /// Callback to define the AudioStream
 extern AudioStream* (*audio_stream_factory_callback)(AudioBaseInfo &cfg);
