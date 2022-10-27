@@ -1,6 +1,7 @@
 #pragma once
 
-AudioStream* (*audio_stream_factory_callback)(AudioBaseInfo &cfg) = nullptr;
+/// Callback to define the AudioStream
+extern AudioStream* (*audio_stream_factory_callback)(AudioBaseInfo &cfg);
 
 /**
  * @brief pcaudiolib p_out_stream implementation for microcontrollers
@@ -39,8 +40,7 @@ struct audio_object {
                 p_out_stream = audio_stream_factory_callback(cfg);
             }
         }
-
-        return 0;
+        return p_out_stream!=nullptr ? 0 : -1;
     }
 
     void close(){
