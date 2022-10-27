@@ -37,7 +37,8 @@ def copy_files():
     shutil.copytree('original/src/ucd-tools/src', 'src/ucd', dirs_exist_ok=True) 
     shutil.copy2('original/src/ucd-tools/src/include/ucd/ucd.h', 'src/ucd/ucd.h') 
     # pcmaudio
-    shutil.copy2('original-pcaudio/src/include/pcaudiolib/audio.h', 'src/pcaudiolib/audio.h') 
+    shutil.copy2('data/bootstrap/audio.h', 'src/pcaudiolib/audio.h') 
+    shutil.copy2('data/bootstrap/audio_object.h', 'src/pcaudiolib/audio_object.h') 
     shutil.copy2('data/bootstrap/audio_audiotools_i2s.cpp', 'src/pcaudiolib/audio_audiotools_i2s.cpp') 
     # config
     shutil.copy2('data/bootstrap/config.h', 'src/config.h') 
@@ -80,7 +81,6 @@ def convert_double():
 
 ## setup
 
-res = execute_git("https://github.com/espeak-ng/pcaudiolib.git", "original-pcaudio")
 res = execute_git("https://github.com/espeak-ng/espeak-ng.git", "original")
 if res.exit==0:
     clean_src()

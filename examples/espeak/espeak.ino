@@ -1,6 +1,4 @@
-    #include <string.h>
-    #include <malloc.h>
-    #include <espeak-ng/speak_lib.h>
+    #include <espeak_lib.h>
     
     espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
     char *path = NULL;
