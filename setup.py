@@ -36,13 +36,23 @@ def copy_files():
     # ucd
     shutil.copytree('original/src/ucd-tools/src', 'src/ucd', dirs_exist_ok=True) 
     shutil.copy2('original/src/ucd-tools/src/include/ucd/ucd.h', 'src/ucd/ucd.h') 
+
+def link(linkTo, fileName):
+    text_file = open(fileName, "w")
+    content = "#include \""+linkTo+"\""
+    text_file.write(content)
+    text_file.close()
+
+
+def link_files():
     # pcmaudio
-    shutil.copy2('data/bootstrap/audio.h', 'src/pcaudiolib/audio.h') 
-    shutil.copy2('data/bootstrap/audio_object.h', 'src/pcaudiolib/audio_object.h') 
-    shutil.copy2('data/bootstrap/audio_audiotools_i2s.cpp', 'src/pcaudiolib/audio_audiotools_i2s.cpp') 
+    link('../../data/bootstrap/audio.h', 'src/pcaudiolib/audio.h') 
+    link('../../data/bootstrap/audio_object.h', 'src/pcaudiolib/audio_object.h') 
+    link('../../data/bootstrap/audio_audiotools_i2s.cpp', 'src/pcaudiolib/audio_audiotools_i2s.cpp') 
     # config
-    shutil.copy2('data/bootstrap/config.h', 'src/config.h') 
-    shutil.copy2('data/bootstrap/espeak.h', 'src/espeak.h') 
+    link('../data/bootstrap/config.h', 'src/config.h') 
+    link('../data/bootstrap/espeak.h', 'src/espeak.h') 
+
 
 def remove(file):
     if os.path.exists(file):
@@ -61,15 +71,15 @@ def cleanup():
 
 
 def file_replace_text(fileName, fromStr, toStr):
-        text_file = open(fileName, "r")
-        # read whole file to a string
-        data = text_file.read()
-        text_file.close()
-        # write updated file
-        text_file = open(fileName, "w")
-        new_txt = data.replace(fromStr,toStr)
-        text_file.write(new_txt)
-        text_file.close()
+    text_file = open(fileName, "r")
+    # read whole file to a string
+    data = text_file.read()
+    text_file.close()
+    # write updated file
+    text_file = open(fileName, "w")
+    new_txt = data.replace(fromStr,toStr)
+    text_file.write(new_txt)
+    text_file.close()
 
 # convert double to float
 def convert_double():
@@ -86,6 +96,7 @@ res = execute_git("https://github.com/espeak-ng/espeak-ng.git", "original")
 if res.exit==0:
     clean_src()
     copy_files()
+    link_files()
     cleanup()
     convert_double()
     # conflict with string
