@@ -6,6 +6,8 @@
     unsigned int *identifier;
     
     void setup() {
+      Serial.begin(115200);
+
       char text[] = {"Hello world!"};
       int buflength = 500, options = 0;
       unsigned int position = 0, end_position = 0, flags = espeakCHARS_AUTO;
@@ -19,9 +21,9 @@
       voice.variant = 2;
       voice.gender = 2;
       espeak_SetVoiceByProperties(&voice);
-      printf("Saying  '%s'...\n", text);
+      Serial.println(text);
       espeak_Synth(text, buflength, position, position_type, end_position, flags, identifier, user_data);
-      printf("Done\n");
+      Serial.println("Done");
     }
 
     void loop(){
