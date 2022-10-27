@@ -1,3 +1,13 @@
+/**
+ * @file espeak.ino
+ * @author Phil Schatzmann
+ * @brief Functional API example with additional information
+ * @version 0.1
+ * @date 2022-10-27
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
 #include "espeak.h"
 
 espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;

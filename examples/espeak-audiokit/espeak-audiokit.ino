@@ -1,3 +1,13 @@
+/**
+ * @file espeak-audiokit.ino
+ * @author Phil Schatzmann
+ * @brief Functional API with custom output stream
+ * @version 0.1
+ * @date 2022-10-27
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
 #include "AudioTools.h"
 #include "AudioLibs/AudioKit.h"
 #include "espeak.h"
