@@ -91,6 +91,13 @@ def convert_double():
             fpath = "src/speechPlayer/"+file
             file_replace_text(fpath, "double","float")
 
+# Change standard functionality
+def apply_patches():
+    res = command.run(["git", "apply", "arduino/patches/dirent.patch"]) 
+    if res.exit!=0:
+        print(res.output) 
+
+
 ## Main logic starts here
 res = execute_git("https://github.com/espeak-ng/espeak-ng.git", "original")
 if res.exit==0:
@@ -101,6 +108,7 @@ if res.exit==0:
     convert_double()
     # conflict with string
     file_replace_text("src/libespeak-ng/compilembrola.c","basename(","basefilename(")
+    apply_patches()
     print("setup completed")
 else:
     print("Could not execute git command")
