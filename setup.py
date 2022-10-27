@@ -42,15 +42,20 @@ def copy_files():
     # config
     shutil.copy2('data/bootstrap/config.h', 'src/config.h') 
 
+def remove(file):
+    if os.path.exists(file):
+        os.remove(file)
+
+
 def cleanup():
-    os.remove("src/libespeak-ng/mbrowrap.c")
-    os.remove("src/libespeak-ng/mbrowrap.h")
-    shutil.rmtree("src/speechPlayer/.deps")
-    os.remove("src/speechPlayer/.dirstamp")
-    shutil.rmtree("src/libespeak-ng/.deps")
-    os.remove("src/libespeak-ng/.dirstamp")
-    shutil.rmtree("src/ucd/.deps")
-    os.remove("src/ucd/.dirstamp")
+    remove("src/libespeak-ng/mbrowrap.c")
+    remove("src/libespeak-ng/mbrowrap.h")
+    shutil.rmtree("src/speechPlayer/.deps", ignore_errors=True)
+    remove("src/speechPlayer/.dirstamp")
+    shutil.rmtree("src/libespeak-ng/.deps", ignore_errors=True)
+    remove("src/libespeak-ng/.dirstamp")
+    shutil.rmtree("src/ucd/.deps", ignore_errors=True)
+    remove("src/ucd/.dirstamp")
 
 
 def file_replace_text(fileName, fromStr, toStr):
