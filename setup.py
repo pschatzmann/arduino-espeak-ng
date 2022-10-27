@@ -45,6 +45,10 @@ def copy_files():
 def cleanup():
     os.remove("src/libespeak-ng/mbrowrap.c")
     os.remove("src/libespeak-ng/mbrowrap.h")
+    shutil.rmtree("src/speechPlayer/.deps")
+    os.remove("src/speechPlayer/.dirstamp")
+    shutil.rmtree("src/libespeak-ng/.deps")
+    os.remove("src/libespeak-ng/.dirstamp")
 
 
 def file_replace_text(fileName, fromStr, toStr):
