@@ -49,6 +49,8 @@ def cleanup():
     os.remove("src/speechPlayer/.dirstamp")
     shutil.rmtree("src/libespeak-ng/.deps")
     os.remove("src/libespeak-ng/.dirstamp")
+    shutil.rmtree("src/ucd/.deps")
+    os.remove("src/ucd/.dirstamp")
 
 
 def file_replace_text(fileName, fromStr, toStr):
