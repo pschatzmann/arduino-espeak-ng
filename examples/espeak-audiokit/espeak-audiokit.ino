@@ -1,7 +1,6 @@
 #include "AudioTools.h"
 #include "AudioLibs/AudioKit.h"
-#include "speak_lib.h"
-#include "pcaudiolib/audio_object.h"
+#include "espeak.h"
 
 AudioKitStream kit;
 espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;

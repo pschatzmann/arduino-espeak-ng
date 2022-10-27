@@ -42,6 +42,7 @@ def copy_files():
     shutil.copy2('data/bootstrap/audio_audiotools_i2s.cpp', 'src/pcaudiolib/audio_audiotools_i2s.cpp') 
     # config
     shutil.copy2('data/bootstrap/config.h', 'src/config.h') 
+    shutil.copy2('data/bootstrap/espeak.h', 'src/espeak.h') 
 
 def remove(file):
     if os.path.exists(file):

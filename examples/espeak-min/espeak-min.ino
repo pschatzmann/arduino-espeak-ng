@@ -1,4 +1,4 @@
-#include <speak_lib.h>
+#include "espeak.h"
 
 espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
 char *path = nullptr;
