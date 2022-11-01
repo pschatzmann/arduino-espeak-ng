@@ -32,6 +32,7 @@ void setupSD() {
     delay(500);
   }
   
+  // list existing directory content
   DIR *dir;
   struct dirent *entry;
 
@@ -43,7 +44,6 @@ void setupSD() {
       Serial.println(entry->d_name);
     closedir(dir);
   }
-
 }
 
 void setup() {
@@ -51,13 +51,20 @@ void setup() {
 
     setupSD();
 
+    // enable allocates in psram
+    const int limit = 1000;
+    heap_caps_malloc_extmem_enable(limit);
+
+    // setup espeak
     char voicename[] = {"English"}; // Set voice by its name
     char text[] = {"Hello world!"};
     int buflength = 500, options = 0;
     unsigned int position = 0, end_position = 0, flags = espeakCHARS_AUTO;
     espeak_POSITION_TYPE position_type=POS_CHARACTER;
+    Serial.println("espeak_Initialize");
     espeak_Initialize(output, buflength, path, options);
     espeak_SetVoiceByName(voicename);
+    Serial.print("espeak_Synth ");
     Serial.println(text);
     espeak_Synth(text, buflength, position, position_type, end_position, flags, identifier, user_data);
     Serial.println("Done");

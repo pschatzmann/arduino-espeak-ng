@@ -107,8 +107,8 @@ def execute_xxd(infile, outfile):
 
 # traverse espeak-ng-data directory to create .h file from data
 def create_data():
+    includes = "#pragma once\n\n"
     for root, dirs, files in os.walk("espeak-ng-data"):
-        includes = "#pragma once\n\n"
         path = root.split(os.sep)
         for file in files:
             if not file.startswith("."):
@@ -122,8 +122,7 @@ def create_data():
                 execute_xxd(old_path, new_file)
                 file_replace_text(new_file,"unsigned char","const unsigned char")
                 file_replace_text(new_file,"[]","[] PROGMEM")
-        os.makedirs("src/data", exist_ok = True)
-        f = open("src/data/data.h", "w")
+        f = open("src/espeak-ng-data.h", "w")
         f.write(includes)
         f.close()
 
