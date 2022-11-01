@@ -31,7 +31,7 @@ def copy_files():
     #shutil.copytree('original/phsource', 'data/phsource', dirs_exist_ok=True) 
     #shutil.copytree('original/dictsource', 'data/dictsource', dirs_exist_ok=True) 
     shutil.copytree('original/espeak-ng-data', 'espeak-ng-data', dirs_exist_ok=True) 
-    shutil.copytree('original/src/speechPlayer/src', 'src/speechPlayer', dirs_exist_ok=True) 
+    #shutil.copytree('original/src/speechPlayer/src', 'src/speechPlayer', dirs_exist_ok=True) 
     shutil.copy2('original/src/speechPlayer/include/speechPlayer.h', 'src/speechPlayer.h') 
     # ucd
     shutil.copytree('original/src/ucd-tools/src', 'src/ucd', dirs_exist_ok=True) 
@@ -64,7 +64,7 @@ def cleanup():
     remove("src/libespeak-ng/mbrowrap.c")
     remove("src/libespeak-ng/mbrowrap.h")
     shutil.rmtree("src/speechPlayer/.deps", ignore_errors=True)
-    remove("src/speechPlayer/.dirstamp")
+    #remove("src/speechPlayer/.dirstamp")
     shutil.rmtree("src/libespeak-ng/.deps", ignore_errors=True)
     remove("src/libespeak-ng/.dirstamp")
     shutil.rmtree("src/ucd/.deps", ignore_errors=True)
@@ -134,7 +134,7 @@ if res.exit==0:
     copy_files()
     link_files()
     cleanup()
-    convert_double()
+    # convert_double()
     # conflict with string
     file_replace_text("src/libespeak-ng/compilembrola.c","basename(","basefilename(")
     apply_patches()

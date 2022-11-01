@@ -7,12 +7,13 @@
  * @brief info about sample rate and channels and output stream
  */
 struct audio_info {
-    int sample_rate = 0;    // undefined
-    int channels = 0;       // undefined
+    int sample_rate = 22050;    // undefined
+    int channels = 1;       // undefined
     int bits_per_sample=16; // we assume int16_t
     Print *out=nullptr;
 };
 extern audio_info espeak_audio_info;
+extern Print *audio_out;
 
 /// Callback to define the AudioStream
 extern void(*audio_stream_factory_callback)(audio_info *cfg);
@@ -41,19 +42,23 @@ struct audio_object {
         this->format = format;
         this->rate = rate;
         this->channels = channels;
-
+        
+        // update audio information
         espeak_audio_info.channels = channels;
         espeak_audio_info.sample_rate = rate;
         espeak_audio_info.bits_per_sample = 16;
         espeak_audio_info.out = p_out_stream;
+        p_out_stream = audio_out;
 
         // callback with audio information
-        audio_stream_factory_callback(&espeak_audio_info);
-        if (espeak_audio_info.out!=p_out_stream && espeak_audio_info.out!=nullptr){
-            p_out_stream = espeak_audio_info.out;
+        if (audio_stream_factory_callback!=nullptr){
+            audio_stream_factory_callback(&espeak_audio_info);
+            if (espeak_audio_info.out!=p_out_stream && espeak_audio_info.out!=nullptr){
+                p_out_stream = espeak_audio_info.out;
+            }
         }
         active = p_out_stream!=nullptr;
-        return active;
+        return active ? 0 : -1;
     }
 
     void close(){

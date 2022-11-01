@@ -216,4 +216,7 @@
 #define HAVE_DIRENT 1
 #define PATH_ESPEAK_DATA  "/mem/data"
 
-
+#if BYTE_ORDER == LITTLE_ENDIAN
+#  define le16toh(X) X
+#  define le32toh(X) X
+#endif

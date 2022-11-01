@@ -1,5 +1,6 @@
 .vscode/
 original-pcaudio/
 original/
+build/
 *.o
 *.lo
