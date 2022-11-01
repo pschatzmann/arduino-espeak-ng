@@ -1,22 +1,55 @@
 /**
  * @file espeak-min.ino
  * @author Phil Schatzmann
- * @brief Functional API - minimum example
+ * @brief Functional API - minimum example. The espeak-ng-data is stored on an sd drive
+ * in the /espeak-ng-data directory
  * @version 0.1
  * @date 2022-10-27
  * 
  * @copyright Copyright (c) 2022
  * 
  */
+
+#include "SPI.h"
+#include "SD.h"
 #include "espeak.h"
 
+#define PIN_SD_CARD_CS 13  
+#define PIN_SD_CARD_MISO 2
+#define PIN_SD_CARD_MOSI 15
+#define PIN_SD_CARD_CLK  14
+
 espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
-char *path = nullptr;
+char *path = "/sd/espeak-ng-data";
 void* user_data = nullptr;
 unsigned int *identifier = nullptr;
 
+void setupSD() {
+// setup SD
+  SPI.begin(PIN_SD_CARD_CLK, PIN_SD_CARD_MISO, PIN_SD_CARD_MOSI, PIN_SD_CARD_CS);
+  // "sd" is default mount point
+  while(!SD.begin(PIN_SD_CARD_CS)){
+    delay(500);
+  }
+  
+  DIR *dir;
+  struct dirent *entry;
+
+  if ((dir = opendir(path)) == NULL)
+    Serial.println("opendir() error");
+  else {
+    Serial.println("contents:");
+    while ((entry = readdir(dir)) != NULL)
+      Serial.println(entry->d_name);
+    closedir(dir);
+  }
+
+}
+
 void setup() {
     Serial.begin(115200);
+
+    setupSD();
 
     char voicename[] = {"English"}; // Set voice by its name
     char text[] = {"Hello world!"};

@@ -53,8 +53,6 @@ def link_files():
     # config
     link('../arduino/config.h', 'src/config.h') 
     link('../arduino/espeak.h', 'src/espeak.h') 
-    #sd support
-    link('../arduino/FileSystem.h', 'src/FileSystem.h') 
 
 # deletes a file if it exists
 def remove(file):
@@ -117,7 +115,8 @@ def create_data():
                 new_path = root.replace("espeak-ng-data","src/data")
                 new_file = new_path + "/"+file+".h"
                 old_path = root+"/"+file
-                includes += "#include \"" + new_file +  "\"\n"
+                new_file_incl = new_file.replace("src/","")
+                includes += "#include \"" + new_file_incl +  "\"\n"
                 print(new_path)
                 os.makedirs(new_path, exist_ok = True)
                 execute_xxd(old_path, new_file)
