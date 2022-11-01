@@ -35,7 +35,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "common.h"                    // for GetFileLength, strncpy0, ...
+#include "common.h"                    // for GetFileLength, strncpy0, ...c
 #include "error.h"                    // for create_file_error_context
 #include "mnemonics.h"               // for LookupMnemName, MNEM_TAB
 #include "phoneme.h"                  // for PHONEME_TAB, PHONEME_TAB_LIST
@@ -398,7 +398,6 @@ static FILE *f_phtab;
 static FILE *f_phcontents;
 static FILE *f_errors = NULL;
 static FILE *f_prog_log = NULL;
-static FILE *f_report;
 
 static FILE *f_in;
 static int f_in_linenum;
@@ -410,7 +409,6 @@ static int duplicate_references = 0;
 static int count_frames = 0;
 static int error_count = 0;
 static int resample_count = 0;
-static int resample_fails = 0;
 static int then_count = 0;
 static bool after_if = false;
 
@@ -462,99 +460,6 @@ int item_type;
 int item_terminator;
 char item_string[N_ITEM_STRING];
 
-static int ref_sorter(char **a, char **b)
-{
-	int ix;
-
-	REF_HASH_TAB *p1 = (REF_HASH_TAB *)(*a);
-	REF_HASH_TAB *p2 = (REF_HASH_TAB *)(*b);
-
-	ix = strcoll(p1->string, p2->string);
-	if (ix != 0)
-		return ix;
-
-	ix = p1->ph_table - p2->ph_table;
-	if (ix != 0)
-		return ix;
-
-	return p1->ph_mnemonic - p2->ph_mnemonic;
-}
-
-static void CompileReport(void)
-{
-	int ix;
-	int hash;
-	int n;
-	REF_HASH_TAB *p;
-	REF_HASH_TAB **list;
-	const char *data_path;
-	int prev_table;
-	int procedure_num;
-	int prev_mnemonic;
-
-	if (f_report == NULL || count_references == 0)
-		return;
-
-	// make a list of all the references and sort it
-	list = (REF_HASH_TAB **)malloc((count_references)* sizeof(REF_HASH_TAB *));
-	if (list == NULL)
-		return;
-
-	fprintf(f_report, "\n%d phoneme tables\n", n_phoneme_tabs);
-	fprintf(f_report, "          new total\n");
-	for (ix = 0; ix < n_phoneme_tabs; ix++)
-		fprintf(f_report, "%8s %3d %4d\n", phoneme_tab_list2[ix].name, phoneme_tab_list2[ix].n_phonemes, n_phcodes_list[ix]+1);
-	fputc('\n', f_report);
-
-	fprintf(f_report, "Data file      Used by\n");
-	ix = 0;
-	for (hash = 0; (hash < 256) && (ix < count_references); hash++) {
-		p = ref_hash_tab[hash];
-		while (p != NULL) {
-			list[ix++] = p;
-			p = (REF_HASH_TAB *)(p->link);
-		}
-	}
-	n = ix;
-	qsort((void *)list, n, sizeof(REF_HASH_TAB *), (int (*)(const void *, const void *))ref_sorter);
-
-	data_path = "";
-	prev_mnemonic = 0;
-	prev_table = 0;
-	for (ix = 0; ix < n; ix++) {
-		int j = 0;
-
-		if (strcmp(list[ix]->string, data_path) != 0) {
-			data_path = list[ix]->string;
-			j = strlen(data_path);
-			fprintf(f_report, "%s", data_path);
-		} else if ((list[ix]->ph_table == prev_table) && (list[ix]->ph_mnemonic == prev_mnemonic))
-			continue; // same phoneme, don't list twice
-
-		while (j < 14) {
-			fputc(' ', f_report); // pad filename with spaces
-			j++;
-		}
-
-		prev_mnemonic = list[ix]->ph_mnemonic;
-		if ((prev_mnemonic >> 24) == 'P') {
-			// a procedure, not a phoneme
-			procedure_num = atoi(WordToString(prev_mnemonic));
-			fprintf(f_report, "  %s  %s", phoneme_tab_list2[prev_table = list[ix]->ph_table].name, proc_names[procedure_num]);
-		} else
-			fprintf(f_report, "  [%s] %s", WordToString(prev_mnemonic), phoneme_tab_list2[prev_table = list[ix]->ph_table].name);
-		fputc('\n', f_report);
-	}
-
-	for (ix = 0; ix < n; ix++) {
-		free(list[ix]);
-		list[ix] = NULL;
-	}
-
-	free(list);
-	list = NULL;
-}
-
 static void error(const char *format, ...)
 {
 	va_list args;
@@ -576,25 +481,6 @@ static void error_from_status(espeak_ng_STATUS status, const char *context)
 		error("%s: '%s'.", message, context);
 	else
 		error("%s.", message);
-}
-
-static unsigned int StringToWord(const char *string)
-{
-	// Pack 4 characters into a word
-	int ix;
-	unsigned char c;
-	unsigned int word;
-
-	if (string == NULL)
-		return 0;
-
-	word = 0;
-	for (ix = 0; ix < 4; ix++) {
-		if (string[ix] == 0) break;
-		c = string[ix];
-		word |= (c << (ix*8));
-	}
-	return word;
 }
 
 static const MNEM_TAB reserved_phonemes[] = {
@@ -1193,12 +1079,6 @@ static int LoadWavefile(FILE *f, const char *fname)
 	int max = 0;
 	int length;
 	int sr1, sr2;
-	bool failed;
-	int len;
-	bool resample_wav = false;
-	const char *fname2;
-	char fname_temp[100];
-	char msg[120];
 	int scale_factor = 0;
 
 	fseek(f, 24, SEEK_SET);
@@ -1207,54 +1087,11 @@ static int LoadWavefile(FILE *f, const char *fname)
 	fseek(f, 40, SEEK_SET);
 
 	if ((sr1 != samplerate_native) || (sr2 != sr1*2)) {
-		char command[sizeof(path_home)+250];
-
-		failed = false;
-
-#ifdef HAVE_MKSTEMP
-		strcpy(fname_temp, "/tmp/espeakXXXXXX");
-		int fd_temp;
-		if ((fd_temp = mkstemp(fname_temp)) >= 0)
-			close(fd_temp);
-#else
-		strcpy(fname_temp, tmpnam(NULL));
-#endif
-
-		fname2 = fname;
-		len = strlen(fname);
-		if (strcmp(&fname[len-4], ".wav") == 0) {
-			strcpy(msg, fname);
-			msg[len-4] = 0;
-			fname2 = msg;
-		}
-
-		sprintf(command, "sox \"%s/%s.wav\" -r %d -c1 -t wav %s\n", phsrc, fname2, samplerate_native, fname_temp);
-		if (system(command) != 0)
-			failed = true;
-
-		if (failed || (GetFileLength(fname_temp) <= 0)) {
-			if (resample_fails < 2)
-				error("Resample command failed: %s", command);
-			resample_fails++;
-
-			if (sr1 != samplerate_native)
-				error("Can't resample (%d to %d): %s", sr1, samplerate_native, fname);
-			else
-				error("WAV file is not mono: %s", fname);
-			remove(fname_temp);
-			return 0;
-		}
-
-		f = fopen(fname_temp, "rb");
-		if (f == NULL) {
-			error("Can't read temp file: %s", fname_temp);
-			return 0;
-		}
-		if (f_report != NULL)
-			fprintf(f_report, "resampled  %s\n", fname);
-		resample_count++;
-		resample_wav = true;
-		fseek(f, 40, SEEK_SET); // skip past the WAV header, up to before "data length"
+		if (sr1 != samplerate_native)
+			error("Can't resample (%d to %d): %s", sr1, samplerate_native, fname);
+		else
+			error("WAV file is not mono: %s", fname);
+		return 0;
 	}
 
 	displ = ftell(f_phdata);
@@ -1325,10 +1162,6 @@ static int LoadWavefile(FILE *f, const char *fname)
 		length++;
 	}
 
-	if (resample_wav == true) {
-		fclose(f);
-		remove(fname_temp);
-	}
 	return displ | 0x800000; // set bit 23 to indicate a wave file rather than a spectrum
 }
 
@@ -2537,14 +2370,6 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 	if (f_in == NULL)
 		return create_file_error_context(context, errno, fname);
 
-	sprintf(fname, "%s/%s", phsrc, "compile_report");
-	f_report = fopen(fname, "w");
-	if (f_report == NULL) {
-		int error = errno;
-		fclose(f_in);
-		return create_file_error_context(context, error, fname);
-	}
-
 	sprintf(fname, "%s/%s", phdst, "phondata-manifest");
 	if ((f_phcontents = fopen(fname, "w")) == NULL)
 		f_phcontents = stderr;
@@ -2568,7 +2393,6 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 	if (f_phdata == NULL) {
 		int error = errno;
 		fclose(f_in);
-		fclose(f_report);
 		fclose(f_phcontents);
 		return create_file_error_context(context, error, fname);
 	}
@@ -2578,7 +2402,6 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 	if (f_phindex == NULL) {
 		int error = errno;
 		fclose(f_in);
-		fclose(f_report);
 		fclose(f_phcontents);
 		fclose(f_phdata);
 		return create_file_error_context(context, error, fname);
@@ -2589,7 +2412,6 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 	if (f_phtab == NULL) {
 		int error = errno;
 		fclose(f_in);
-		fclose(f_report);
 		fclose(f_phcontents);
 		fclose(f_phdata);
 		fclose(f_phindex);
@@ -2630,10 +2452,6 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 		fclose(f_prog_log);
 
 	LoadPhData(NULL, NULL);
-
-	CompileReport();
-
-	fclose(f_report);
 
 	WavegenFini();
 
@@ -2698,7 +2516,19 @@ static int LookupEnvelopeName(const char *name)
 
 espeak_ng_STATUS espeak_ng_CompileIntonation(FILE *log, espeak_ng_ERROR_CONTEXT *context)
 {
+	return espeak_ng_CompileIntonationPath(NULL, NULL, log, context);
+}
+
+espeak_ng_STATUS
+espeak_ng_CompileIntonationPath(const char *source_path,
+                                const char *destination_path,
+                                FILE *log,
+                                espeak_ng_ERROR_CONTEXT *context
+                                )
+{
 	if (!log) log = stderr;
+	if (!source_path) source_path = path_home;
+	if (!destination_path) destination_path = path_home;
 
 	int ix;
 	char *p;
@@ -2722,9 +2552,9 @@ espeak_ng_STATUS espeak_ng_CompileIntonation(FILE *log, espeak_ng_ERROR_CONTEXT 
 	error_count = 0;
 	f_errors = log;
 
-	sprintf(buf, "%s/../phsource/intonation.txt", path_home);
+	sprintf(buf, "%s/../phsource/intonation.txt", source_path);
 	if ((f_in = fopen(buf, "r")) == NULL) {
-		sprintf(buf, "%s/../phsource/intonation", path_home);
+		sprintf(buf, "%s/../phsource/intonation", source_path);
 		if ((f_in = fopen(buf, "r")) == NULL) {
 			int error = errno;
 			fclose(f_errors);
@@ -2777,7 +2607,7 @@ espeak_ng_STATUS espeak_ng_CompileIntonation(FILE *log, espeak_ng_ERROR_CONTEXT 
 		return ENOMEM;
 	}
 
-	sprintf(buf, "%s/intonations", path_home);
+	sprintf(buf, "%s/intonations", destination_path);
 	f_out = fopen(buf, "wb");
 	if (f_out == NULL) {
 		int error = errno;

@@ -1,3 +1,4 @@
+#pragma once
 /* config.h.  Generated from config.h.in by configure.  */
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
@@ -146,12 +147,6 @@
 /* Define to 1 if `vfork' works. */
 #define HAVE_WORKING_VFORK 0
 
-#if defined(ESP32) 
-#  define HAVE_DIRENT 1
-#else
-#  define HAVE_DIRENT 0
-#endif
-
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
 
@@ -217,3 +212,16 @@
 
 /* Define as `fork' if `vfork' does not work. */
 /* #undef vfork */
+
+#define HAVE_DIRENT 1
+
+#ifdef ARDUINO_ARCH_RP2040
+#include <stdio.h>
+#define HAS_NEWLIB
+struct DIR {
+   int dd_vfs_idx;
+};
+struct dirent {
+   char d_name[FILENAME_MAX];
+};
+#endif

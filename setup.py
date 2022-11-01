@@ -53,6 +53,8 @@ def link_files():
     # config
     link('../arduino/config.h', 'src/config.h') 
     link('../arduino/espeak.h', 'src/espeak.h') 
+    #sd support
+    link('../arduino/FileSystem.h', 'src/FileSystem.h') 
 
 # deletes a file if it exists
 def remove(file):
@@ -97,6 +99,33 @@ def apply_patches():
     if res.exit!=0:
         print(res.output) 
 
+def execute_xxd(infile, outfile):
+    cmd = ["xxd","-i", infile, outfile]
+    print(cmd)
+    res = command.run(cmd) 
+    #print(res.output) 
+
+
+# traverse root directory, and list directories as dirs and files as files
+def create_data():
+    for root, dirs, files in os.walk("espeak-ng-data"):
+        includes = "#pragma once\n\n"
+        path = root.split(os.sep)
+        for file in files:
+            if not file.startswith("."):
+                new_path = root.replace("espeak-ng-data","src/data")
+                new_file = new_path + "/"+file+".h"
+                old_path = root+"/"+file
+                includes += "#include \"" + new_file +  "\"\n"
+                print(new_path)
+                os.makedirs(new_path, exist_ok = True)
+                execute_xxd(old_path, new_file)
+                file_replace_text(new_file,"char","const char")
+        os.makedirs("src/data", exist_ok = True)
+        f = open("src/data/data.h", "w")
+        f.write(includes)
+        f.close()
+
 
 ## Main logic starts here
 res = execute_git("https://github.com/espeak-ng/espeak-ng.git", "original")
@@ -109,6 +138,7 @@ if res.exit==0:
     # conflict with string
     file_replace_text("src/libespeak-ng/compilembrola.c","basename(","basefilename(")
     apply_patches()
+    create_data()
     print("setup completed")
 else:
     print("Could not execute git command")

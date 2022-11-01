@@ -8,15 +8,28 @@
  * @copyright Copyright (c) 2022
  * 
  */
+#include <SD.h>
 #include "espeak.h"
+#include "AudioKitHAL.h"
 
+char *path = "/data";
+FileSystem efs(path, SD); // set file system
 espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
-char *path = nullptr;
 void* user_data = nullptr;
 unsigned int *identifier = nullptr;
 
+void setupSD(){
+  SPI.begin(PIN_AUDIO_KIT_SD_CARD_CLK, PIN_AUDIO_KIT_SD_CARD_MISO,
+            PIN_AUDIO_KIT_SD_CARD_MOSI, PIN_AUDIO_KIT_SD_CARD_CS);
+  while (!SD.begin(PIN_AUDIO_KIT_SD_CARD_CS)) {
+    Serial.println("Card Mount Failed");
+    return;
+  }
+}
+
 void setup() {
   Serial.begin(115200);
+  setupSD();
 
   char text[] = {"Hello world!"};
   int buflength = 500, options = 0;
