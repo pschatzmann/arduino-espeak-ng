@@ -24,15 +24,18 @@ FileSystem efs(path, SD); // set file system
 espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
 void *user_data = nullptr;
 unsigned int *identifier = nullptr;
+int buflength = 500, options = 0;
+unsigned int position = 0, end_position = 0, flags = espeakCHARS_AUTO;
+espeak_POSITION_TYPE position_type = POS_CHARACTER;
 
 void setup() {
   Serial.begin(115200);
-  // we load the config data from SD
+  // we load the config data from SD: "sd" is default mount point
   SPI.begin(PIN_SD_CARD_CLK, PIN_SD_CARD_MISO, PIN_SD_CARD_MOSI,
             PIN_SD_CARD_CS);
-  // "sd" is default mount point
   while (!SD.begin(PIN_SD_CARD_CS)) {
     delay(500);
+  }
 
   // setup output
   auto cfg = i2s.defaultConfig();
@@ -40,10 +43,6 @@ void setup() {
   espeak_set_audio_output(&i2s);
 
   // setup espeak
-  char text[] = {"Hello world!"};
-  int buflength = 500, options = 0;
-  unsigned int position = 0, end_position = 0, flags = espeakCHARS_AUTO;
-  espeak_POSITION_TYPE position_type = POS_CHARACTER;
   espeak_Initialize(output, buflength, path, options);
   espeak_VOICE voice;
   memset(&voice, 0, sizeof(espeak_VOICE)); // Zero out the voice first
@@ -53,10 +52,13 @@ void setup() {
   voice.variant = 2;
   voice.gender = 2;
   espeak_SetVoiceByProperties(&voice);
+}
+
+void loop() {
+  char text[] = "Hello world!";
   Serial.println(text);
   espeak_Synth(text, buflength, position, position_type, end_position, flags,
                 identifier, user_data);
   Serial.println("Done");
+  delay(5000);
 }
-
-void loop() {}

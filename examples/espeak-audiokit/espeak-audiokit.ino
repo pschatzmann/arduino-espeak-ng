@@ -32,16 +32,15 @@ void setup() {
     heap_caps_malloc_extmem_enable(limit);
 
     // setup espeak
-    char voicename[] = {"English"}; // Set voice by its name
-    char text[] = {"Hello world!"};
-    int buflength = 500, options = 0;
-    unsigned int position = 0, end_position = 0, flags = espeakCHARS_AUTO;
-    espeak_POSITION_TYPE position_type=POS_CHARACTER;
+    char voicename[] = "English"; // Set voice by its name
     espeak_Initialize(output, buflength, path, options);
     espeak_SetVoiceByName(voicename);
+}
+
+void loop(){
+    char text[] = "Hello world!";
     Serial.println(text);
     espeak_Synth(text, buflength, position, position_type, end_position, flags, identifier, user_data);
     Serial.println("Done");
+    delay(5000);
 }
-
-void loop(){}
