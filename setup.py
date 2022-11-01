@@ -99,6 +99,7 @@ def apply_patches():
     if res.exit!=0:
         print(res.output) 
 
+# execute xxd on data file
 def execute_xxd(infile, outfile):
     cmd = ["xxd","-i", infile, outfile]
     print(cmd)
@@ -106,7 +107,7 @@ def execute_xxd(infile, outfile):
     #print(res.output) 
 
 
-# traverse root directory, and list directories as dirs and files as files
+# traverse espeak-ng-data directory to create .h file from data
 def create_data():
     for root, dirs, files in os.walk("espeak-ng-data"):
         includes = "#pragma once\n\n"
@@ -120,13 +121,14 @@ def create_data():
                 print(new_path)
                 os.makedirs(new_path, exist_ok = True)
                 execute_xxd(old_path, new_file)
-                file_replace_text(new_file,"char","const char")
+                file_replace_text(new_file,"unsigned char","const unsigned char")
+                file_replace_text(new_file,"[]","[] PROGMEM")
         os.makedirs("src/data", exist_ok = True)
         f = open("src/data/data.h", "w")
         f.write(includes)
         f.close()
 
-
+##-----------------------
 ## Main logic starts here
 res = execute_git("https://github.com/espeak-ng/espeak-ng.git", "original")
 if res.exit==0:
