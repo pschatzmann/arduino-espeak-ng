@@ -214,14 +214,6 @@
 /* #undef vfork */
 
 #define HAVE_DIRENT 1
+#define PATH_ESPEAK_DATA  "/mem/data"
 
-#ifdef ARDUINO_ARCH_RP2040
-#include <stdio.h>
-#define HAS_NEWLIB
-struct DIR {
-   int dd_vfs_idx;
-};
-struct dirent {
-   char d_name[FILENAME_MAX];
-};
-#endif
+

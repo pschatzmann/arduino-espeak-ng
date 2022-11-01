@@ -1,7 +1,17 @@
 #include "audio.h"
 #include "audio_object.h"
 
-AudioStream* (*audio_stream_factory_callback)(AudioBaseInfo &cfg) = nullptr;
+void (*audio_stream_factory_callback)(audio_info *cfg) = nullptr;
+Print *audio_out = nullptr;
+audio_info espeak_audio_info;
+
+void espeak_set_audio_output(Print *p) {
+    audio_out = p;
+}
+
+audio_info espeak_get_audio_info(){
+    return espeak_audio_info;
+}
 
 int audio_object_open(audio_object *object,
                   audio_object_format format,

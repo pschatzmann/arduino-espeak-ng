@@ -1,9 +1,25 @@
 #pragma once
-#include "AudioTools.h"
+#include <stdio.h> // for snprintf
+#include "Print.h"
 #include "audio.h"
 
+/**
+ * @brief info about sample rate and channels and output stream
+ */
+struct audio_info {
+    int sample_rate = 0;    // undefined
+    int channels = 0;       // undefined
+    int bits_per_sample=16; // we assume int16_t
+    Print *out=nullptr;
+};
+extern audio_info espeak_audio_info;
+
 /// Callback to define the AudioStream
-extern AudioStream* (*audio_stream_factory_callback)(AudioBaseInfo &cfg);
+extern void(*audio_stream_factory_callback)(audio_info *cfg);
+/// Defines the audio output
+extern void espeak_set_audio_output(Print *p);
+/// Provides the audio information
+extern audio_info espeak_get_audio_info();
 
 /**
  * @brief pcaudiolib p_out_stream implementation for microcontrollers
@@ -11,45 +27,41 @@ extern AudioStream* (*audio_stream_factory_callback)(AudioBaseInfo &cfg);
  * 
  * @author pschatzmann
  */
-
 struct audio_object {
     enum audio_object_format format;
     uint32_t rate;
     uint8_t channels;
     const char *device;
     const char *application_name;
-    AudioStream *p_out_stream = nullptr; // e.g. pointer to stream
+    Print *p_out_stream = nullptr; // e.g. pointer to stream
+    audio_info cfg;
+    bool active = false;
 
     int open(enum audio_object_format format,uint32_t rate, uint8_t channels){
         this->format = format;
         this->rate = rate;
         this->channels = channels;
 
-        AudioBaseInfo cfg;
-        cfg.channels = channels;
-        cfg.sample_rate = rate;
-        cfg.bits_per_sample = 16;
+        espeak_audio_info.channels = channels;
+        espeak_audio_info.sample_rate = rate;
+        espeak_audio_info.bits_per_sample = 16;
+        espeak_audio_info.out = p_out_stream;
 
-        // setup default i2s stream if nothing has been defined
-        if (p_out_stream==nullptr){
-            if (audio_stream_factory_callback==nullptr){
-                I2SStream *p_i2s = new I2SStream();
-                p_out_stream = p_i2s;
-                auto c = p_i2s->defaultConfig();
-                c.copyFrom(cfg);
-                p_i2s->begin(c);
-            } else {
-                p_out_stream = audio_stream_factory_callback(cfg);
-            }
+        // callback with audio information
+        audio_stream_factory_callback(&espeak_audio_info);
+        if (espeak_audio_info.out!=p_out_stream && espeak_audio_info.out!=nullptr){
+            p_out_stream = espeak_audio_info.out;
         }
-        return p_out_stream!=nullptr ? 0 : -1;
+        active = p_out_stream!=nullptr;
+        return active;
     }
 
     void close(){
-        p_out_stream->end();
+        active = false;
     }
 
     int write(const void *data, size_t bytes){
+        if (!active) return -1;
         p_out_stream->write((uint8_t*)data, bytes);
         return 0;
     }
@@ -64,7 +76,7 @@ struct audio_object {
 
     const char * strerror(int error){
         static char errormsg[50] = {0};
-        sprintf(errormsg, "Error %d", error);
+        snprintf(errormsg, 50, "Error %d", error);
         return (const char*)errormsg;
     }
 };

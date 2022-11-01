@@ -14,22 +14,24 @@
 
 AudioKitStream kit;
 espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
-char *path = nullptr;
+char *path = "/sd/espeak-ng-data";
 void* user_data = nullptr;
 unsigned int *identifier = nullptr;
 
-// callback method to setup output
-AudioStream *setupStream(AudioBaseInfo &info){
-    auto cfg = kit.defaultConfig();
-    cfg.copyFrom(info);
-    kit.begin(cfg);
-    return &kit;
-}
-
 void setup() {
     Serial.begin(115200);
-    // assign callback method
-    audio_stream_factory_callback = setupStream;
+
+    // setup SD and output
+    auto cfg = kit.defaultConfig();
+    cfg.sd_active = true;
+    kit.begin(cfg);
+    espeak_set_audio_output(&kit);
+
+    // enable allocates in psram
+    const int limit = 1000;
+    heap_caps_malloc_extmem_enable(limit);
+
+    // setup espeak
     char voicename[] = {"English"}; // Set voice by its name
     char text[] = {"Hello world!"};
     int buflength = 500, options = 0;
