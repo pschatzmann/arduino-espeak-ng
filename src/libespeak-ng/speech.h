@@ -19,10 +19,12 @@
 
 #ifndef ESPEAK_NG_SPEECH_H
 #define ESPEAK_NG_SPEECH_H
-#include "config.h"
-#if HAVE_ENDIAN_H 
+
+// for BYTE_ORDER, BIG_ENDIAN
+#if HAVE_ENDIAN_H
 #include <endian.h>
-#endif               // for BYTE_ORDER, BIG_ENDIAN
+#endif
+
 #include <espeak-ng/espeak_ng.h>
 
 #if defined(__has_feature)
@@ -77,7 +79,7 @@ extern "C"
 
 // will look for espeak_data directory here, and also in user's home directory
 #ifndef PATH_ESPEAK_DATA
-#define PATH_ESPEAK_DATA  "/usr/share/espeak-ng-data"
+   #define PATH_ESPEAK_DATA  "/usr/share/espeak-ng-data"
 #endif
 
 void cancel_audio(void);

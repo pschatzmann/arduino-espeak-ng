@@ -221,12 +221,3 @@
 #  define le16toh(X) X
 #  define le32toh(X) X
 #endif
-
-#ifdef ESP32
-#define HAVE_DIRENT 1
-#endif
-
-#if defined(ARDUINO_ARCH_STM32) || defined(ARDUINO_ARCH_RP2040)
-// make dirent available
-#include "ConfigFS.h" // https://github.com/pschatzmann/arduino-posix-fs
-#endif

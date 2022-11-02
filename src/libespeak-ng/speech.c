@@ -336,9 +336,8 @@ ESPEAK_NG_API void espeak_ng_InitializePath(const char *path)
 	if (check_data_path(getenv("HOME"), 0))
 		return;
 #endif
-	if (path==NULL) path = PATH_ESPEAK_DATA;
 
-	strcpy(path_home, path);
+	strcpy(path_home, PATH_ESPEAK_DATA);
 }
 
 const int param_defaults[N_SPEECH_PARAM] = {

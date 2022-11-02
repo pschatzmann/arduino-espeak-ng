@@ -25,9 +25,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if HAVE_ENDIAN_H 
+// for BYTE_ORDER, BIG_ENDIAN
+#if HAVE_ENDIAN_H
 #include <endian.h>
-#endif               // for BYTE_ORDER, BIG_ENDIAN
+#endif
+
 
 #include <espeak-ng/espeak_ng.h>
 #include <espeak-ng/speak_lib.h>

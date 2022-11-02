@@ -53,6 +53,7 @@ def link_files():
     # config
     link('../arduino/config.h', 'src/config.h') 
     link('../arduino/espeak.h', 'src/espeak.h') 
+    link('../arduino/direntx.h', 'src/direntx.h') 
 
 # deletes a file if it exists
 def remove(file):
@@ -69,6 +70,8 @@ def cleanup():
     remove("src/libespeak-ng/.dirstamp")
     shutil.rmtree("src/ucd/.deps", ignore_errors=True)
     remove("src/ucd/.dirstamp")
+    remove("src/libespeak-ng/sPlayer.c")
+    remove("src/libespeak-ng/sPlayer.h")
 
 # replace texts in a file
 def file_replace_text(fileName, fromStr, toStr):
@@ -137,7 +140,12 @@ if res.exit==0:
     # convert_double()
     # conflict with string
     file_replace_text("src/libespeak-ng/compilembrola.c","basename(","basefilename(")
-    apply_patches()
+    file_replace_text("src/libespeak-ng/speech.h","#include <endian.h>               // for BYTE_ORDER, BIG_ENDIAN","// for BYTE_ORDER, BIG_ENDIAN\n#if HAVE_ENDIAN_H\n#include <endian.h>\n#endif\n")
+    file_replace_text("src/libespeak-ng/speech.h","strcpy(path_home, PATH_ESPEAK_DATA);","if (path==NULL) path = PATH_ESPEAK_DATA;\n\n	strcpy(path_home, path);")
+    file_replace_text("src/libespeak-ng/spect.c","#include <endian.h>", "// for BYTE_ORDER, BIG_ENDIAN\n#if HAVE_ENDIAN_H\n#include <endian.h>\n#endif\n")
+    file_replace_text("src/libespeak-ng/voices.c","#include <dirent.h>","#include \"direntx.h\"")
+
+    # apply_patches()
     create_data()
     print("setup completed")
 else:
