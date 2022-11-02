@@ -1201,7 +1201,7 @@ static void GetVoices(const char *path, int len_path_voices, int is_language_fil
 		}
 	} while (FindNextFileA(hFind, &FindFileData) != 0);
 	FindClose(hFind);
-#elif HAVE_DIRENT
+#endif
 
 	DIR *dir;
 	struct dirent *ent;
@@ -1225,7 +1225,6 @@ static void GetVoices(const char *path, int len_path_voices, int is_language_fil
 
 	}
 	closedir(dir);
-#endif
 }
 
 #pragma GCC visibility push(default)
