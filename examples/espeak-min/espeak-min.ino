@@ -16,7 +16,7 @@
 #include "espeak.h"
 
 I2SStream i2s; // or replace with AudioKitStream for AudioKit
-file_systems::FileSystemMemory fsm("/mem");
+file_systems::FileSystemMemory fsm("/mem"); // File system data in PROGMEM
 espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
 char *path = "/mem/data"; 
 void *user_data = nullptr;
@@ -27,7 +27,7 @@ espeak_POSITION_TYPE position_type = POS_CHARACTER;
 
 void setup() {
   Serial.begin(115200);
-  // setup file system
+  // setup min file system
   fsm.add("/mem/data/phontab", espeak_ng_data_phontab,espeak_ng_data_phontab_len);
   fsm.add("/mem/data/phonindex", espeak_ng_data_phonindex,espeak_ng_data_phonindex_len);
   fsm.add("/mem/data/phondata", espeak_ng_data_phondata,espeak_ng_data_phondata_len);

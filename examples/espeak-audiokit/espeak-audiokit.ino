@@ -14,9 +14,13 @@
 
 AudioKitStream kit;
 espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
-char *path = "/sd/espeak-ng-data";
+char *path = "/sd/espeak-ng-data"; // path on sd drive
 void* user_data = nullptr;
 unsigned int *identifier = nullptr;
+int buflength = 500, options = 0;
+unsigned int position = 0, end_position = 0, flags = espeakCHARS_AUTO;
+espeak_POSITION_TYPE position_type = POS_CHARACTER;
+
 
 void setup() {
     Serial.begin(115200);
@@ -27,7 +31,7 @@ void setup() {
     kit.begin(cfg);
     espeak_set_audio_output(&kit);
 
-    // enable allocates in psram
+    // enable memory allocation in PSRAM
     const int limit = 1000;
     heap_caps_malloc_extmem_enable(limit);
 
