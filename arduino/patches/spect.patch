@@ -1,0 +1,14 @@
+--- original/src/libespeak-ng/spect.c	2022-10-27 18:30:17.000000000 +0200
++++ src/libespeak-ng/spect.c	2022-11-03 11:43:08.000000000 +0100
+@@ -25,7 +25,11 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++// for BYTE_ORDER, BIG_ENDIAN
++#if HAVE_ENDIAN_H
+ #include <endian.h>
++#endif
++
+ 
+ #include <espeak-ng/espeak_ng.h>
+ #include <espeak-ng/speak_lib.h>

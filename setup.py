@@ -1,5 +1,7 @@
 # setup of Arduino Library from https://github.com/espeak-ng/espeak-ng.git 
 import os, command, shutil
+from subprocess import run
+
 
 # get latest original source code
 def execute_git(fromUrl, name):
@@ -28,11 +30,7 @@ def copy_files():
     shutil.copytree('original/src/include/espeak-ng', 'src/espeak-ng', dirs_exist_ok=True) 
     shutil.copytree('original/src/libespeak-ng', 'src/libespeak-ng', dirs_exist_ok=True) 
     shutil.copytree('original/docs', 'docs', dirs_exist_ok=True) 
-    #shutil.copytree('original/phsource', 'data/phsource', dirs_exist_ok=True) 
-    #shutil.copytree('original/dictsource', 'data/dictsource', dirs_exist_ok=True) 
     shutil.copytree('original/espeak-ng-data', 'espeak-ng-data', dirs_exist_ok=True) 
-    #shutil.copytree('original/src/speechPlayer/src', 'src/speechPlayer', dirs_exist_ok=True) 
-    shutil.copy2('original/src/speechPlayer/include/speechPlayer.h', 'src/speechPlayer.h') 
     # ucd
     shutil.copytree('original/src/ucd-tools/src', 'src/ucd', dirs_exist_ok=True) 
     shutil.copy2('original/src/ucd-tools/src/include/ucd/ucd.h', 'src/ucd/ucd.h') 
@@ -65,7 +63,7 @@ def cleanup():
     remove("src/libespeak-ng/mbrowrap.c")
     remove("src/libespeak-ng/mbrowrap.h")
     shutil.rmtree("src/speechPlayer/.deps", ignore_errors=True)
-    #remove("src/speechPlayer/.dirstamp")
+    remove("src/libespeak-ng/compilembrola.c")
     shutil.rmtree("src/libespeak-ng/.deps", ignore_errors=True)
     remove("src/libespeak-ng/.dirstamp")
     shutil.rmtree("src/ucd/.deps", ignore_errors=True)
@@ -85,20 +83,7 @@ def file_replace_text(fileName, fromStr, toStr):
     text_file.write(new_txt)
     text_file.close()
 
-# convert double to float
-def convert_double():
-    arr = os.listdir("src/speechPlayer")
-    for file in arr:
-        if not "." in file:
-            print(file)
-            fpath = "src/speechPlayer/"+file
-            file_replace_text(fpath, "double","float")
 
-# Change standard functionality
-def apply_patches():
-    res = command.run(["git", "apply", "arduino/patches/dirent.patch"]) 
-    if res.exit!=0:
-        print(res.output) 
 
 # execute xxd on data file
 def execute_xxd(infile, outfile):
@@ -129,24 +114,59 @@ def create_data():
         f.write(includes)
         f.close()
 
+# creates an individual patch file
+def create_patch_file(updated, original, patchfile):
+    cmd = "diff -u "+ original+" "+ updated
+    stream = os.popen(cmd)
+    output = stream.read()
+    text_file = open("arduino/patches/"+patchfile, "w")
+    text_file.write(output)
+    text_file.close()   
+
+# applies a patch file
+def apply_patch_file(infile, patchfile):
+    cmd = "patch "+ infile+ " arduino/patches/"+patchfile
+    print(cmd)
+    stream = os.popen(cmd)
+    output = stream.read()
+    print(output) 
+
+# create patches for changed files
+def create_patch_files():
+    if os.path.exists("src/libespeak-ng"):
+        create_patch_file("src/libespeak-ng/speech.h","original/src/libespeak-ng/speech.h", "speech.patch")
+        create_patch_file("src/libespeak-ng/spect.c","original/src/libespeak-ng/spect.c", "spect.patch")
+        create_patch_file("src/libespeak-ng/voices.c","original/src/libespeak-ng/voices.c", "voices.patch")
+
+# apply patches to files
+def apply_patch_files():
+    print("apply_patch_files")
+    if os.path.exists("arduino/patches/speech.patch"):
+        apply_patch_file("src/libespeak-ng/speech.h","speech.patch")
+        apply_patch_file("src/libespeak-ng/spect.c","spect.patch")
+        apply_patch_file("src/libespeak-ng/voices.c", "voices.patch")
+    else:
+        print("no patch files")
+
+# obsolete - not used
+def apply_patches():
+    file_replace_text("src/libespeak-ng/compilembrola.c","basename(","basefilename(")
+    file_replace_text("src/libespeak-ng/speech.h","#include <endian.h>               // for BYTE_ORDER, BIG_ENDIAN","// for BYTE_ORDER, BIG_ENDIAN\n#if HAVE_ENDIAN_H\n#include <endian.h>\n#endif\n")
+    file_replace_text("src/libespeak-ng/spect.c","#include <endian.h>", "// for BYTE_ORDER, BIG_ENDIAN\n#if HAVE_ENDIAN_H\n#include <endian.h>\n#endif\n")
+    file_replace_text("src/libespeak-ng/speech.h","strcpy(path_home, PATH_ESPEAK_DATA);","if (path==NULL) path = PATH_ESPEAK_DATA;\n\n	strcpy(path_home, path);")
+    file_replace_text("src/libespeak-ng/voices.c","#include <dirent.h>","#include \"direntx.h\"")
+
 ##-----------------------
 ## Main logic starts here
 res = execute_git("https://github.com/espeak-ng/espeak-ng.git", "original")
 if res.exit==0:
+    create_patch_files()
     clean_src()
     copy_files()
     link_files()
     cleanup()
-    # convert_double()
-    # conflict with string
-    file_replace_text("src/libespeak-ng/compilembrola.c","basename(","basefilename(")
-    file_replace_text("src/libespeak-ng/speech.h","#include <endian.h>               // for BYTE_ORDER, BIG_ENDIAN","// for BYTE_ORDER, BIG_ENDIAN\n#if HAVE_ENDIAN_H\n#include <endian.h>\n#endif\n")
-    file_replace_text("src/libespeak-ng/speech.h","strcpy(path_home, PATH_ESPEAK_DATA);","if (path==NULL) path = PATH_ESPEAK_DATA;\n\n	strcpy(path_home, path);")
-    file_replace_text("src/libespeak-ng/spect.c","#include <endian.h>", "// for BYTE_ORDER, BIG_ENDIAN\n#if HAVE_ENDIAN_H\n#include <endian.h>\n#endif\n")
-    file_replace_text("src/libespeak-ng/voices.c","#include <dirent.h>","#include \"direntx.h\"")
-
-    # apply_patches()
     create_data()
+    apply_patch_files()
     print("setup completed")
 else:
     print("Could not execute git command")

@@ -1,0 +1,11 @@
+--- original/src/libespeak-ng/voices.c	2022-11-01 10:06:27.000000000 +0100
++++ src/libespeak-ng/voices.c	2022-11-03 11:45:38.000000000 +0100
+@@ -32,7 +32,7 @@
+ #if defined(_WIN32) || defined(_WIN64)
+ #include <windows.h>
+ #else
+-#include <dirent.h>
++#include "direntx.h"
+ #endif
+ 
+ #include <espeak-ng/espeak_ng.h>
