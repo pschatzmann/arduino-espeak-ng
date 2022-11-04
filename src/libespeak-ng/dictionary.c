@@ -213,7 +213,7 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 	sprintf(fname, "%s%c%s_dict", path_home, PATHSEP, name);
 
 	// Arduino memory hack using mem_map from https://github.com/pschatzmann/arduino-posix-fs
-	void* ptr = espeak_mem_map(fname, size);
+	void* ptr = espeak_mem_map(fname, &size);
 	if (ptr!=NULL){
 		tr->data_dictlist = ptr;
 	} else {

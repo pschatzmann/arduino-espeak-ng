@@ -1,5 +1,5 @@
 --- original/src/libespeak-ng/voices.c	2022-11-01 10:06:27.000000000 +0100
-+++ src/libespeak-ng/voices.c	2022-11-04 19:25:08.000000000 +0100
++++ src/libespeak-ng/voices.c	2022-11-04 19:28:08.000000000 +0100
 @@ -32,7 +32,7 @@
  #if defined(_WIN32) || defined(_WIN64)
  #include <windows.h>

@@ -1,5 +1,5 @@
 --- original/src/libespeak-ng/dictionary.c	2022-11-01 10:06:27.000000000 +0100
-+++ src/libespeak-ng/dictionary.c	2022-11-04 19:25:08.000000000 +0100
++++ src/libespeak-ng/dictionary.c	2022-11-04 19:28:08.000000000 +0100
 @@ -211,28 +211,36 @@
  	// bytes 0-3:  offset to rules data
  	// bytes 4-7:  number of hash table entries

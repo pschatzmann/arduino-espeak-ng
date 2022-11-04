@@ -66,7 +66,9 @@ void* espeak_mem_map(const char* path, int *len) {
 #if ESPEAK_ARDUINO_POSIX_FS
     size_t size;
     auto result = file_systems::DefaultRegistry.fileSystemByName("FileSystemMemory").mem_map(path, &size);
-    *len = size;
+    if (len!=nullptr){
+        *len = size;
+    }
     return result;
 #else
     return nullptr;
