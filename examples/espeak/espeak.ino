@@ -19,7 +19,7 @@
 #define PIN_SD_CARD_CLK 14
 
 I2SStrem i2s;
-char *path = "/sd/espeak-ng-data";
+const char* path = "/sd/espeak-ng-data";
 FileSystem efs(path, SD); // set file system
 espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
 void *user_data = nullptr;

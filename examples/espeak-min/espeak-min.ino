@@ -18,7 +18,7 @@
 I2SStream i2s; // or replace with AudioKitStream for AudioKit
 file_systems::FileSystemMemory fsm("/mem"); // File system data in PROGMEM
 espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
-char *path = "/mem/data"; 
+const char* path = "/mem/data"; 
 void *user_data = nullptr;
 unsigned int *identifier = nullptr;
 int buflength = 500, options = 0;

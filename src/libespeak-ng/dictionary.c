@@ -218,21 +218,28 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 		tr->data_dictlist = NULL;
 	}
 
-	f = fopen(fname, "rb");
-	if ((f == NULL) || (size <= 0)) {
-		if (no_error == 0)
-			fprintf(stderr, "Can't read dictionary file: '%s'\n", fname);
-		if (f != NULL)
+	// Arduino memory hack using mem_map from https://github.com/pschatzmann/arduino-posix-fs
+	void* ptr = espeak_mem_map(fname);
+	if (ptr!=NULL){
+		tr->data_dictlist = ptr;
+	} else {
+		f = fopen(fname, "rb");
+		if ((f == NULL) || (size <= 0)) {
+			if (no_error == 0)
+				fprintf(stderr, "Can't read dictionary file: '%s'\n", fname);
+			if (f != NULL)
+				fclose(f);
+			return 1;
+		}
+
+		if ((tr->data_dictlist = malloc(size)) == NULL) {
 			fclose(f);
-		return 1;
+			return 3;
+		}
+		size = fread(tr->data_dictlist, 1, size, f);
+		fclose(f);
 	}
 
-	if ((tr->data_dictlist = malloc(size)) == NULL) {
-		fclose(f);
-		return 3;
-	}
-	size = fread(tr->data_dictlist, 1, size, f);
-	fclose(f);
 
 	pw = (int *)(tr->data_dictlist);
 	length = Reverse4Bytes(pw[1]);

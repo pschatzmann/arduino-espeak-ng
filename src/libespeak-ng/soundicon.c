@@ -182,7 +182,8 @@ int LoadSoundFile2(const char *fname)
 		return -1;
 
 	soundicon_tab[n_soundicon_tab].filename = (char *)realloc(soundicon_tab[n_soundicon_tab].filename, strlen(fname)+1);
-	strcpy(soundicon_tab[n_soundicon_tab].filename, fname);
+	if (soundicon_tab[n_soundicon_tab].filename)
+		strcpy(soundicon_tab[n_soundicon_tab].filename, fname);
 	n_soundicon_tab++;
 	return n_soundicon_tab - 1;
 }

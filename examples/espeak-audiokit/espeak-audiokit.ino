@@ -14,7 +14,7 @@
 
 AudioKitStream kit;
 espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
-char *path = "/sd/espeak-ng-data"; // path on sd drive
+const char* path = "/sd/espeak-ng-data"; // path on sd drive
 void* user_data = nullptr;
 unsigned int *identifier = nullptr;
 int buflength = 500, options = 0;

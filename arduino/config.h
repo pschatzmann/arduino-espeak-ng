@@ -221,3 +221,9 @@
 #  define le16toh(X) X
 #  define le32toh(X) X
 #endif
+
+#ifndef ESPEAK_ARDUINO_POSIX_FS
+#define ESPEAK_ARDUINO_POSIX_FS 1
+#endif
+
+#include "../arduino/posix-fs.h"
