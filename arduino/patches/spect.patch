@@ -1,5 +1,5 @@
---- original/src/libespeak-ng/spect.c	2022-10-27 18:30:17.000000000 +0200
-+++ src/libespeak-ng/spect.c	2022-11-03 11:43:08.000000000 +0100
+--- original/src/libespeak-ng/spect.c	2022-11-04 19:17:03.000000000 +0100
++++ src/libespeak-ng/spect.c	2022-11-04 19:25:08.000000000 +0100
 @@ -25,7 +25,11 @@
  #include <stdio.h>
  #include <stdlib.h>
@@ -12,3 +12,14 @@
  
  #include <espeak-ng/espeak_ng.h>
  #include <espeak-ng/speak_lib.h>
+@@ -348,6 +352,10 @@
+ 		free(spect->frames);
+ 	}
+ 	spect->frames = calloc(n, sizeof(SpectFrame *));
++	if (spect->frames==NULL){
++		fprintf(stderr, "SpectFrame: Out of memory.\n");
++		return ENOMEM;
++	}
+ 
+ 	spect->numframes = 0;
+ 	spect->max_x = 3000;

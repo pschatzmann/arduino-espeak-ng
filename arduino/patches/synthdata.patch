@@ -1,0 +1,57 @@
+--- original/src/libespeak-ng/synthdata.c	2022-11-01 10:06:27.000000000 +0100
++++ src/libespeak-ng/synthdata.c	2022-11-04 19:25:08.000000000 +0100
+@@ -72,28 +72,36 @@
+ 	char buf[sizeof(path_home)+40];
+ 
+ 	sprintf(buf, "%s%c%s", path_home, PATHSEP, fname);
+-	length = GetFileLength(buf);
+-	if (length < 0) // length == -errno
+-		return create_file_error_context(context, -length, buf);
+ 
+-	if ((f_in = fopen(buf, "rb")) == NULL)
+-		return create_file_error_context(context, errno, buf);
+-
+-	if (*ptr != NULL)
+-		free(*ptr);
++	// Arduino memory hack using mem_map from https://github.com/pschatzmann/arduino-posix-fs
++	void* ptmp = espeak_mem_map(buf, &length);
++	if (ptmp!=NULL){
++		if (*ptr != NULL)
++			free(*ptr);
++		*ptr = ptmp;
++	} else {
++		length = GetFileLength(buf);
++		if (length < 0) // length == -errno
++			return create_file_error_context(context, -length, buf);
++		if ((f_in = fopen(buf, "rb")) == NULL)
++			return create_file_error_context(context, errno, buf);
++
++		if (*ptr != NULL)
++			free(*ptr);
++
++		if ((*ptr = malloc(length)) == NULL) {
++			fclose(f_in);
++			return ENOMEM;
++		}
++		if (fread(*ptr, 1, length, f_in) != length) {
++			int error = errno;
++			fclose(f_in);
++			free(*ptr);
++			return create_file_error_context(context, error, buf);
++		}
+ 
+-	if ((*ptr = malloc(length)) == NULL) {
+ 		fclose(f_in);
+-		return ENOMEM;
+ 	}
+-	if (fread(*ptr, 1, length, f_in) != length) {
+-		int error = errno;
+-		fclose(f_in);
+-		free(*ptr);
+-		return create_file_error_context(context, error, buf);
+-	}
+-
+-	fclose(f_in);
+ 	if (size != NULL)
+ 		*size = length;
+ 	return ENS_OK;

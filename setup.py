@@ -125,7 +125,7 @@ def create_patch_file(updated, original, patchfile):
 
 # applies a patch file
 def apply_patch_file(infile, patchfile):
-    cmd = "patch "+ infile+ " arduino/patches/"+patchfile
+    cmd = "patch -u "+ infile+ " arduino/patches/"+patchfile
     print(cmd)
     stream = os.popen(cmd)
     output = stream.read()

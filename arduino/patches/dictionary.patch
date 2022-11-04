@@ -1,0 +1,56 @@
+--- original/src/libespeak-ng/dictionary.c	2022-11-01 10:06:27.000000000 +0100
++++ src/libespeak-ng/dictionary.c	2022-11-04 19:25:08.000000000 +0100
+@@ -211,28 +211,36 @@
+ 	// bytes 0-3:  offset to rules data
+ 	// bytes 4-7:  number of hash table entries
+ 	sprintf(fname, "%s%c%s_dict", path_home, PATHSEP, name);
+-	size = GetFileLength(fname);
+ 
+-	if (tr->data_dictlist != NULL) {
+-		free(tr->data_dictlist);
+-		tr->data_dictlist = NULL;
+-	}
++	// Arduino memory hack using mem_map from https://github.com/pschatzmann/arduino-posix-fs
++	void* ptr = espeak_mem_map(fname, size);
++	if (ptr!=NULL){
++		tr->data_dictlist = ptr;
++	} else {
++		size = GetFileLength(fname);
+ 
+-	f = fopen(fname, "rb");
+-	if ((f == NULL) || (size <= 0)) {
+-		if (no_error == 0)
+-			fprintf(stderr, "Can't read dictionary file: '%s'\n", fname);
+-		if (f != NULL)
+-			fclose(f);
+-		return 1;
+-	}
++		if (tr->data_dictlist != NULL) {
++			free(tr->data_dictlist);
++			tr->data_dictlist = NULL;
++		}
+ 
+-	if ((tr->data_dictlist = malloc(size)) == NULL) {
++		f = fopen(fname, "rb");
++		if ((f == NULL) || (size <= 0)) {
++			if (no_error == 0)
++				fprintf(stderr, "Can't read dictionary file: '%s'\n", fname);
++			if (f != NULL)
++				fclose(f);
++			return 1;
++		}
++
++		if ((tr->data_dictlist = malloc(size)) == NULL) {
++			fclose(f);
++			return 3;
++		}
++		size = fread(tr->data_dictlist, 1, size, f);
+ 		fclose(f);
+-		return 3;
+ 	}
+-	size = fread(tr->data_dictlist, 1, size, f);
+-	fclose(f);
++
+ 
+ 	pw = (int *)(tr->data_dictlist);
+ 	length = Reverse4Bytes(pw[1]);
