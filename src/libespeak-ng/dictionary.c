@@ -211,18 +211,19 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 	// bytes 0-3:  offset to rules data
 	// bytes 4-7:  number of hash table entries
 	sprintf(fname, "%s%c%s_dict", path_home, PATHSEP, name);
-	size = GetFileLength(fname);
-
-	if (tr->data_dictlist != NULL) {
-		free(tr->data_dictlist);
-		tr->data_dictlist = NULL;
-	}
 
 	// Arduino memory hack using mem_map from https://github.com/pschatzmann/arduino-posix-fs
-	void* ptr = espeak_mem_map(fname);
+	void* ptr = espeak_mem_map(fname, size);
 	if (ptr!=NULL){
 		tr->data_dictlist = ptr;
 	} else {
+		size = GetFileLength(fname);
+
+		if (tr->data_dictlist != NULL) {
+			free(tr->data_dictlist);
+			tr->data_dictlist = NULL;
+		}
+
 		f = fopen(fname, "rb");
 		if ((f == NULL) || (size <= 0)) {
 			if (no_error == 0)

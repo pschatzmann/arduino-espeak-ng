@@ -25,4 +25,4 @@ endif()
 add_executable(espeak-cmake espeak-cmake.cpp)
 target_compile_definitions(espeak-cmake PUBLIC -DARDUINO -DIS_DESKTOP -DEXIT_ON_STOP)
 
-target_link_libraries(espeak-cmake arduino-espeak-ng arduino_emulator portaudio_static arduino-audio-tools)
+target_link_libraries(espeak-cmake arduino-espeak-ng arduino_emulator portaudio_static arduino-posix-fs arduino-audio-tools)

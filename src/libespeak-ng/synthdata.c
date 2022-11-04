@@ -72,17 +72,17 @@ static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, esp
 	char buf[sizeof(path_home)+40];
 
 	sprintf(buf, "%s%c%s", path_home, PATHSEP, fname);
-	length = GetFileLength(buf);
-	if (length < 0) // length == -errno
-		return create_file_error_context(context, -length, buf);
 
 	// Arduino memory hack using mem_map from https://github.com/pschatzmann/arduino-posix-fs
-	void* ptmp = espeak_mem_map(fname);
+	void* ptmp = espeak_mem_map(buf, &length);
 	if (ptmp!=NULL){
 		if (*ptr != NULL)
 			free(*ptr);
 		*ptr = ptmp;
 	} else {
+		length = GetFileLength(buf);
+		if (length < 0) // length == -errno
+			return create_file_error_context(context, -length, buf);
 		if ((f_in = fopen(buf, "rb")) == NULL)
 			return create_file_error_context(context, errno, buf);
 

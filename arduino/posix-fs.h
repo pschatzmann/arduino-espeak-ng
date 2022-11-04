@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-void* espeak_mem_map(const char* path); 
+void* espeak_mem_map(const char* path, int* len); 
 
 #ifdef __cplusplus
 }

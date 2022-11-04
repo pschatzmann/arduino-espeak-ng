@@ -17,16 +17,25 @@ if(NOT arduino_emulator_POPULATED)
     add_subdirectory(${arduino_emulator_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/arduino_emulator)
 endif()
 
+FetchContent_Declare(arduino-posix-fs GIT_REPOSITORY "https://github.com/pschatzmann/arduino-posix-fs.git" GIT_TAG main )
+FetchContent_GetProperties(arduino-posix-fs)
+if(NOT arduino-posix-fs_POPULATED)
+    FetchContent_Populate(arduino-posix-fs)
+    add_subdirectory(${arduino-posix-fs_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/arduino-posix-fs)
+endif()
+
+
 # define source files
 file(GLOB_RECURSE SRC_LIST_CPP CONFIGURE_DEPENDS  "${PROJECT_SOURCE_DIR}/src/*.cpp" )
 file(GLOB_RECURSE SRC_LIST_C CONFIGURE_DEPENDS  "${PROJECT_SOURCE_DIR}/src/*.c" )
 
 # define libraries
-add_library (arduino-espeak-ng ${SRC_LIST_CPP} ${SRC_LIST_C})
+add_library (arduino-espeak-ng STATIC ${SRC_LIST_CPP} ${SRC_LIST_C})
 
 target_compile_definitions(arduino-espeak-ng PUBLIC -DIS_DESKTOP )
+target_compile_definitions(arduino-posix-fs PUBLIC -DIS_DESKTOP )
 
 # define location for header files
 target_include_directories(arduino-espeak-ng PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src )
 
-target_link_libraries(arduino-espeak-ng  arduino_emulator)
+target_link_libraries(arduino-espeak-ng arduino-posix-fs arduino_emulator)

@@ -1,8 +1,9 @@
 #include "config.h"
 #include "audio.h"
 #include "audio_object.h"
-#include "FileSystems.h" // https://github.com/pschatzmann/arduino-posix-fs
-
+#if ESPEAK_ARDUINO_POSIX_FS
+#  include "FileSystems.h" // https://github.com/pschatzmann/arduino-posix-fs
+#endif
 // audio callback
 void (*audio_stream_factory_callback)(audio_info *cfg) = nullptr;
 // actual audio output
@@ -61,9 +62,12 @@ struct audio_object * create_audio_device_object(const char *device,
 }
 
 // Integration to https://github.com/pschatzmann/arduino-posix-fs.git to disable define ESPEAK_ARDUINO_POSIX_FS 0
-void* espeak_mem_map(const char* path) {
+void* espeak_mem_map(const char* path, int *len) {
 #if ESPEAK_ARDUINO_POSIX_FS
-    return file_systems::DefaultRegistry.fileSystemByName("FileSystemMemory").mem_map(path, nullptr);
+    size_t size;
+    auto result = file_systems::DefaultRegistry.fileSystemByName("FileSystemMemory").mem_map(path, &size);
+    *len = size;
+    return result;
 #else
     return nullptr;
 #endif
