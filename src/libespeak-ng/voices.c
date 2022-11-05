@@ -153,16 +153,38 @@ void ReadTonePoints(char *string, int *tone_pts)
 	       &tone_pts[8], &tone_pts[9]);
 }
 
-static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_language_file)
-{
-	// Read a Voice file, allocate a VOICE_DATA and set data from the
-	// file's  language, gender, name  lines
-
+/// Microcontroller have limited stack: so we move it to the heap
+#ifdef ESPEAK_USE_STACK_OPTIMIZATION
+struct ReadVoiceFileStruct {
 	char linebuf[120];
 	char vname[80];
 	char vgender[80];
 	char vlanguage[80];
 	char languages[300]; // allow space for several alternate language names and priorities
+} DataReadVoiceFileStruct;
+#endif
+
+static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_language_file)
+{
+	// Read a Voice file, allocate a VOICE_DATA and set data from the
+	// file's  language, gender, name  lines
+#ifdef ESPEAK_USE_STACK_OPTIMIZATION
+	memset(&DataReadVoiceFileStruct,0,sizeof(DataReadVoiceFileStruct));
+	char *linebuf = &DataReadVoiceFileStruct.linebuf;
+	char *vname = &DataReadVoiceFileStruct.vname;
+	char *vgender = &DataReadVoiceFileStruct.vgender;
+	char *vlanguage = &DataReadVoiceFileStruct.vlanguage;
+	char *languages = &DataReadVoiceFileStruct.languages;; // allow space for several alternate language names and priorities
+#else
+	char linebuf[120];
+	char vname[80];
+	char vgender[80];
+	char vlanguage[80];
+	char languages[300]; // allow space for several alternate language names and priorities
+#endif
+	const int vname_size = 80;
+	const int linebuf_size = 120;
+	const int languages_size = 300;
 
 	unsigned int len;
 	int langix = 0;
@@ -178,7 +200,7 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 	vgender[0] = 0;
 	age = 0;
 
-	while (fgets_strip(linebuf, sizeof(linebuf), f_in) != NULL) {
+	while (fgets_strip(linebuf, linebuf_size, f_in) != NULL) {
 		// isolate the attribute name
 		for (p = linebuf; (*p != 0) && !iswspace(*p); p++) ;
 		*p++ = 0;
@@ -189,7 +211,7 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 		{
 		case V_NAME:
 			while (isspace(*p)) p++;
-			strncpy0(vname, p, sizeof(vname));
+			strncpy0(vname, p, vname_size);
 			break;
 		case V_LANGUAGE:
 			priority = DEFAULT_LANGUAGE_PRIORITY;
@@ -198,7 +220,7 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 			sscanf(p, "%s %d", vlanguage, &priority);
 			len = strlen(vlanguage) + 2;
 			// check for space in languages[]
-			if (len < (sizeof(languages)-langix-1)) {
+			if (len < (languages_size-langix-1)) {
 				languages[langix] = priority;
 
 				strcpy(&languages[langix+1], vlanguage);

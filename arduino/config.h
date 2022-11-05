@@ -226,4 +226,6 @@
 #define ESPEAK_ARDUINO_POSIX_FS 1
 #endif
 
+#define ESPEAK_USE_STACK_OPTIMIZATION 1
+
 #include "../arduino/posix-fs.h"
