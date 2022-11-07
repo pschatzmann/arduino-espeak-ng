@@ -921,6 +921,9 @@ static int UpperCaseInWord(Translator *tr, char *word, int c)
 
 void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 {
+	if (tr == NULL)
+		return;
+
 	int ix;
 	int c;
 	int cc = 0;
@@ -955,7 +958,15 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 	int charix_top = 0;
 
 	short charix[N_TR_SOURCE+4];
+#if ESPEAK_STACK_HACK
+	WORD_TAB* words = malloc(sizeof(WORD_TAB)*N_CLAUSE_WORDS);
+	assert(words!=NULL);
+
+	WORD_TAB* num_wtab = malloc(sizeof(WORD_TAB)*50);
+	assert(num_wtab!=NULL);
+#else
 	WORD_TAB words[N_CLAUSE_WORDS];
+#endif
 	static char voice_change_name[40];
 	int word_count = 0; // index into words
 
@@ -963,9 +974,6 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 
 	int terminator;
 	int tone;
-
-	if (tr == NULL)
-		return;
 
 	MAKE_MEM_UNDEFINED(&voice_change_name, sizeof(voice_change_name));
 
@@ -1490,8 +1498,9 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 		char *pn;
 		char *pw;
 		char number_buf[150];
+#if ESPEAK_STACK_HACK==0
 		WORD_TAB num_wtab[50]; // copy of 'words', when splitting numbers into parts
-
+#endif
 		// start speaking at a specified word position in the text?
 		count_words++;
 		if (skip_words > 0) {
@@ -1590,7 +1599,6 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 			}
 		} else {
 			pre_pause = 0;
-
 			dict_flags = TranslateWord2(tr, word, &words[ix], words[ix].pre_pause);
 
 			if (pre_pause > words[ix+1].pre_pause) {
@@ -1668,6 +1676,14 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 		else
 			*voice_change = NULL;
 	}
+
+#if ESPEAK_STACK_HACK
+	if(words)
+		free(words);
+	if (num_wtab)
+		free(num_wtab);
+#endif
+
 }
 
 static int CalcWordLength(int source_index, int charix_top, short int *charix, WORD_TAB *words, int word_count) {

@@ -5,7 +5,8 @@ project(espeak-cmake)
 set(CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
 set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-
+#add_link_options(-v -Wl,-stack_size,0x2000)
+ 
 include(FetchContent)
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 
@@ -24,5 +25,6 @@ endif()
 # define libraries
 add_executable(espeak-cmake espeak-cmake.cpp)
 target_compile_definitions(espeak-cmake PUBLIC -DARDUINO -DIS_DESKTOP -DEXIT_ON_STOP)
+target_compile_options(espeak-cmake PUBLIC -Wframe-larger-than=1000 )
 
 target_link_libraries(espeak-cmake arduino-espeak-ng arduino_emulator portaudio_static arduino-posix-fs arduino-audio-tools)

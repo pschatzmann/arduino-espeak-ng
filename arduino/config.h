@@ -222,10 +222,22 @@
 #  define le32toh(X) X
 #endif
 
+// Support for https://github.com/pschatzmann/arduino-posix-fs
 #ifndef ESPEAK_ARDUINO_POSIX_FS
-#define ESPEAK_ARDUINO_POSIX_FS 1
+#  define ESPEAK_ARDUINO_POSIX_FS 1
+#endif
+
+// Activate big stack allocations moved to heap
+#define ESPEAK_STACK_HACK 1
+
+#if ESPEAK_STACK_HACK
+#define STACK_T static
+#else 
+#define STACK_T 
 #endif
 
 #define ESPEAK_USE_STACK_OPTIMIZATION 1
 
 #include "../arduino/posix-fs.h"
+#include <assert.h>
+

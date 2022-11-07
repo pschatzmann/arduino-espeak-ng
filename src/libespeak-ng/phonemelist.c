@@ -136,18 +136,23 @@ void MakePhonemeList(Translator *tr, int post_pause, bool start_sentence)
 	int word_start;
 	bool inserted;
 	bool deleted;
-	PHONEME_DATA phdata;
 	bool start_of_clause = true;
 
 	int n_ph_list3;
 	PHONEME_LIST *plist3;
 	PHONEME_LIST *plist3_inserted = NULL;
-	PHONEME_LIST ph_list3[N_PHONEME_LIST];
 
 	PHONEME_LIST2 *plist2;
-	WORD_PH_DATA worddata;
 
-	memset(&worddata, 0, sizeof(worddata));
+#if ESPEAK_STACK_HACK
+	PHONEME_LIST *ph_list3 = malloc(sizeof(PHONEME_LIST)*N_PHONEME_LIST);
+#else
+	PHONEME_LIST ph_list3[N_PHONEME_LIST];
+#endif
+	STACK_T PHONEME_DATA phdata;
+	STACK_T WORD_PH_DATA worddata;
+	memset(&worddata, 0, sizeof(WORD_PH_DATA));
+	
 	plist2 = ph_list2;
 	phlist = phoneme_list;
 	end_sourceix = plist2[n_ph_list2-1].sourceix;
@@ -593,4 +598,9 @@ void MakePhonemeList(Translator *tr, int post_pause, bool start_sentence)
 	n_phoneme_list = ix;
 
 	SelectPhonemeTable(tr->phoneme_tab_ix);
+
+#if ESPEAK_STACK_HACK
+	if(ph_list3)
+		free(ph_list3);
+#endif
 }

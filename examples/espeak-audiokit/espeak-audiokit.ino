@@ -26,7 +26,11 @@ void setup() {
     Serial.begin(115200);
 
     // setup SD and output
+    audio_info espeak_info = espeak_get_audio_info();
     auto cfg = kit.defaultConfig();
+    cfg.channels = espeak_info.channels; // 1
+    cfg.sample_rate = espeak_info.sample_rate; // 22050
+    cfg.bits_per_sample = espeak_info.bits_per_sample; // 16
     cfg.sd_active = true;
     kit.begin(cfg);
     espeak_set_audio_output(&kit);

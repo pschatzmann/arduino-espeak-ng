@@ -5,8 +5,10 @@ project(arduino-espeak-ng)
 
 # lots of warnings and all warnings as errors
 # add_compile_options(-Wall -Wextra )
-set(CMAKE_CXX_STANDARD 17)
 
+set(CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
 include(FetchContent)
 
 # Build with Linux Arduino Emulator
@@ -33,7 +35,9 @@ file(GLOB_RECURSE SRC_LIST_C CONFIGURE_DEPENDS  "${PROJECT_SOURCE_DIR}/src/*.c" 
 add_library (arduino-espeak-ng STATIC ${SRC_LIST_CPP} ${SRC_LIST_C})
 
 target_compile_definitions(arduino-espeak-ng PUBLIC -DIS_DESKTOP )
+target_compile_options(arduino-espeak-ng PUBLIC -Wframe-larger-than=1000)
 target_compile_definitions(arduino-posix-fs PUBLIC -DIS_DESKTOP )
+
 
 # define location for header files
 target_include_directories(arduino-espeak-ng PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src )

@@ -1080,8 +1080,8 @@ char const *SelectVoice(espeak_VOICE *voice_select, int *found)
 	espeak_VOICE *vp = NULL;
 	espeak_VOICE *vp2;
 	espeak_VOICE voice_select2;
-	espeak_VOICE *voices[N_VOICES_LIST]; // list of candidates
-	espeak_VOICE *voices2[N_VOICES_LIST+N_VOICE_VARIANTS];
+	STACK_T espeak_VOICE *voices[N_VOICES_LIST]; // list of candidates
+	STACK_T espeak_VOICE *voices2[N_VOICES_LIST+N_VOICE_VARIANTS];
 	static espeak_VOICE voice_variants[N_VOICE_VARIANTS];
 	static char voice_id[50];
 
@@ -1249,6 +1249,7 @@ static void GetVoices(const char *path, int len_path_voices, int is_language_fil
 
 	}
 	closedir(dir);
+
 #endif
 }
 
