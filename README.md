@@ -21,13 +21,9 @@ You could load the data from an SD drive, however this is using an excessive amo
 
 ## Examples
 
-- [espeak](/Users/pschatzmann/Dev/Arduino/libraries/arduino-espeak-ng/examples/espeak-min/espeak.ino): Recommended example
-- [espeak-sd](/Users/pschatzmann/Dev/Arduino/libraries/arduino-espeak-ng/examples/espeak-sd/espeak-sd.ino): Example using SD drive.
-- [espeak-cmake](/Users/pschatzmann/Dev/Arduino/libraries/arduino-espeak-ng/examples/espeak-cmake/espeak-cmake.ino): Example compiled and running on desktop.
-
-## Dcoumentation
-
-- [Index](docs/index.md) provides full list of more detailed information for contributors and developers.
+- [espeak](examples/espeak/espeak.ino): Recommended example
+- [espeak-sd](examples/espeak-sd/espeak-sd.ino): Example using SD drive.
+- [espeak-cmake](examples/espeak-cmake/espeak-cmake.ino): Example compiled and running on desktop.
 
 
 ## Dependencies
