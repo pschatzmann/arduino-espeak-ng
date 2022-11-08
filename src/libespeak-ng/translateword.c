@@ -344,12 +344,15 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 			if (unpron_phonemes[0] == phonSWITCH) {
 				// change to another language in order to translate this word
 				strcpy(word_phonemes, unpron_phonemes);
+				if (strcmp(&unpron_phonemes[1], ESPEAKNG_DEFAULT_VOICE) == 0){
+#if ESPEAK_STACK_HACK
+					free(tables);
+#endif
+					return FLAG_SPELLWORD; // _^_en must have been set in TranslateLetter(), not *_rules which uses only _^_
+				}
 #if ESPEAK_STACK_HACK
 				free(tables);
 #endif
-				if (strcmp(&unpron_phonemes[1], ESPEAKNG_DEFAULT_VOICE) == 0){
-					return FLAG_SPELLWORD; // _^_en must have been set in TranslateLetter(), not *_rules which uses only _^_
-				}
 				return 0;
 			}
 
@@ -383,13 +386,16 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 				// ?? should we say super/sub-script numbers and letters here?
 				utf8_in(&wc, wordx);
 				if ((word_length == 1) && (IsAlpha(wc) || IsSuperscript(wc))) {
+					if ((wordx = SpeakIndividualLetters(tr, wordx, phonemes, spell_word, current_alphabet, word_phonemes)) == NULL){
+#if ESPEAK_STACK_HACK
+						free(tables);
+#endif
+						return 0;
+					}	
+					strcpy(word_phonemes, phonemes);
 #if ESPEAK_STACK_HACK
 					free(tables);
 #endif
-
-					if ((wordx = SpeakIndividualLetters(tr, wordx, phonemes, spell_word, current_alphabet, word_phonemes)) == NULL)
-						return 0;
-					strcpy(word_phonemes, phonemes);
 					return 0;
 				}
 			}
