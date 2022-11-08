@@ -145,7 +145,8 @@ void MakePhonemeList(Translator *tr, int post_pause, bool start_sentence)
 	PHONEME_LIST2 *plist2;
 
 #if ESPEAK_STACK_HACK
-	PHONEME_LIST *ph_list3 = malloc(sizeof(PHONEME_LIST)*N_PHONEME_LIST);
+	PHONEME_LIST *ph_list3 = calloc(1, sizeof(PHONEME_LIST)*N_PHONEME_LIST);
+	assert(ph_list3!=NULL);
 #else
 	PHONEME_LIST ph_list3[N_PHONEME_LIST];
 #endif

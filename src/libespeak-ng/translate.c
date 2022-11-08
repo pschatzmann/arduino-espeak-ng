@@ -959,10 +959,10 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 
 	short charix[N_TR_SOURCE+4];
 #if ESPEAK_STACK_HACK
-	WORD_TAB* words = malloc(sizeof(WORD_TAB)*N_CLAUSE_WORDS);
+	WORD_TAB* words = calloc(1, sizeof(WORD_TAB)*N_CLAUSE_WORDS);
 	assert(words!=NULL);
 
-	WORD_TAB* num_wtab = malloc(sizeof(WORD_TAB)*50);
+	WORD_TAB* num_wtab = calloc(1, sizeof(WORD_TAB)*50);
 	assert(num_wtab!=NULL);
 #else
 	WORD_TAB words[N_CLAUSE_WORDS];

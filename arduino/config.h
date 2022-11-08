@@ -217,6 +217,7 @@
 #define PATH_ESPEAK_DATA  "/mem/data"
 #endif
 
+// Currently we support only little endian systems
 #if BYTE_ORDER == LITTLE_ENDIAN
 #  define le16toh(X) X
 #  define le32toh(X) X
@@ -231,13 +232,14 @@
 #define ESPEAK_STACK_HACK 1
 
 #if ESPEAK_STACK_HACK
-#define STACK_T static
+#  define STACK_T static
+#  include <assert.h>
 #else 
 #define STACK_T 
 #endif
 
-#define ESPEAK_USE_STACK_OPTIMIZATION 1
-
+// Data Access is based on https://github.com/pschatzmann/arduino-posix-fs
+#if ESPEAK_ARDUINO_POSIX_FS
 #include "../arduino/posix-fs.h"
-#include <assert.h>
+#endif
 

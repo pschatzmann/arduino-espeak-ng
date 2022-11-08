@@ -55,6 +55,20 @@ static int TranslateLetter(Translator *tr, char *word, char *phonemes, int contr
 static int Unpronouncable(Translator *tr, char *word, int posn);
 static int Unpronouncable2(Translator *tr, char *word);
 
+#if ESPEAK_STACK_HACK
+typedef struct  {
+	char phonemes[N_WORD_PHONEMES];
+	char phonemes2[N_WORD_PHONEMES];
+	char prefix_phonemes[N_WORD_PHONEMES];
+	char unpron_phonemes[N_WORD_PHONEMES];
+	char end_phonemes[N_WORD_PHONEMES];
+	char end_phonemes2[N_WORD_PHONEMES];
+	char word_copy[N_WORD_BYTES];
+	char word_copy2[N_WORD_BYTES];
+	WORD_TAB wtab_null[8];
+} TranslateWord3Tables;
+#endif
+
 int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_out, bool *any_stressed_words, ALPHABET *current_alphabet, char word_phonemes[], size_t size_word_phonemes)
 {
 	// word1 is terminated by space (0x20) character
@@ -72,6 +86,19 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 	int prefix_type = 0;
 	int prefix_stress;
 	char *wordx;
+#if ESPEAK_STACK_HACK
+	TranslateWord3Tables *tables = calloc(1, sizeof(TranslateWord3Tables));
+	assert(tables!=NULL);
+	char *phonemes = tables->phonemes;
+	char *phonemes2 =tables->phonemes2;
+	char *prefix_phonemes=tables->prefix_phonemes;
+	char *unpron_phonemes=tables->unpron_phonemes;
+	char *end_phonemes=tables->end_phonemes;
+	char *end_phonemes2=tables->end_phonemes2;
+	char *word_copy=tables->word_copy;
+	char *word_copy2=tables->word_copy2;
+	WORD_TAB *wtab_null=tables->wtab_null;
+#else
 	char phonemes[N_WORD_PHONEMES];
 	char phonemes2[N_WORD_PHONEMES];
 	char prefix_phonemes[N_WORD_PHONEMES];
@@ -80,8 +107,10 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 	char end_phonemes2[N_WORD_PHONEMES];
 	char word_copy[N_WORD_BYTES];
 	char word_copy2[N_WORD_BYTES];
-	int word_copy_length;
+	WORD_TAB wtab_null[8];
+#endif
 	char prefix_chars[0x3f + 2];
+	int word_copy_length;
 	bool found = false;
 	int end_flags;
 	int c_temp; // save a character byte while we temporarily replace it with space
@@ -96,7 +125,6 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 	int was_unpronouncable = 0;
 	int loopcount;
 	int add_suffix_phonemes = 0;
-	WORD_TAB wtab_null[8];
 
 	if (wtab == NULL) {
 		memset(wtab_null, 0, sizeof(wtab_null));
@@ -118,6 +146,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 	if (tr->data_dictlist == NULL) {
 		// dictionary is not loaded
 		word_phonemes[0] = 0;
+		free(tables);
 		return 0;
 	}
 
@@ -667,6 +696,8 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 
 	dictionary_flags[0] |= was_unpronouncable;
 	memcpy(word_start, word_copy2, word_copy_length);
+
+	free(tables);
 	return dictionary_flags[0];
 }
 

@@ -9,6 +9,7 @@
  *
  */
 #include "AudioTools.h"
+//#include "FileSystems.h" // https://github.com/pschatzmann/arduino-posix-fs
 //#include "AudioLibs/AudioKit.h"
 #include "espeak.h"
 #include "SD.h"
@@ -21,7 +22,7 @@
 
 I2SStream i2s; // or replace with AudioKitStream for AudioKit
 const char* path = "/sd/espeak-ng-data";
-FileSystem efs(path, SD); // set file system
+//file_systems::FileSystemSD efs(path, SD); // dummy implementation on ESP32
 espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
 void *user_data = nullptr;
 unsigned int *identifier = nullptr;
@@ -32,18 +33,25 @@ espeak_POSITION_TYPE position_type = POS_CHARACTER;
 void setup() {
   Serial.begin(115200);
   // we load the config data from SD: "sd" is default mount point
+  Serial.println("starting SD");
   SPI.begin(PIN_SD_CARD_CLK, PIN_SD_CARD_MISO, PIN_SD_CARD_MOSI,
             PIN_SD_CARD_CS);
   while (!SD.begin(PIN_SD_CARD_CS)) {
     delay(500);
   }
 
-  // setup output
+  // setup audio
+  Serial.println("starting i2s");
+  audio_info espeak_info = espeak_get_audio_info();
   auto cfg = i2s.defaultConfig();
+  cfg.channels = espeak_info.channels; // 1
+  cfg.sample_rate = espeak_info.sample_rate; // 22050
+  cfg.bits_per_sample = espeak_info.bits_per_sample; // 16
   i2s.begin(cfg);
   espeak_set_audio_output(&i2s);
 
   // setup espeak
+  Serial.println("espeak_Initialize");
   espeak_Initialize(output, buflength, path, options);
   espeak_VOICE voice;
   memset(&voice, 0, sizeof(espeak_VOICE)); // Zero out the voice first
@@ -52,6 +60,7 @@ void setup() {
   voice.name = "US";
   voice.variant = 2;
   voice.gender = 2;
+  Serial.println("espeak_SetVoiceByProperties");
   espeak_SetVoiceByProperties(&voice);
 }
 

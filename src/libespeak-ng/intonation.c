@@ -938,8 +938,8 @@ void CalcPitches(Translator *tr, int clause_type)
 	int ph_end = n_phoneme_list;
 
 #if ESPEAK_STACK_HACK
-	SYLLABLE *syllable_tab = malloc(sizeof(SYLLABLE)*N_PHONEME_LIST);
-	//assert(syllable_tab!=NULL)
+	SYLLABLE *syllable_tab = calloc(1, sizeof(SYLLABLE)*N_PHONEME_LIST);
+	assert(syllable_tab!=NULL);
 #else
 	SYLLABLE syllable_tab[N_PHONEME_LIST];
 #endif

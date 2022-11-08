@@ -154,27 +154,28 @@ void ReadTonePoints(char *string, int *tone_pts)
 }
 
 /// Microcontroller have limited stack: so we move it to the heap
-#ifdef ESPEAK_USE_STACK_OPTIMIZATION
-struct ReadVoiceFileStruct {
+#ifdef ESPEAK_STACK_HACK
+typedef struct  {
 	char linebuf[120];
 	char vname[80];
 	char vgender[80];
 	char vlanguage[80];
 	char languages[300]; // allow space for several alternate language names and priorities
-} DataReadVoiceFileStruct;
+} ReadVoiceFileData;
 #endif
 
 static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_language_file)
 {
 	// Read a Voice file, allocate a VOICE_DATA and set data from the
 	// file's  language, gender, name  lines
-#ifdef ESPEAK_USE_STACK_OPTIMIZATION
-	memset(&DataReadVoiceFileStruct,0,sizeof(DataReadVoiceFileStruct));
-	char *linebuf = &DataReadVoiceFileStruct.linebuf;
-	char *vname = &DataReadVoiceFileStruct.vname;
-	char *vgender = &DataReadVoiceFileStruct.vgender;
-	char *vlanguage = &DataReadVoiceFileStruct.vlanguage;
-	char *languages = &DataReadVoiceFileStruct.languages;; // allow space for several alternate language names and priorities
+#ifdef ESPEAK_STACK_HACK
+	ReadVoiceFileData* data = calloc(1, sizeof(ReadVoiceFileData));
+	assert(data!=NULL);
+	char *linebuf =  data->linebuf;
+	char *vname =  data->vname;
+	char *vgender = data->vgender;
+	char *vlanguage = data->vlanguage;
+	char *languages = data->languages;; // allow space for several alternate language names and priorities
 #else
 	char linebuf[120];
 	char vname[80];
@@ -241,12 +242,16 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 
 	gender = LookupMnem(genders, vgender);
 
-	if (n_languages == 0)
+	if (n_languages == 0){
+		free(data);
 		return NULL; // no language lines in the voice file
+	}
 
 	p = (char *)calloc(sizeof(espeak_VOICE) + langix + strlen(fname) + strlen(vname) + 3, 1);
-	if (p==NULL) 
+	if (p==NULL) {
+		free(data);
 		return NULL;
+	}
 	voice_data = (espeak_VOICE *)p;
 	p = &p[sizeof(espeak_VOICE)];
 
@@ -267,6 +272,7 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 	voice_data->gender = gender;
 	voice_data->variant = 0;
 	voice_data->xx1 = n_variants;
+	free(data);
 	return voice_data;
 }
 
@@ -1079,7 +1085,7 @@ char const *SelectVoice(espeak_VOICE *voice_select, int *found)
 	const char *p, *p_start;
 	espeak_VOICE *vp = NULL;
 	espeak_VOICE *vp2;
-	espeak_VOICE voice_select2;
+	STACK_T espeak_VOICE voice_select2;
 	STACK_T espeak_VOICE *voices[N_VOICES_LIST]; // list of candidates
 	STACK_T espeak_VOICE *voices2[N_VOICES_LIST+N_VOICE_VARIANTS];
 	static espeak_VOICE voice_variants[N_VOICE_VARIANTS];

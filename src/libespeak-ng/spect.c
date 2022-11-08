@@ -214,9 +214,15 @@ double GetFrameRms(SpectFrame *frame, int seq_amplitude)
 	float total = 0;
 	int maxh;
 	int height;
+#if ESPEAK_STACK_HACK
+	int* htab = calloc(1, sizeof(int)*400);
+	assert(htab!=NULL);
+	wavegen_peaks_t* wpeaks = calloc(1, sizeof(wavegen_peaks_t)*9);
+	assert(wpeaks!=NULL);
+#else
 	int htab[400];
 	wavegen_peaks_t wpeaks[9];
-
+#endif
 	for (h = 0; h < 9; h++) {
 		height = (frame->peaks[h].pkheight * seq_amplitude * frame->amp_adjust)/10000;
 		wpeaks[h].height = height << 8;
@@ -230,6 +236,11 @@ double GetFrameRms(SpectFrame *frame, int seq_amplitude)
 	for (h = 1; h < maxh; h++)
 		total += ((htab[h] * htab[h]) >> 10);
 	frame->rms = sqrt(total) / 7.25;
+
+#if ESPEAK_STACK_HACK
+	free(htab);
+	free(wpeaks);
+#endif
 	return frame->rms;
 }
 
