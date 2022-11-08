@@ -523,7 +523,7 @@ static int SetHeadIntonation(SYLLABLE *syllable_tab, TUNE *tune, int syl_ix, int
 /* Calculate pitches until next RESET or tonic syllable, or end.
     Increment pitch if stress is >= min_stress.
     Used for tonic segment */
-static int calc_pitch_segment(SYLLABLE *syllable_tab, int ix, int end_ix, TONE_HEAD *th, TONE_NUCLEUS *tn, int min_stress, bool continuing)
+static int calc_pitch_segment(SYLLABLE *syllable_tab, int ix, int end_ix, const TONE_HEAD *th, const TONE_NUCLEUS *tn, int min_stress, bool continuing)
 {
 	int stress;
 	int pitch = 0;
@@ -711,8 +711,8 @@ static int calc_pitches2(SYLLABLE *syllable_tab, int start, int end,  int tune_n
 static int calc_pitches(SYLLABLE *syllable_tab, int control, int start, int end,  int tune_number)
 {
 	int ix;
-	TONE_HEAD *th;
-	TONE_NUCLEUS *tn;
+	const TONE_HEAD *th;
+	const TONE_NUCLEUS *tn;
 	int drop;
 	bool continuing = false;
 

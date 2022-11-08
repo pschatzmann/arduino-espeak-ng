@@ -35,7 +35,6 @@ void setup() {
   fsm.add("/mem/data/phondata", espeak_ng_data_phondata,espeak_ng_data_phondata_len);
   fsm.add("/mem/data/intonations", espeak_ng_data_intonations,espeak_ng_data_intonations_len);
   fsm.add("/mem/data/en_dict", espeak_ng_data_en_dict,espeak_ng_data_en_dict_len);
-  fsm.add("/mem/data/voices/mb-en1", espeak_ng_data_voices_mb_mb_en1, espeak_ng_data_voices_mb_mb_en1_len);
   fsm.add("/mem/data/lang/en", espeak_ng_data_lang_gmw_en, espeak_ng_data_lang_gmw_en_len);
 
   // setup output
@@ -48,10 +47,10 @@ void setup() {
   espeak_set_audio_output(&i2s);
 
   // setup espeak
-  char voicename[] = "English"; // Set voice by its name
   Serial.println("espeak_Initialize");
   espeak_Initialize(output, buflength, path, options);
-  espeak_SetVoiceByName(voicename);
+  //const char* voicename = "English"; // Set voice by its name
+  //espeak_SetVoiceByName(voicename);
   Serial.print("espeak_Synth ");
 }
 

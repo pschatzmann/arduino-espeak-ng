@@ -15,7 +15,7 @@
 
 PortAudioStream out; // or replace with AudioKitStream for AudioKit
 espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
-char *path = "/Users/pschatzmann/Dev/Arduino/libraries/arduino-espeak-ng/espeak-ng-data"; 
+const char *path = "../../../espeak-ng-data-min"; 
 void *user_data = nullptr;
 unsigned int *identifier = nullptr;
 int buflength = 500, options = 0;
@@ -33,10 +33,8 @@ void setup() {
   espeak_set_audio_output(&out);
 
   // setup espeak
-  char voicename[] = {"English"}; // Set voice by its name
   Serial.println("espeak_Initialize");
   espeak_Initialize(output, buflength, path, options);
-  espeak_SetVoiceByName(voicename);
 }
 
 void loop() {

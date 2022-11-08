@@ -122,7 +122,7 @@ typedef struct { // 44 bytes
 } frame_t2; // without the extra Klatt parameters
 
 typedef struct {
-	unsigned char *pitch_env;
+	const unsigned char *pitch_env;
 	int pitch;      // pitch Hz*256
 	int pitch_ix;   // index into pitch envelope (*256)
 	int pitch_inc;  // increment to pitch_ix

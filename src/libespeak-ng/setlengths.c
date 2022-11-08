@@ -389,7 +389,7 @@ void CalcLengths(Translator *tr)
 	int pitch1;
 
 	int tone_mod;
-	unsigned char *pitch_env = NULL;
+	const unsigned char *pitch_env = NULL;
 	PHONEME_DATA phdata_tone;
 
 

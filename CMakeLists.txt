@@ -35,7 +35,7 @@ file(GLOB_RECURSE SRC_LIST_C CONFIGURE_DEPENDS  "${PROJECT_SOURCE_DIR}/src/*.c" 
 add_library (arduino-espeak-ng STATIC ${SRC_LIST_CPP} ${SRC_LIST_C})
 
 target_compile_definitions(arduino-espeak-ng PUBLIC -DIS_DESKTOP )
-target_compile_options(arduino-espeak-ng PUBLIC -Wframe-larger-than=1000)
+#target_compile_options(arduino-espeak-ng PUBLIC -Wframe-larger-than=1000)
 target_compile_definitions(arduino-posix-fs PUBLIC -DIS_DESKTOP )
 
 
