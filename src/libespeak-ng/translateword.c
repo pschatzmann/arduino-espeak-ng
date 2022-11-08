@@ -127,7 +127,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 	int add_suffix_phonemes = 0;
 
 	if (wtab == NULL) {
-		memset(wtab_null, 0, sizeof(wtab_null));
+		memset(wtab_null, 0, 8);
 		wtab = wtab_null;
 	}
 	wflags = wtab->flags;
@@ -146,7 +146,9 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 	if (tr->data_dictlist == NULL) {
 		// dictionary is not loaded
 		word_phonemes[0] = 0;
+#if ESPEAK_STACK_HACK
 		free(tables);
+#endif
 		return 0;
 	}
 
@@ -203,6 +205,9 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 			if (word_out != NULL)
 				strcpy(word_out, word1);
 
+#if ESPEAK_STACK_HACK
+			free(tables);
+#endif
 			return dictionary_flags[0];
 		} else if ((found == false) && (dictionary_flags[0] & FLAG_SKIPWORDS) && !(dictionary_flags[0] & FLAG_ABBREV)) {
 			// grouped words, but no translation.  Join the words with hyphens.
@@ -231,6 +236,9 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 		if (phonemes[0] == phonSWITCH) {
 			// change to another language in order to translate this word
 			strcpy(word_phonemes, phonemes);
+#if ESPEAK_STACK_HACK
+			free(tables);
+#endif
 			return 0;
 		}
 
@@ -241,12 +249,19 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 
 		if (!found && iswdigit(first_char)) {
 			Lookup(tr, "_0lang", word_phonemes);
-			if (word_phonemes[0] == phonSWITCH)
+			if (word_phonemes[0] == phonSWITCH){
+#if ESPEAK_STACK_HACK
+				free(tables);
+#endif
 				return 0;
+			}	
 
 			if ((tr->langopts.numbers2 & NUM2_ENGLISH_NUMERALS) && !(wtab->flags & FLAG_CHAR_REPLACED)) {
 				// for this language, speak English numerals (0-9) with the English voice
 				sprintf(word_phonemes, "%c", phonSWITCH);
+#if ESPEAK_STACK_HACK
+				free(tables);
+#endif
 				return 0;
 			}
 
@@ -282,13 +297,21 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 		phonemes[0] = 0;
 
 		if (SpeakIndividualLetters(tr, word1, phonemes, spell_word, current_alphabet, word_phonemes) == NULL) {
-			if (word_length > 1)
+#if ESPEAK_STACK_HACK
+			free(tables);
+#endif
+			if (word_length > 1){
 				return FLAG_SPELLWORD; // a mixture of languages, retranslate as individual letters, separated by spaces
+			}
 			return 0;
 		}
 		strcpy(word_phonemes, phonemes);
-		if (wflags & FLAG_TRANSLATOR2)
+#if ESPEAK_STACK_HACK
+		free(tables);
+#endif
+		if (wflags & FLAG_TRANSLATOR2){
 			return 0;
+		}
 
 		addPluralSuffixes(wflags, tr, last_char, word_phonemes);
 		return dictionary_flags[0] & FLAG_SKIPWORDS; // for "b.c.d"
@@ -321,8 +344,12 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 			if (unpron_phonemes[0] == phonSWITCH) {
 				// change to another language in order to translate this word
 				strcpy(word_phonemes, unpron_phonemes);
-				if (strcmp(&unpron_phonemes[1], ESPEAKNG_DEFAULT_VOICE) == 0)
+#if ESPEAK_STACK_HACK
+				free(tables);
+#endif
+				if (strcmp(&unpron_phonemes[1], ESPEAKNG_DEFAULT_VOICE) == 0){
 					return FLAG_SPELLWORD; // _^_en must have been set in TranslateLetter(), not *_rules which uses only _^_
+				}
 				return 0;
 			}
 
@@ -344,6 +371,9 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 			if (phonemes[0] == phonSWITCH) {
 				// change to another language in order to translate this word
 				strcpy(word_phonemes, phonemes);
+#if ESPEAK_STACK_HACK
+				free(tables);
+#endif
 				return 0;
 			}
 
@@ -353,6 +383,10 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 				// ?? should we say super/sub-script numbers and letters here?
 				utf8_in(&wc, wordx);
 				if ((word_length == 1) && (IsAlpha(wc) || IsSuperscript(wc))) {
+#if ESPEAK_STACK_HACK
+					free(tables);
+#endif
+
 					if ((wordx = SpeakIndividualLetters(tr, wordx, phonemes, spell_word, current_alphabet, word_phonemes)) == NULL)
 						return 0;
 					strcpy(word_phonemes, phonemes);
@@ -430,7 +464,8 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 					char *wordpf;
 					char prefix_phonemes2[12];
 
-					strncpy0(prefix_phonemes2, end_phonemes, sizeof(prefix_phonemes2));
+					// strncpy0(prefix_phonemes2, end_phonemes, sizeof(prefix_phonemes2));
+					strncpy0(prefix_phonemes2, end_phonemes, sizeof(char)*N_WORD_PHONEMES);
 					wordpf = &prefix_chars[1];
 					strcpy(prefix_phonemes, phonemes);
 
@@ -460,6 +495,9 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 						// change to another language in order to translate this word
 						wordx[-1] = c_temp;
 						strcpy(word_phonemes, phonemes);
+#if ESPEAK_STACK_HACK
+						free(tables);
+#endif
 						return 0;
 					}
 				}
@@ -486,6 +524,9 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 							// change to another language in order to translate this word
 							memcpy(wordx, word_copy, strlen(word_copy));
 							strcpy(word_phonemes, phonemes);
+#if ESPEAK_STACK_HACK
+							free(tables);
+#endif
 							return 0;
 						}
 						if (dictionary_flags[0] == 0) {
@@ -504,6 +545,9 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 							// change to another language in order to translate this word
 							memcpy(wordx, word_copy, strlen(word_copy));
 							strcpy(word_phonemes, phonemes);
+#if ESPEAK_STACK_HACK
+							free(tables);
+#endif
 							return 0;
 						}
 
@@ -544,6 +588,9 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 								strcpy(word_phonemes, phonemes);
 								memcpy(wordx, word_copy, strlen(word_copy));
 								wordx[-1] = c_temp;
+#if ESPEAK_STACK_HACK
+								free(tables);
+#endif
 								return 0;
 							}
 						}
@@ -696,8 +743,10 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 
 	dictionary_flags[0] |= was_unpronouncable;
 	memcpy(word_start, word_copy2, word_copy_length);
-
+#if ESPEAK_STACK_HACK
 	free(tables);
+#endif
+
 	return dictionary_flags[0];
 }
 

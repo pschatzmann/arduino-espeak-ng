@@ -214,7 +214,7 @@
 /* #undef vfork */
 
 #ifndef PATH_ESPEAK_DATA
-#define PATH_ESPEAK_DATA  "/mem/data"
+#  define PATH_ESPEAK_DATA  "/mem/data"
 #endif
 
 // Currently we support only little endian systems
@@ -235,11 +235,11 @@
 #  define STACK_T static
 #  include <assert.h>
 #else 
-#define STACK_T 
+#  define STACK_T 
 #endif
 
-// Data Access is based on https://github.com/pschatzmann/arduino-posix-fs
+// declaration for espeak_mem_map()
 #if ESPEAK_ARDUINO_POSIX_FS
-#include "../arduino/posix-fs.h"
+#  include "../arduino/posix-fs.h"
 #endif
 
