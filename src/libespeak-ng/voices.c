@@ -154,7 +154,7 @@ void ReadTonePoints(char *string, int *tone_pts)
 }
 
 /// Microcontroller have limited stack: so we move it to the heap
-#ifdef ESPEAK_STACK_HACK
+#if ESPEAK_STACK_HACK
 typedef struct  {
 	char linebuf[120];
 	char vname[80];
@@ -168,7 +168,7 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 {
 	// Read a Voice file, allocate a VOICE_DATA and set data from the
 	// file's  language, gender, name  lines
-#ifdef ESPEAK_STACK_HACK
+#if ESPEAK_STACK_HACK
 	ReadVoiceFileData* data = calloc(1, sizeof(ReadVoiceFileData));
 	assert(data!=NULL);
 	char *linebuf =  data->linebuf;
@@ -243,13 +243,17 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 	gender = LookupMnem(genders, vgender);
 
 	if (n_languages == 0){
+#if ESPEAK_STACK_HACK
 		free(data);
+#endif
 		return NULL; // no language lines in the voice file
 	}
 
 	p = (char *)calloc(sizeof(espeak_VOICE) + langix + strlen(fname) + strlen(vname) + 3, 1);
 	if (p==NULL) {
+#if ESPEAK_STACK_HACK
 		free(data);
+#endif
 		return NULL;
 	}
 	voice_data = (espeak_VOICE *)p;
@@ -272,7 +276,9 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 	voice_data->gender = gender;
 	voice_data->variant = 0;
 	voice_data->xx1 = n_variants;
+#if ESPEAK_STACK_HACK
 	free(data);
+#endif
 	return voice_data;
 }
 
