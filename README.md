@@ -19,6 +19,14 @@ eSpeak needs to load configuration data: This can be found in the espeak-ng-data
 
 You could load the data from an SD drive, however this is using an excessive amount of RAM and will only work if you have additinal PSRAM. The recommended way is to load the data from PROGMEM.
 
+### Memory Requirements
+
+With the miminum configuration we get the following on an ESP32:
+
+- Sketch uses 1638633 bytes (52%) of program storage space. Maximum is 3145728 bytes.
+- Global variables use 120924 bytes (36%) of dynamic memory, leaving 206756 bytes for
+
+
 ## Examples
 
 - [espeak](examples/espeak/espeak.ino): Recommended example
@@ -32,6 +40,7 @@ This library requires the installation of the following additinal libraries:
 
 - https://github.com/pschatzmann/arduino-posix-fs (Reading of data)
 - https://github.com/pschatzmann/arduino-audio-tools (Output of Audio)
+
 
 ## Installation in Arduino
 
