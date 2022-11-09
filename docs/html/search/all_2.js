@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['ca_2eh_0',['ca.h',['../ca_8h.html',1,'']]],
+  ['ca_5fdict_2eh_1',['ca_dict.h',['../ca__dict_8h.html',1,'']]],
+  ['ca_5fphtrans_2eh_2',['ca_phtrans.h',['../ca__phtrans_8h.html',1,'']]],
+  ['caleb_2eh_3',['caleb.h',['../caleb_8h.html',1,'']]],
+  ['cfg_4',['cfg',['../structaudio__object.html#ad686feaf62137c2d117352256aa01218',1,'audio_object']]],
+  ['channels_5',['channels',['../structaudio__info.html#a29ac823798be29af1374c130f9362809',1,'audio_info::channels()'],['../structaudio__object.html#a977b9af7346de28c81a10187dd648be7',1,'audio_object::channels()']]],
+  ['chr_2eh_6',['chr.h',['../chr_8h.html',1,'']]],
+  ['chr_5fdict_2eh_7',['chr_dict.h',['../chr__dict_8h.html',1,'']]],
+  ['close_8',['close',['../structaudio__object.html#a1254af47b29cf15eea3cb420b31d6d00',1,'audio_object']]],
+  ['cmn_2dlatn_2dpinyin_2eh_9',['cmn-Latn-pinyin.h',['../cmn-_latn-pinyin_8h.html',1,'']]],
+  ['cmn_2eh_10',['cmn.h',['../cmn_8h.html',1,'']]],
+  ['cmn_5fdict_2eh_11',['cmn_dict.h',['../cmn__dict_8h.html',1,'']]],
+  ['cmn_5fphtrans_2eh_12',['cmn_phtrans.h',['../cmn__phtrans_8h.html',1,'']]],
+  ['cr1_5fphtrans_2eh_13',['cr1_phtrans.h',['../cr1__phtrans_8h.html',1,'']]],
+  ['croak_2eh_14',['croak.h',['../croak_8h.html',1,'']]],
+  ['cs_2eh_15',['cs.h',['../cs_8h.html',1,'']]],
+  ['cs_5fdict_2eh_16',['cs_dict.h',['../cs__dict_8h.html',1,'']]],
+  ['cs_5fphtrans_2eh_17',['cs_phtrans.h',['../cs__phtrans_8h.html',1,'']]],
+  ['cv_2eh_18',['cv.h',['../cv_8h.html',1,'']]],
+  ['cv_5fdict_2eh_19',['cv_dict.h',['../cv__dict_8h.html',1,'']]],
+  ['cy_2eh_20',['cy.h',['../cy_8h.html',1,'']]],
+  ['cy_5fdict_2eh_21',['cy_dict.h',['../cy__dict_8h.html',1,'']]]
+];

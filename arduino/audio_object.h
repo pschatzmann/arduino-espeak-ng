@@ -23,8 +23,8 @@ extern void espeak_set_audio_output(Print *p);
 extern audio_info espeak_get_audio_info();
 
 /**
- * @brief pcaudiolib p_out_stream implementation for microcontrollers
- * using the arduino audiotools library
+ * @brief pcaudiolib implementation for microcontrollers
+ * using the arduino Print assigned by espeak_set_audio_output() as output
  * 
  * @author pschatzmann
  */

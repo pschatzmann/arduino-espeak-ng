@@ -213,6 +213,12 @@
 /* Define as `fork' if `vfork' does not work. */
 /* #undef vfork */
 
+// Makes the Arduino ESpeak C++ class available
+#if !defined(USE_CPP_API) && defined(ARDUINO) 
+#define USE_CPP_API 1
+#endif
+
+// Defines the default data path
 #ifndef PATH_ESPEAK_DATA
 #  define PATH_ESPEAK_DATA  "/mem/data"
 #endif
