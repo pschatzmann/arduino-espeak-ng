@@ -7,33 +7,22 @@
 #if USE_CPP_API
 #include "FileSystems.h" // https://github.com/pschatzmann/arduino-posix-fs
 #include "Print.h"
-
+#define GUARD_VALUE 23
 /**
- * @brief Simple Arduino C++ class API for ESpeak
+ * @brief Simple Arduino C++ class API for ESpeak using files
  */
 class ESpeak {
 public:
-    /// Constructor
-    ESpeak(Print &out, bool setupEnglish=true){
+    ESpeak(Print &out, const char* path="../../../espeak-ng-data-min"){
         // setup min file system
         espeak_set_audio_output(&out);
-        add("/mem/data/phontab", espeak_ng_data_phontab,espeak_ng_data_phontab_len);
-        add("/mem/data/phonindex", espeak_ng_data_phonindex,espeak_ng_data_phonindex_len);
-        add("/mem/data/phondata", espeak_ng_data_phondata,espeak_ng_data_phondata_len);
-        add("/mem/data/intonations", espeak_ng_data_intonations,espeak_ng_data_intonations_len);
-        if (setupEnglish){
-            add("/mem/data/en_dict", espeak_ng_data_en_dict,espeak_ng_data_en_dict_len);
-            add("/mem/data/lang/en", espeak_ng_data_lang_gmw_en, espeak_ng_data_lang_gmw_en_len);
+        if (path!=nullptr){
+            this->path = path;
         }
     }
 
     /// Provides information about the sample rate, channels ....
     audio_info audioInfo() { return espeak_get_audio_info();}
-
-    /// Adds a configuration file (e.g dictionary or lang). Use the prefix /mem/data/ for the name!
-    void add(const char* fileName, const void* fileContent, size_t len){
-        fsm.add(fileName, fileContent, len);
-    }
 
     /// Starts the processing. Optionally add all relevant configuration files be fore calling this method.
     bool begin(int buflength=0) {
@@ -65,20 +54,49 @@ public:
 
     /// Outputs the string as sound
     bool say(const char* str){
-        espeak_ERROR rc = espeak_Synth(str, strlen(str), position, position_type, end_position, flags,
+        assert(memory_guard==GUARD_VALUE);
+        espeak_ERROR rc = espeak_Synth(str, strlen(str)+1, position, position_type, end_position, flags,
                     identifier, user_data);
+        assert(memory_guard==GUARD_VALUE);
         return rc==EE_OK;
     }
 
 protected:
-    file_systems::FileSystemMemory fsm = file_systems::FileSystemMemory("/mem"); // File system data in PROGMEM
-    espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
-    const char* path = "/mem/data"; 
+    const short memory_guard = GUARD_VALUE; // check that memory was not overwritten by stack overflow
+    const espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
+    const char* path = "../../../espeak-ng-data-min"; 
     void *user_data = nullptr;
-    unsigned int *identifier = nullptr;
     int options = 0;
-    unsigned int position = 0, end_position = 0, flags = espeakCHARS_AUTO;
+    unsigned int *identifier = nullptr;
+    unsigned int position = 0;
+    unsigned int  end_position = 0;
+    unsigned int  flags = espeakCHARS_AUTO;
     espeak_POSITION_TYPE position_type = POS_CHARACTER;
+    file_systems::FileSystemMemory fsm = file_systems::FileSystemMemory("/mem"); // File system data in PROGMEM
+};
+/**
+ * @brief Simple Arduino C++ class API for ESpeak using PROGMEM
+ * 
+ */
+
+class ESpeakPROGMEM :  public ESpeak {
+public:
+    ESpeakPROGMEM(Print &out, bool setupEnglish=true):ESpeak(out, "/mem/data"){
+        // setup min file system
+        espeak_set_audio_output(&out);
+        add("/mem/data/phontab", espeak_ng_data_phontab,espeak_ng_data_phontab_len);
+        add("/mem/data/phonindex", espeak_ng_data_phonindex,espeak_ng_data_phonindex_len);
+        add("/mem/data/phondata", espeak_ng_data_phondata,espeak_ng_data_phondata_len);
+        add("/mem/data/intonations", espeak_ng_data_intonations,espeak_ng_data_intonations_len);
+        if (setupEnglish){
+            add("/mem/data/en_dict", espeak_ng_data_en_dict,espeak_ng_data_en_dict_len);
+            add("/mem/data/lang/en", espeak_ng_data_lang_gmw_en, espeak_ng_data_lang_gmw_en_len);
+        }
+    }
+    /// Adds a configuration file (e.g dictionary or lang). Use the prefix /mem/data/ for the name!
+    void add(const char* fileName, const void* fileContent, size_t len){
+        fsm.add(fileName, fileContent, len);
+    }
 };
 
 #endif

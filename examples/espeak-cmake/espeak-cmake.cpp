@@ -14,35 +14,24 @@
 #include "espeak.h"
 
 PortAudioStream out; // or replace with AudioKitStream for AudioKit
-espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
-const char *path = "../../../espeak-ng-data-min"; 
-void *user_data = nullptr;
-unsigned int *identifier = nullptr;
-int buflength = 500, options = 0;
-unsigned int position = 0, end_position = 0, flags = espeakCHARS_AUTO;
-espeak_POSITION_TYPE position_type = POS_CHARACTER;
+ESpeak espeak(out, "../../../espeak-ng-data");
 
 void setup() {
   Serial.begin(115200);
 
-  // setup output
-  auto cfg = out.defaultConfig();
-  cfg.channels = 1;
-  cfg.sample_rate = 22050;
-  out.begin(cfg);
-  espeak_set_audio_output(&out);
-
   // setup espeak
-  Serial.println("espeak_Initialize");
-  espeak_Initialize(output, buflength, path, options);
+  espeak.begin();
+
+  // setup output
+  audio_info info = espeak.audioInfo();
+  auto cfg = out.defaultConfig();
+  cfg.channels = info.channels; // 1
+  cfg.sample_rate = info.sample_rate; //22050;
+  out.begin(cfg);
+
 }
 
 void loop() {
-  Serial.print("espeak_Synth ");
-  char text[] = "Hello world!";
-  Serial.println(text);
-  espeak_Synth(text, buflength, position, position_type, end_position, flags,
-               identifier, user_data);
-  Serial.println("Done");
+  espeak.say("Hello world!");
   delay(5000);
 }

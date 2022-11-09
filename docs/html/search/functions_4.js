@@ -1,7 +1,7 @@
 var searchData=
 [
   ['end_0',['end',['../class_e_speak.html#a1dfd67e9ce552f12de3404c3f1f56de8',1,'ESpeak']]],
-  ['espeak_1',['ESpeak',['../class_e_speak.html#a7a0b7d1ec8c545d1cc18247087b54ad6',1,'ESpeak']]],
+  ['espeak_1',['ESpeak',['../class_e_speak.html#a049970e9d37fe181a352dfc7e92da6e6',1,'ESpeak']]],
   ['espeak_5fcancel_2',['espeak_Cancel',['../speak__lib_8h.html#a8d0e48de349009162376527c9e10a55b',1,'speak_lib.h']]],
   ['espeak_5fchar_3',['espeak_Char',['../speak__lib_8h.html#a188cc5184c038128d822a672a27e5bd2',1,'speak_lib.h']]],
   ['espeak_5fcompiledictionary_4',['espeak_CompileDictionary',['../speak__lib_8h.html#a50ed40889e2f8a96d9ec8c21227aba91',1,'speak_lib.h']]],
@@ -27,5 +27,6 @@ var searchData=
   ['espeak_5fsynth_24',['espeak_Synth',['../speak__lib_8h.html#acbfcd3cadfe05c3ae4d6b680b95300d7',1,'speak_lib.h']]],
   ['espeak_5fsynth_5fmark_25',['espeak_Synth_Mark',['../speak__lib_8h.html#a7e05103df96fa6844d4ee36e2edfb9b2',1,'speak_lib.h']]],
   ['espeak_5fterminate_26',['espeak_Terminate',['../speak__lib_8h.html#aa9e2f5fc55b6ebb10ad7a5a073e24b79',1,'speak_lib.h']]],
-  ['espeak_5ftexttophonemes_27',['espeak_TextToPhonemes',['../speak__lib_8h.html#ae9740c849180a7f99041cacb92611939',1,'speak_lib.h']]]
+  ['espeak_5ftexttophonemes_27',['espeak_TextToPhonemes',['../speak__lib_8h.html#ae9740c849180a7f99041cacb92611939',1,'speak_lib.h']]],
+  ['espeakprogmem_28',['ESpeakPROGMEM',['../class_e_speak_p_r_o_g_m_e_m.html#ad00195d8fb8f9e9ad80a3605d91ac5dc',1,'ESpeakPROGMEM']]]
 ];

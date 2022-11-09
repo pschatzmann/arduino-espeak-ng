@@ -25,9 +25,8 @@ endif()
 # define libraries
 add_executable(espeak-cmake espeak-cmake.cpp)
 target_compile_definitions(espeak-cmake PUBLIC -DARDUINO -DIS_DESKTOP -DEXIT_ON_STOP)
-target_compile_options(espeak-cmake PUBLIC  -Wno-inconsistent-missing-override )
-# target_compile_options(espeak-cmake PUBLIC -Wframe-larger-than=1000  -Wno-inconsistent-missing-override -Wno-format)
-# target_link_options(espeak-cmake PUBLIC -v -Wl,-stack_size,0x14000)
+target_compile_options(espeak-cmake PUBLIC  -Wno-inconsistent-missing-override -Wframe-larger-than=1000 )
+# target_compile_options(espeak-cmake PUBLIC -Wl,-stack_size,0x14000 -Wframe-larger-than=1000  -Wno-inconsistent-missing-override -Wno-format)
 target_compile_options(portaudio_static PUBLIC -Wno-deprecated-declarations)
 
 target_link_libraries(espeak-cmake arduino-espeak-ng arduino_emulator portaudio_static arduino-posix-fs arduino-audio-tools)

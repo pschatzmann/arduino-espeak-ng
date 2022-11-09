@@ -2,7 +2,7 @@ var searchData=
 [
   ['active_0',['active',['../structaudio__object.html#a29963982e643314d4faaded87f5acb6c',1,'audio_object']]],
   ['adam_2eh_1',['adam.h',['../adam_8h.html',1,'']]],
-  ['add_2',['add',['../class_e_speak.html#aa71f938ff7033ebf86b56d499d8e8fc0',1,'ESpeak']]],
+  ['add_2',['add',['../class_e_speak_p_r_o_g_m_e_m.html#ae55cd22473f5066c3385ac9fb94d7517',1,'ESpeakPROGMEM']]],
   ['af_2eh_3',['af.h',['../af_8h.html',1,'']]],
   ['af1_5fphtrans_2eh_4',['af1_phtrans.h',['../af1__phtrans_8h.html',1,'']]],
   ['af_5fdict_2eh_5',['af_dict.h',['../af__dict_8h.html',1,'']]],

@@ -76,25 +76,30 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Simple Arduino C++ class API for <a class="el" href="class_e_speak.html" title="Simple Arduino C++ class API for ESpeak.">ESpeak</a>.  
+<p>Simple Arduino C++ class API for <a class="el" href="class_e_speak.html" title="Simple Arduino C++ class API for ESpeak using files.">ESpeak</a> using files.  
  <a href="class_e_speak.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="espeak_8h_source.html">espeak.h</a>&gt;</code></p>
+<div class="dynheader">
+Inheritance diagram for ESpeak:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="class_e_speak.png" usemap="#ESpeak_map" alt=""/>
+  <map id="ESpeak_map" name="ESpeak_map">
+<area href="class_e_speak_p_r_o_g_m_e_m.html" title="Simple Arduino C++ class API for ESpeak using PROGMEM." alt="ESpeakPROGMEM" shape="rect" coords="0,56,120,80"/>
+  </map>
+</div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a7a0b7d1ec8c545d1cc18247087b54ad6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#a7a0b7d1ec8c545d1cc18247087b54ad6">ESpeak</a> (Print &amp;out, bool setupEnglish=true)</td></tr>
-<tr class="memdesc:a7a0b7d1ec8c545d1cc18247087b54ad6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="class_e_speak.html#a7a0b7d1ec8c545d1cc18247087b54ad6">More...</a><br /></td></tr>
-<tr class="separator:a7a0b7d1ec8c545d1cc18247087b54ad6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a049970e9d37fe181a352dfc7e92da6e6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#a049970e9d37fe181a352dfc7e92da6e6">ESpeak</a> (Print &amp;out, const char *<a class="el" href="class_e_speak.html#aa3889acfaca22bed0c2e6e0f9680403f">path</a>=&quot;../../../espeak-ng-data-min&quot;)</td></tr>
+<tr class="separator:a049970e9d37fe181a352dfc7e92da6e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3144c5e6ddc771ed4521defd6452bc46"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structaudio__info.html">audio_info</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#a3144c5e6ddc771ed4521defd6452bc46">audioInfo</a> ()</td></tr>
 <tr class="memdesc:a3144c5e6ddc771ed4521defd6452bc46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides information about the sample rate, channels ....  <a href="class_e_speak.html#a3144c5e6ddc771ed4521defd6452bc46">More...</a><br /></td></tr>
 <tr class="separator:a3144c5e6ddc771ed4521defd6452bc46"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa71f938ff7033ebf86b56d499d8e8fc0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#aa71f938ff7033ebf86b56d499d8e8fc0">add</a> (const char *fileName, const void *fileContent, size_t len)</td></tr>
-<tr class="memdesc:aa71f938ff7033ebf86b56d499d8e8fc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a configuration file (e.g dictionary or lang). Use the prefix /mem/data/ for the name!  <a href="class_e_speak.html#aa71f938ff7033ebf86b56d499d8e8fc0">More...</a><br /></td></tr>
-<tr class="separator:aa71f938ff7033ebf86b56d499d8e8fc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a85f52b70de8dc44a8f9c817b933896c6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#a85f52b70de8dc44a8f9c817b933896c6">begin</a> (int buflength=0)</td></tr>
-<tr class="memdesc:a85f52b70de8dc44a8f9c817b933896c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts the processing. Optionally add all relevant configuration files be fore calling this method.  <a href="class_e_speak.html#a85f52b70de8dc44a8f9c817b933896c6">More...</a><br /></td></tr>
-<tr class="separator:a85f52b70de8dc44a8f9c817b933896c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a553a64080a150e2615a5085356d528a4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#a553a64080a150e2615a5085356d528a4">begin</a> (int <a class="el" href="class_e_speak.html#a47105d912e5883ff0f431d5e87d21e01">buflength</a>=500)</td></tr>
+<tr class="memdesc:a553a64080a150e2615a5085356d528a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts the processing. Optionally add all relevant configuration files be fore calling this method.  <a href="class_e_speak.html#a553a64080a150e2615a5085356d528a4">More...</a><br /></td></tr>
+<tr class="separator:a553a64080a150e2615a5085356d528a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a85e53b255d2553255e24439ebef36c71"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#a85e53b255d2553255e24439ebef36c71">setVoice</a> (const char *voiceName)</td></tr>
 <tr class="memdesc:a85e53b255d2553255e24439ebef36c71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the voice by i'ts name.  <a href="class_e_speak.html#a85e53b255d2553255e24439ebef36c71">More...</a><br /></td></tr>
 <tr class="separator:a85e53b255d2553255e24439ebef36c71"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -117,14 +122,16 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:ab805b6d6013260a68535199dc1478f27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae8047d6dbc0cebfee8d6735c5908ce21"><td class="memItemLeft" align="right" valign="top"><a class="el" href="speak__lib_8h.html#a23dea85b1ce61e5ce20312cf6512471b">espeak_AUDIO_OUTPUT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#ae8047d6dbc0cebfee8d6735c5908ce21">output</a> = <a class="el" href="speak__lib_8h.html#a23dea85b1ce61e5ce20312cf6512471baefca8e2c4393d4ac3e1b0275d78fa3e3">AUDIO_OUTPUT_SYNCH_PLAYBACK</a></td></tr>
 <tr class="separator:ae8047d6dbc0cebfee8d6735c5908ce21"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3889acfaca22bed0c2e6e0f9680403f"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#aa3889acfaca22bed0c2e6e0f9680403f">path</a> = &quot;/mem/data&quot;</td></tr>
+<tr class="memitem:aa3889acfaca22bed0c2e6e0f9680403f"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#aa3889acfaca22bed0c2e6e0f9680403f">path</a> = &quot;../../../espeak-ng-data-min&quot;</td></tr>
 <tr class="separator:aa3889acfaca22bed0c2e6e0f9680403f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1aa06a149c3adeff6e0bd903faa6c976"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#a1aa06a149c3adeff6e0bd903faa6c976">user_data</a> = nullptr</td></tr>
 <tr class="separator:a1aa06a149c3adeff6e0bd903faa6c976"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa975182ae6c37689049400585f7bb31d"><td class="memItemLeft" align="right" valign="top">unsigned int *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#aa975182ae6c37689049400585f7bb31d">identifier</a> = nullptr</td></tr>
-<tr class="separator:aa975182ae6c37689049400585f7bb31d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba504a405b581990d31f4a4f20d51c80"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#aba504a405b581990d31f4a4f20d51c80">options</a> = 0</td></tr>
 <tr class="separator:aba504a405b581990d31f4a4f20d51c80"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47105d912e5883ff0f431d5e87d21e01"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#a47105d912e5883ff0f431d5e87d21e01">buflength</a> = 500</td></tr>
+<tr class="separator:a47105d912e5883ff0f431d5e87d21e01"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa975182ae6c37689049400585f7bb31d"><td class="memItemLeft" align="right" valign="top">unsigned int *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#aa975182ae6c37689049400585f7bb31d">identifier</a> = nullptr</td></tr>
+<tr class="separator:aa975182ae6c37689049400585f7bb31d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8eccd05b04b2d975765955f60f9611a6"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#a8eccd05b04b2d975765955f60f9611a6">position</a> = 0</td></tr>
 <tr class="separator:a8eccd05b04b2d975765955f60f9611a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad92d589462af3a60189c22a763b10d57"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_speak.html#ad92d589462af3a60189c22a763b10d57">end_position</a> = 0</td></tr>
@@ -135,10 +142,10 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:a9376c3995c80beeda9cf4fa8d2f3f224"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p >Simple Arduino C++ class API for <a class="el" href="class_e_speak.html" title="Simple Arduino C++ class API for ESpeak.">ESpeak</a>. </p>
+<div class="textblock"><p >Simple Arduino C++ class API for <a class="el" href="class_e_speak.html" title="Simple Arduino C++ class API for ESpeak using files.">ESpeak</a> using files. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a7a0b7d1ec8c545d1cc18247087b54ad6" name="a7a0b7d1ec8c545d1cc18247087b54ad6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7a0b7d1ec8c545d1cc18247087b54ad6">&#9670;&#160;</a></span>ESpeak()</h2>
+<a id="a049970e9d37fe181a352dfc7e92da6e6" name="a049970e9d37fe181a352dfc7e92da6e6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a049970e9d37fe181a352dfc7e92da6e6">&#9670;&#160;</a></span>ESpeak()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -155,8 +162,8 @@ Protected Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>setupEnglish</em> = <code>true</code>&#160;</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>path</em> = <code>&quot;../../../espeak-ng-data-min&quot;</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -170,56 +177,10 @@ Protected Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Constructor. </p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aa71f938ff7033ebf86b56d499d8e8fc0" name="aa71f938ff7033ebf86b56d499d8e8fc0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa71f938ff7033ebf86b56d499d8e8fc0">&#9670;&#160;</a></span>add()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ESpeak::add </td>
-          <td>(</td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>fileName</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const void *&#160;</td>
-          <td class="paramname"><em>fileContent</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>len</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Adds a configuration file (e.g dictionary or lang). Use the prefix /mem/data/ for the name! </p>
-
-</div>
-</div>
 <a id="a3144c5e6ddc771ed4521defd6452bc46" name="a3144c5e6ddc771ed4521defd6452bc46"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3144c5e6ddc771ed4521defd6452bc46">&#9670;&#160;</a></span>audioInfo()</h2>
 
@@ -247,8 +208,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a85f52b70de8dc44a8f9c817b933896c6" name="a85f52b70de8dc44a8f9c817b933896c6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a85f52b70de8dc44a8f9c817b933896c6">&#9670;&#160;</a></span>begin()</h2>
+<a id="a553a64080a150e2615a5085356d528a4" name="a553a64080a150e2615a5085356d528a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a553a64080a150e2615a5085356d528a4">&#9670;&#160;</a></span>begin()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -260,7 +221,7 @@ Protected Attributes</h2></td></tr>
           <td class="memname">bool ESpeak::begin </td>
           <td>(</td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>buflength</em> = <code>0</code></td><td>)</td>
+          <td class="paramname"><em>buflength</em> = <code>500</code></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -414,6 +375,28 @@ Protected Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Field Documentation</h2>
+<a id="a47105d912e5883ff0f431d5e87d21e01" name="a47105d912e5883ff0f431d5e87d21e01"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a47105d912e5883ff0f431d5e87d21e01">&#9670;&#160;</a></span>buflength</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int ESpeak::buflength = 500</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ad92d589462af3a60189c22a763b10d57" name="ad92d589462af3a60189c22a763b10d57"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad92d589462af3a60189c22a763b10d57">&#9670;&#160;</a></span>end_position</h2>
 
@@ -556,7 +539,7 @@ Protected Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const char* ESpeak::path = &quot;/mem/data&quot;</td>
+          <td class="memname">const char* ESpeak::path = &quot;../../../espeak-ng-data-min&quot;</td>
         </tr>
       </table>
   </td>
