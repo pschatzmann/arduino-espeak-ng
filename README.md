@@ -29,7 +29,7 @@ With the miminum configuration we get the following on an ESP32:
 
 ## Examples
 
-- [espeak-arduino](examples/espeak/espeak-arduino.ino): Recommended example
+- [espeak-arduino](examples/espeak-arduino/espeak-arduino.ino): Recommended example
 - [espeak](examples/espeak/espeak.ino): functional example
 - [espeak-sd](examples/espeak-sd/espeak-sd.ino): Example using SD drive.
 - [espeak-cmake](examples/espeak-cmake/espeak-cmake.ino): Example compiled and running on desktop.
@@ -48,7 +48,7 @@ This library requires the installation of the following additinal libraries:
 - [C++ API](https://pschatzmann.github.io/arduino-espeak-ng/docs/html/class_e_speak.html)
 - [Functional API](https://pschatzmann.github.io/arduino-espeak-ng/docs/html/speak__lib_8h.html)
 
-You can also find further information in the [Wiki](/wiki)...
+You can also find further information in the [Wiki](https://github.com/pschatzmann/arduino-espeak-ng/wiki)...
 
 ## Installation in Arduino
 
