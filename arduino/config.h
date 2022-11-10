@@ -249,3 +249,6 @@
 #  include "../arduino/posix-fs.h"
 #endif
 
+// activate some logging
+#define ESPEAK_LOGGING 0
+

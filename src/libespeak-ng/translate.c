@@ -771,6 +771,12 @@ static const char *FindReplacementChars(Translator *tr, const char **pfrom, unsi
 
 		// replacement 'from' string (skip the remaining part, if any)
 		while (*from != '\0') from++;
+
+		// pschatzmann - Resolve Endless loop issue in Arduino
+		if(is_str_totally_null(from, 4)){
+			break;
+		}
+
 		from++;
 
 		// replacement 'to' string

@@ -25,7 +25,7 @@ public:
     audio_info audioInfo() { return espeak_get_audio_info();}
 
     /// Starts the processing. Optionally add all relevant configuration files be fore calling this method.
-    bool begin(int buflength=0) {
+    bool begin(int buflength=5) {
         int sample_rate = espeak_Initialize(output, buflength, path, options);
         return sample_rate!=-1;
     }
@@ -54,6 +54,7 @@ public:
 
     /// Outputs the string as sound
     bool say(const char* str){
+        if (str==nullptr) return false;
         assert(memory_guard==GUARD_VALUE);
         espeak_ERROR rc = espeak_Synth(str, strlen(str)+1, position, position_type, end_position, flags,
                     identifier, user_data);
@@ -81,22 +82,33 @@ protected:
 
 class ESpeakPROGMEM :  public ESpeak {
 public:
-    ESpeakPROGMEM(Print &out, bool setupEnglish=true):ESpeak(out, "/mem/data"){
+    ESpeakPROGMEM(Print &out, bool setupEnglish=true) : ESpeak(out, "/mem/data"){
         // setup min file system
-        espeak_set_audio_output(&out);
-        add("/mem/data/phontab", espeak_ng_data_phontab,espeak_ng_data_phontab_len);
-        add("/mem/data/phonindex", espeak_ng_data_phonindex,espeak_ng_data_phonindex_len);
-        add("/mem/data/phondata", espeak_ng_data_phondata,espeak_ng_data_phondata_len);
-        add("/mem/data/intonations", espeak_ng_data_intonations,espeak_ng_data_intonations_len);
-        if (setupEnglish){
-            add("/mem/data/en_dict", espeak_ng_data_en_dict,espeak_ng_data_en_dict_len);
-            add("/mem/data/lang/en", espeak_ng_data_lang_gmw_en, espeak_ng_data_lang_gmw_en_len);
-        }
+        is_setup_english = setupEnglish;
     }
     /// Adds a configuration file (e.g dictionary or lang). Use the prefix /mem/data/ for the name!
     void add(const char* fileName, const void* fileContent, size_t len){
         fsm.add(fileName, fileContent, len);
     }
+
+    bool begin(int buflength=5) {
+        if (!is_fs_setup){
+            add("/mem/data/phontab", espeak_ng_data_phontab,espeak_ng_data_phontab_len);
+            add("/mem/data/phonindex", espeak_ng_data_phonindex,espeak_ng_data_phonindex_len);
+            add("/mem/data/phondata", espeak_ng_data_phondata,espeak_ng_data_phondata_len);
+            add("/mem/data/intonations", espeak_ng_data_intonations,espeak_ng_data_intonations_len);
+            if (is_setup_english){
+                add("/mem/data/en_dict", espeak_ng_data_en_dict,espeak_ng_data_en_dict_len);
+                add("/mem/data/lang/en", espeak_ng_data_lang_gmw_en, espeak_ng_data_lang_gmw_en_len);
+            }
+            is_fs_setup = true;
+        }
+        return ESpeak::begin(buflength);
+    }
+
+protected:
+    bool is_setup_english;
+    bool is_fs_setup = false;
 };
 
 #endif

@@ -37,7 +37,9 @@ void audio_object_destroy(audio_object *object){
 int audio_object_write(audio_object *object,
                    const void *data,
                    size_t bytes){
-    //printf("audio_object_write(%d)\n",(int)bytes);
+#if ESPEAK_LOGGING
+    printf("audio_object_write(%d)\n",(int)bytes);
+#endif
     return object->write(data, bytes);
 }
 

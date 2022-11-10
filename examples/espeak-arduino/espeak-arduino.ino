@@ -20,6 +20,7 @@ ESpeakPROGMEM espeak(i2s);
 
 void setup() {
   Serial.begin(115200);
+  file_systems::FSLogger.begin(file_systems::FSInfo, Serial); 
 
   // setup espeak
   espeak.begin();
@@ -35,6 +36,7 @@ void setup() {
 }
 
 void loop() {
-  espeak.say("Hello world!");
+  const char* msg = "Hello world!";
+  espeak.say(msg);
   delay(5000);
 }
