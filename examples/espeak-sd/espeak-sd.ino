@@ -10,7 +10,7 @@
  */
 #include "AudioTools.h"
 //#include "FileSystems.h" // https://github.com/pschatzmann/arduino-posix-fs
-//#include "AudioLibs/AudioKit.h"
+//#include "AudioLibs/AudioKit.h" // https://github.com/pschatzmann/arduino-audiokit
 #include "espeak.h"
 #include "SD.h"
 #include "SPI.h"

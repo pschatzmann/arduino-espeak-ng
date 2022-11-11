@@ -11,7 +11,7 @@
  */
 
 #include "AudioTools.h" // https://github.com/pschatzmann/arduino-audio-tools
-//#include "AudioLibs/AudioKit.h"
+//#include "AudioLibs/AudioKit.h" // https://github.com/pschatzmann/arduino-audiokit
 #include "FileSystems.h" // https://github.com/pschatzmann/arduino-posix-fs
 #include "espeak.h"
 
@@ -27,7 +27,7 @@ espeak_POSITION_TYPE position_type = POS_CHARACTER;
 
 void setup() {
   Serial.begin(115200);
-  file_systems::FSLogger.begin(file_systems::FSInfo, Serial); 
+  // file_systems::FSLogger.begin(file_systems::FSInfo, Serial); 
 
   // setup min file system
   fsm.add("/mem/data/phontab", espeak_ng_data_phontab,espeak_ng_data_phontab_len);
