@@ -1,0 +1,2201 @@
+Only in original/src/libespeak-ng: .deps
+Only in original/src/libespeak-ng: .dirstamp
+Common subdirectories: original/src/libespeak-ng/.libs and src/libespeak-ng/.libs
+Only in original/src/libespeak-ng: compilembrola.c
+diff -c original/src/libespeak-ng/dictionary.c src/libespeak-ng/dictionary.c
+*** original/src/libespeak-ng/dictionary.c	2022-11-13 17:02:43.000000000 +0100
+--- src/libespeak-ng/dictionary.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 211,238 ****
+  	// bytes 0-3:  offset to rules data
+  	// bytes 4-7:  number of hash table entries
+  	sprintf(fname, "%s%c%s_dict", path_home, PATHSEP, name);
+- 	size = GetFileLength(fname);
+  
+! 	if (tr->data_dictlist != NULL) {
+! 		free(tr->data_dictlist);
+! 		tr->data_dictlist = NULL;
+! 	}
+  
+! 	f = fopen(fname, "rb");
+! 	if ((f == NULL) || (size <= 0)) {
+! 		if (no_error == 0)
+! 			fprintf(stderr, "Can't read dictionary file: '%s'\n", fname);
+! 		if (f != NULL)
+! 			fclose(f);
+! 		return 1;
+! 	}
+  
+! 	if ((tr->data_dictlist = malloc(size)) == NULL) {
+  		fclose(f);
+- 		return 3;
+  	}
+! 	size = fread(tr->data_dictlist, 1, size, f);
+! 	fclose(f);
+  
+  	pw = (int *)(tr->data_dictlist);
+  	length = Reverse4Bytes(pw[1]);
+--- 211,246 ----
+  	// bytes 0-3:  offset to rules data
+  	// bytes 4-7:  number of hash table entries
+  	sprintf(fname, "%s%c%s_dict", path_home, PATHSEP, name);
+  
+! 	// Arduino memory hack using mem_map from https://github.com/pschatzmann/arduino-posix-fs
+! 	void* ptr = espeak_mem_map(fname, &size);
+! 	if (ptr!=NULL){
+! 		tr->data_dictlist = ptr;
+! 	} else {
+! 		size = GetFileLength(fname);
+  
+! 		if (tr->data_dictlist != NULL) {
+! 			free(tr->data_dictlist);
+! 			tr->data_dictlist = NULL;
+! 		}
+  
+! 		f = fopen(fname, "rb");
+! 		if ((f == NULL) || (size <= 0)) {
+! 			if (no_error == 0)
+! 				fprintf(stderr, "Can't read dictionary file: '%s'\n", fname);
+! 			if (f != NULL)
+! 				fclose(f);
+! 			return 1;
+! 		}
+! 
+! 		if ((tr->data_dictlist = malloc(size)) == NULL) {
+! 			fclose(f);
+! 			return 3;
+! 		}
+! 		size = fread(tr->data_dictlist, 1, size, f);
+  		fclose(f);
+  	}
+! 
+  
+  	pw = (int *)(tr->data_dictlist);
+  	length = Reverse4Bytes(pw[1]);
+***************
+*** 695,704 ****
+  		return -1;
+  
+  	while (*p != RULE_GROUP_END) {
+- 		// If '~' (no character) is allowed in group, return 0.
+- 		if (*p == '~')
+- 			return 0;
+- 
+  		if (pre) {
+  			len = strlen(p);
+  			w = word;
+--- 703,708 ----
+***************
+*** 706,717 ****
+  			{
+  				w--;
+  				if (*w == 0)
+! 					// Not found, skip the rest of this group.
+! 					goto skip;
+  			}
+  		} else
+  			w = word;
+  
+  		//  Check current group
+  		while ((*p == *w) && (*w != 0)) {
+  			w++;
+--- 710,725 ----
+  			{
+  				w--;
+  				if (*w == 0)
+! 					// Not found
+! 					return -1;
+  			}
+  		} else
+  			w = word;
+  
++ 		// If '~' (no character) is allowed in group, return 0.
++ 		if (*p == '~')
++ 			return 0;
++ 
+  		//  Check current group
+  		while ((*p == *w) && (*w != 0)) {
+  			w++;
+***************
+*** 724,730 ****
+  		}
+  
+  		// No match, so skip the rest of this group.
+- skip:
+  		while (*p++ != 0)
+  			;
+  	}
+--- 732,737 ----
+***************
+*** 2426,2432 ****
+  	unsigned char flag;
+  	unsigned int dictionary_flags;
+  	unsigned int dictionary_flags2;
+! 	bool condition_failed = false;
+  	int n_chars;
+  	int no_phonemes;
+  	int skipwords;
+--- 2433,2439 ----
+  	unsigned char flag;
+  	unsigned int dictionary_flags;
+  	unsigned int dictionary_flags2;
+! 	int condition_failed = 0;
+  	int n_chars;
+  	int no_phonemes;
+  	int skipwords;
+***************
+*** 2500,2510 ****
+  				if (flag >= 132) {
+  					// fail if this condition is set
+  					if ((tr->dict_condition & (1 << (flag-132))) != 0)
+! 						condition_failed = true;
+  				} else {
+  					// allow only if this condition is set
+  					if ((tr->dict_condition & (1 << (flag-100))) == 0)
+! 						condition_failed = true;
+  				}
+  			} else if (flag > 80) {
+  				// flags 81 to 90  match more than one word
+--- 2507,2517 ----
+  				if (flag >= 132) {
+  					// fail if this condition is set
+  					if ((tr->dict_condition & (1 << (flag-132))) != 0)
+! 						condition_failed = 1;
+  				} else {
+  					// allow only if this condition is set
+  					if ((tr->dict_condition & (1 << (flag-100))) == 0)
+! 						condition_failed = 1;
+  				}
+  			} else if (flag > 80) {
+  				// flags 81 to 90  match more than one word
+***************
+*** 2517,2529 ****
+  				if (wtab != NULL) {
+  					for (ix = 0; ix <= skipwords && wtab[ix].length; ix++) {
+  						if (wtab[ix].flags & FLAG_EMPHASIZED2)
+! 							condition_failed = true;
+! 
+  					}
+  				}
+  
+  				if (strncmp(word2, p, n_chars) != 0)
+! 					condition_failed = true;
+  
+  				if (condition_failed) {
+  					p = next;
+--- 2524,2535 ----
+  				if (wtab != NULL) {
+  					for (ix = 0; ix <= skipwords && wtab[ix].length; ix++) {
+  						if (wtab[ix].flags & FLAG_EMPHASIZED2)
+! 							condition_failed = 1;
+  					}
+  				}
+  
+  				if (strncmp(word2, p, n_chars) != 0)
+! 					condition_failed = 1;
+  
+  				if (condition_failed) {
+  					p = next;
+***************
+*** 2546,2552 ****
+  		}
+  
+  		if (condition_failed) {
+! 			condition_failed = false;
+  			continue;
+  		}
+  
+--- 2552,2558 ----
+  		}
+  
+  		if (condition_failed) {
+! 			condition_failed = 0;
+  			continue;
+  		}
+  
+diff -c original/src/libespeak-ng/intonation.c src/libespeak-ng/intonation.c
+*** original/src/libespeak-ng/intonation.c	2022-10-27 18:30:17.000000000 +0200
+--- src/libespeak-ng/intonation.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 62,68 ****
+  #define PITCHfrise    4 // and 3 must be for the variant preceded by 'r'
+  #define PITCHfrise2   6 // and 5 must be the 'r' variant
+  
+! unsigned char env_fall[128] = {
+  	0xff, 0xfd, 0xfa, 0xf8, 0xf6, 0xf4, 0xf2, 0xf0, 0xee, 0xec, 0xea, 0xe8, 0xe6, 0xe4, 0xe2, 0xe0,
+  	0xde, 0xdc, 0xda, 0xd8, 0xd6, 0xd4, 0xd2, 0xd0, 0xce, 0xcc, 0xca, 0xc8, 0xc6, 0xc4, 0xc2, 0xc0,
+  	0xbe, 0xbc, 0xba, 0xb8, 0xb6, 0xb4, 0xb2, 0xb0, 0xae, 0xac, 0xaa, 0xa8, 0xa6, 0xa4, 0xa2, 0xa0,
+--- 62,68 ----
+  #define PITCHfrise    4 // and 3 must be for the variant preceded by 'r'
+  #define PITCHfrise2   6 // and 5 must be the 'r' variant
+  
+! unsigned const char env_fall[128] = {
+  	0xff, 0xfd, 0xfa, 0xf8, 0xf6, 0xf4, 0xf2, 0xf0, 0xee, 0xec, 0xea, 0xe8, 0xe6, 0xe4, 0xe2, 0xe0,
+  	0xde, 0xdc, 0xda, 0xd8, 0xd6, 0xd4, 0xd2, 0xd0, 0xce, 0xcc, 0xca, 0xc8, 0xc6, 0xc4, 0xc2, 0xc0,
+  	0xbe, 0xbc, 0xba, 0xb8, 0xb6, 0xb4, 0xb2, 0xb0, 0xae, 0xac, 0xaa, 0xa8, 0xa6, 0xa4, 0xa2, 0xa0,
+***************
+*** 73,79 ****
+  	0x1e, 0x1c, 0x1a, 0x18, 0x16, 0x14, 0x12, 0x10, 0x0e, 0x0c, 0x0a, 0x08, 0x06, 0x04, 0x02, 0x00
+  };
+  
+! unsigned char env_rise[128] = {
+  	0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, 0x10, 0x12, 0x14, 0x16, 0x18, 0x1a, 0x1c, 0x1e,
+  	0x20, 0x22, 0x24, 0x26, 0x28, 0x2a, 0x2c, 0x2e, 0x30, 0x32, 0x34, 0x36, 0x38, 0x3a, 0x3c, 0x3e,
+  	0x40, 0x42, 0x44, 0x46, 0x48, 0x4a, 0x4c, 0x4e, 0x50, 0x52, 0x54, 0x56, 0x58, 0x5a, 0x5c, 0x5e,
+--- 73,79 ----
+  	0x1e, 0x1c, 0x1a, 0x18, 0x16, 0x14, 0x12, 0x10, 0x0e, 0x0c, 0x0a, 0x08, 0x06, 0x04, 0x02, 0x00
+  };
+  
+! unsigned const char env_rise[128] = {
+  	0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, 0x10, 0x12, 0x14, 0x16, 0x18, 0x1a, 0x1c, 0x1e,
+  	0x20, 0x22, 0x24, 0x26, 0x28, 0x2a, 0x2c, 0x2e, 0x30, 0x32, 0x34, 0x36, 0x38, 0x3a, 0x3c, 0x3e,
+  	0x40, 0x42, 0x44, 0x46, 0x48, 0x4a, 0x4c, 0x4e, 0x50, 0x52, 0x54, 0x56, 0x58, 0x5a, 0x5c, 0x5e,
+***************
+*** 84,90 ****
+  	0xe0, 0xe2, 0xe4, 0xe6, 0xe8, 0xea, 0xec, 0xee, 0xf0, 0xf2, 0xf4, 0xf6, 0xf8, 0xfa, 0xfd, 0xff
+  };
+  
+! unsigned char env_frise[128] = {
+  	0xff, 0xf4, 0xea, 0xe0, 0xd6, 0xcc, 0xc3, 0xba, 0xb1, 0xa8, 0x9f, 0x97, 0x8f, 0x87, 0x7f, 0x78,
+  	0x71, 0x6a, 0x63, 0x5c, 0x56, 0x50, 0x4a, 0x44, 0x3f, 0x39, 0x34, 0x2f, 0x2b, 0x26, 0x22, 0x1e,
+  	0x1a, 0x17, 0x13, 0x10, 0x0d, 0x0b, 0x08, 0x06, 0x04, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
+--- 84,90 ----
+  	0xe0, 0xe2, 0xe4, 0xe6, 0xe8, 0xea, 0xec, 0xee, 0xf0, 0xf2, 0xf4, 0xf6, 0xf8, 0xfa, 0xfd, 0xff
+  };
+  
+! unsigned const char env_frise[128] = {
+  	0xff, 0xf4, 0xea, 0xe0, 0xd6, 0xcc, 0xc3, 0xba, 0xb1, 0xa8, 0x9f, 0x97, 0x8f, 0x87, 0x7f, 0x78,
+  	0x71, 0x6a, 0x63, 0x5c, 0x56, 0x50, 0x4a, 0x44, 0x3f, 0x39, 0x34, 0x2f, 0x2b, 0x26, 0x22, 0x1e,
+  	0x1a, 0x17, 0x13, 0x10, 0x0d, 0x0b, 0x08, 0x06, 0x04, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
+***************
+*** 95,101 ****
+  	0xa4, 0xa8, 0xac, 0xaf, 0xb3, 0xb7, 0xbb, 0xbf, 0xc3, 0xc7, 0xcb, 0xcf, 0xd3, 0xd7, 0xdb, 0xe0
+  };
+  
+! static unsigned char env_r_frise[128] = {
+  	0xcf, 0xcc, 0xc9, 0xc6, 0xc3, 0xc0, 0xbd, 0xb9, 0xb4, 0xb0, 0xab, 0xa7, 0xa2, 0x9c, 0x97, 0x92,
+  	0x8c, 0x86, 0x81, 0x7b, 0x75, 0x6f, 0x69, 0x63, 0x5d, 0x57, 0x50, 0x4a, 0x44, 0x3e, 0x38, 0x33,
+  	0x2d, 0x27, 0x22, 0x1c, 0x17, 0x12, 0x0d, 0x08, 0x04, 0x02, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00,
+--- 95,101 ----
+  	0xa4, 0xa8, 0xac, 0xaf, 0xb3, 0xb7, 0xbb, 0xbf, 0xc3, 0xc7, 0xcb, 0xcf, 0xd3, 0xd7, 0xdb, 0xe0
+  };
+  
+! static unsigned const char env_r_frise[128] = {
+  	0xcf, 0xcc, 0xc9, 0xc6, 0xc3, 0xc0, 0xbd, 0xb9, 0xb4, 0xb0, 0xab, 0xa7, 0xa2, 0x9c, 0x97, 0x92,
+  	0x8c, 0x86, 0x81, 0x7b, 0x75, 0x6f, 0x69, 0x63, 0x5d, 0x57, 0x50, 0x4a, 0x44, 0x3e, 0x38, 0x33,
+  	0x2d, 0x27, 0x22, 0x1c, 0x17, 0x12, 0x0d, 0x08, 0x04, 0x02, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00,
+***************
+*** 106,112 ****
+  	0xa4, 0xa8, 0xac, 0xaf, 0xb3, 0xb7, 0xbb, 0xbf, 0xc3, 0xc7, 0xcb, 0xcf, 0xd3, 0xd7, 0xdb, 0xe0
+  };
+  
+! static unsigned char env_frise2[128] = {
+  	0xff, 0xf9, 0xf4, 0xee, 0xe9, 0xe4, 0xdf, 0xda, 0xd5, 0xd0, 0xcb, 0xc6, 0xc1, 0xbd, 0xb8, 0xb3,
+  	0xaf, 0xaa, 0xa6, 0xa1, 0x9d, 0x99, 0x95, 0x90, 0x8c, 0x88, 0x84, 0x80, 0x7d, 0x79, 0x75, 0x71,
+  	0x6e, 0x6a, 0x67, 0x63, 0x60, 0x5d, 0x59, 0x56, 0x53, 0x50, 0x4d, 0x4a, 0x47, 0x44, 0x41, 0x3e,
+--- 106,112 ----
+  	0xa4, 0xa8, 0xac, 0xaf, 0xb3, 0xb7, 0xbb, 0xbf, 0xc3, 0xc7, 0xcb, 0xcf, 0xd3, 0xd7, 0xdb, 0xe0
+  };
+  
+! static unsigned const char env_frise2[128] = {
+  	0xff, 0xf9, 0xf4, 0xee, 0xe9, 0xe4, 0xdf, 0xda, 0xd5, 0xd0, 0xcb, 0xc6, 0xc1, 0xbd, 0xb8, 0xb3,
+  	0xaf, 0xaa, 0xa6, 0xa1, 0x9d, 0x99, 0x95, 0x90, 0x8c, 0x88, 0x84, 0x80, 0x7d, 0x79, 0x75, 0x71,
+  	0x6e, 0x6a, 0x67, 0x63, 0x60, 0x5d, 0x59, 0x56, 0x53, 0x50, 0x4d, 0x4a, 0x47, 0x44, 0x41, 0x3e,
+***************
+*** 117,123 ****
+  	0x09, 0x0a, 0x0b, 0x0c, 0x0e, 0x0f, 0x10, 0x12, 0x13, 0x15, 0x17, 0x18, 0x1a, 0x1c, 0x1e, 0x20
+  };
+  
+! static unsigned char env_r_frise2[128] = {
+  	0xd0, 0xce, 0xcd, 0xcc, 0xca, 0xc8, 0xc7, 0xc5, 0xc3, 0xc1, 0xc0, 0xbd, 0xbb, 0xb8, 0xb5, 0xb3,
+  	0xb0, 0xad, 0xaa, 0xa7, 0xa3, 0xa0, 0x9d, 0x99, 0x96, 0x92, 0x8f, 0x8b, 0x87, 0x84, 0x80, 0x7c,
+  	0x78, 0x74, 0x70, 0x6d, 0x69, 0x65, 0x61, 0x5d, 0x59, 0x55, 0x51, 0x4d, 0x4a, 0x46, 0x42, 0x3e,
+--- 117,123 ----
+  	0x09, 0x0a, 0x0b, 0x0c, 0x0e, 0x0f, 0x10, 0x12, 0x13, 0x15, 0x17, 0x18, 0x1a, 0x1c, 0x1e, 0x20
+  };
+  
+! static unsigned const char env_r_frise2[128] = {
+  	0xd0, 0xce, 0xcd, 0xcc, 0xca, 0xc8, 0xc7, 0xc5, 0xc3, 0xc1, 0xc0, 0xbd, 0xbb, 0xb8, 0xb5, 0xb3,
+  	0xb0, 0xad, 0xaa, 0xa7, 0xa3, 0xa0, 0x9d, 0x99, 0x96, 0x92, 0x8f, 0x8b, 0x87, 0x84, 0x80, 0x7c,
+  	0x78, 0x74, 0x70, 0x6d, 0x69, 0x65, 0x61, 0x5d, 0x59, 0x55, 0x51, 0x4d, 0x4a, 0x46, 0x42, 0x3e,
+***************
+*** 128,134 ****
+  	0x09, 0x0a, 0x0b, 0x0c, 0x0e, 0x0f, 0x10, 0x12, 0x13, 0x15, 0x17, 0x18, 0x1a, 0x1c, 0x1e, 0x20
+  };
+  
+! static unsigned char env_risefall[128] = {
+  	0x98, 0x99, 0x99, 0x9a, 0x9c, 0x9d, 0x9f, 0xa1, 0xa4, 0xa7, 0xa9, 0xac, 0xb0, 0xb3, 0xb6, 0xba,
+  	0xbe, 0xc1, 0xc5, 0xc9, 0xcd, 0xd1, 0xd4, 0xd8, 0xdc, 0xdf, 0xe3, 0xe6, 0xea, 0xed, 0xf0, 0xf2,
+  	0xf5, 0xf7, 0xf9, 0xfb, 0xfc, 0xfd, 0xfe, 0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe, 0xfd,
+--- 128,134 ----
+  	0x09, 0x0a, 0x0b, 0x0c, 0x0e, 0x0f, 0x10, 0x12, 0x13, 0x15, 0x17, 0x18, 0x1a, 0x1c, 0x1e, 0x20
+  };
+  
+! static unsigned const char env_risefall[128] = {
+  	0x98, 0x99, 0x99, 0x9a, 0x9c, 0x9d, 0x9f, 0xa1, 0xa4, 0xa7, 0xa9, 0xac, 0xb0, 0xb3, 0xb6, 0xba,
+  	0xbe, 0xc1, 0xc5, 0xc9, 0xcd, 0xd1, 0xd4, 0xd8, 0xdc, 0xdf, 0xe3, 0xe6, 0xea, 0xed, 0xf0, 0xf2,
+  	0xf5, 0xf7, 0xf9, 0xfb, 0xfc, 0xfd, 0xfe, 0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe, 0xfd,
+***************
+*** 139,145 ****
+  	0x15, 0x12, 0x0f, 0x0d, 0x0a, 0x08, 0x07, 0x05, 0x03, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00
+  };
+  
+! static unsigned char env_rise2[128] = {
+  	0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x02, 0x02, 0x03, 0x03, 0x04, 0x04, 0x05, 0x06, 0x06,
+  	0x07, 0x08, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14,
+  	0x16, 0x17, 0x18, 0x19, 0x1b, 0x1c, 0x1d, 0x1f, 0x20, 0x22, 0x23, 0x25, 0x26, 0x28, 0x29, 0x2b,
+--- 139,145 ----
+  	0x15, 0x12, 0x0f, 0x0d, 0x0a, 0x08, 0x07, 0x05, 0x03, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00
+  };
+  
+! static unsigned const char env_rise2[128] = {
+  	0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x02, 0x02, 0x03, 0x03, 0x04, 0x04, 0x05, 0x06, 0x06,
+  	0x07, 0x08, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14,
+  	0x16, 0x17, 0x18, 0x19, 0x1b, 0x1c, 0x1d, 0x1f, 0x20, 0x22, 0x23, 0x25, 0x26, 0x28, 0x29, 0x2b,
+***************
+*** 150,156 ****
+  	0xdc, 0xdf, 0xe2, 0xe4, 0xe7, 0xe9, 0xec, 0xee, 0xf0, 0xf2, 0xf4, 0xf6, 0xf8, 0xfa, 0xfb, 0xfd
+  };
+  
+! static unsigned char env_fall2[128] = {
+  	0xfe, 0xfe, 0xfd, 0xfd, 0xfc, 0xfb, 0xfb, 0xfa, 0xfa, 0xf9, 0xf8, 0xf8, 0xf7, 0xf7, 0xf6, 0xf6,
+  	0xf5, 0xf4, 0xf4, 0xf3, 0xf3, 0xf2, 0xf2, 0xf1, 0xf0, 0xf0, 0xef, 0xee, 0xee, 0xed, 0xec, 0xeb,
+  	0xea, 0xea, 0xe9, 0xe8, 0xe7, 0xe6, 0xe5, 0xe4, 0xe3, 0xe2, 0xe1, 0xe0, 0xde, 0xdd, 0xdc, 0xdb,
+--- 150,156 ----
+  	0xdc, 0xdf, 0xe2, 0xe4, 0xe7, 0xe9, 0xec, 0xee, 0xf0, 0xf2, 0xf4, 0xf6, 0xf8, 0xfa, 0xfb, 0xfd
+  };
+  
+! static unsigned const char env_fall2[128] = {
+  	0xfe, 0xfe, 0xfd, 0xfd, 0xfc, 0xfb, 0xfb, 0xfa, 0xfa, 0xf9, 0xf8, 0xf8, 0xf7, 0xf7, 0xf6, 0xf6,
+  	0xf5, 0xf4, 0xf4, 0xf3, 0xf3, 0xf2, 0xf2, 0xf1, 0xf0, 0xf0, 0xef, 0xee, 0xee, 0xed, 0xec, 0xeb,
+  	0xea, 0xea, 0xe9, 0xe8, 0xe7, 0xe6, 0xe5, 0xe4, 0xe3, 0xe2, 0xe1, 0xe0, 0xde, 0xdd, 0xdc, 0xdb,
+***************
+*** 161,167 ****
+  	0x18, 0x14, 0x11, 0x0d, 0x0b, 0x09, 0x07, 0x05, 0x04, 0x03, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00
+  };
+  
+! static unsigned char env_fallrise3[128] = {
+  	0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe, 0xfd, 0xfc, 0xfa, 0xf8, 0xf6, 0xf4, 0xf1, 0xee, 0xeb,
+  	0xe8, 0xe5, 0xe1, 0xde, 0xda, 0xd6, 0xd2, 0xcd, 0xc9, 0xc4, 0xbf, 0xba, 0xb6, 0xb0, 0xab, 0xa6,
+  	0xa1, 0x9c, 0x96, 0x91, 0x8b, 0x86, 0x80, 0x7b, 0x75, 0x6f, 0x6a, 0x64, 0x5f, 0x59, 0x54, 0x4f,
+--- 161,167 ----
+  	0x18, 0x14, 0x11, 0x0d, 0x0b, 0x09, 0x07, 0x05, 0x04, 0x03, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00
+  };
+  
+! static unsigned const char env_fallrise3[128] = {
+  	0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe, 0xfd, 0xfc, 0xfa, 0xf8, 0xf6, 0xf4, 0xf1, 0xee, 0xeb,
+  	0xe8, 0xe5, 0xe1, 0xde, 0xda, 0xd6, 0xd2, 0xcd, 0xc9, 0xc4, 0xbf, 0xba, 0xb6, 0xb0, 0xab, 0xa6,
+  	0xa1, 0x9c, 0x96, 0x91, 0x8b, 0x86, 0x80, 0x7b, 0x75, 0x6f, 0x6a, 0x64, 0x5f, 0x59, 0x54, 0x4f,
+***************
+*** 172,178 ****
+  	0x76, 0x78, 0x7b, 0x7c, 0x7e, 0x80, 0x81, 0x82, 0x83, 0x83, 0x84, 0x84, 0x83, 0x83, 0x82, 0x81
+  };
+  
+! static unsigned char env_fallrise4[128] = {
+  	0x72, 0x72, 0x71, 0x71, 0x70, 0x6f, 0x6d, 0x6c, 0x6a, 0x68, 0x66, 0x64, 0x61, 0x5f, 0x5c, 0x5a,
+  	0x57, 0x54, 0x51, 0x4e, 0x4b, 0x48, 0x45, 0x42, 0x3f, 0x3b, 0x38, 0x35, 0x32, 0x2f, 0x2c, 0x29,
+  	0x26, 0x23, 0x20, 0x1d, 0x1b, 0x18, 0x16, 0x14, 0x12, 0x10, 0x0e, 0x0c, 0x0b, 0x0a, 0x09, 0x08,
+--- 172,178 ----
+  	0x76, 0x78, 0x7b, 0x7c, 0x7e, 0x80, 0x81, 0x82, 0x83, 0x83, 0x84, 0x84, 0x83, 0x83, 0x82, 0x81
+  };
+  
+! static unsigned const char env_fallrise4[128] = {
+  	0x72, 0x72, 0x71, 0x71, 0x70, 0x6f, 0x6d, 0x6c, 0x6a, 0x68, 0x66, 0x64, 0x61, 0x5f, 0x5c, 0x5a,
+  	0x57, 0x54, 0x51, 0x4e, 0x4b, 0x48, 0x45, 0x42, 0x3f, 0x3b, 0x38, 0x35, 0x32, 0x2f, 0x2c, 0x29,
+  	0x26, 0x23, 0x20, 0x1d, 0x1b, 0x18, 0x16, 0x14, 0x12, 0x10, 0x0e, 0x0c, 0x0b, 0x0a, 0x09, 0x08,
+***************
+*** 183,189 ****
+  	0xc0, 0xc7, 0xce, 0xd5, 0xdc, 0xe3, 0xea, 0xf1, 0xf5, 0xf7, 0xfa, 0xfc, 0xfd, 0xfe, 0xff, 0xff
+  };
+  
+! static unsigned char env_risefallrise[128] = {
+  	0x7f, 0x7f, 0x7f, 0x80, 0x81, 0x83, 0x84, 0x87, 0x89, 0x8c, 0x8f, 0x92, 0x96, 0x99, 0x9d, 0xa1,
+  	0xa5, 0xaa, 0xae, 0xb2, 0xb7, 0xbb, 0xc0, 0xc5, 0xc9, 0xcd, 0xd2, 0xd6, 0xda, 0xde, 0xe2, 0xe6,
+  	0xea, 0xed, 0xf0, 0xf3, 0xf5, 0xf8, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xfe, 0xfd, 0xfc, 0xfb, 0xf9,
+--- 183,189 ----
+  	0xc0, 0xc7, 0xce, 0xd5, 0xdc, 0xe3, 0xea, 0xf1, 0xf5, 0xf7, 0xfa, 0xfc, 0xfd, 0xfe, 0xff, 0xff
+  };
+  
+! static unsigned const char env_risefallrise[128] = {
+  	0x7f, 0x7f, 0x7f, 0x80, 0x81, 0x83, 0x84, 0x87, 0x89, 0x8c, 0x8f, 0x92, 0x96, 0x99, 0x9d, 0xa1,
+  	0xa5, 0xaa, 0xae, 0xb2, 0xb7, 0xbb, 0xc0, 0xc5, 0xc9, 0xcd, 0xd2, 0xd6, 0xda, 0xde, 0xe2, 0xe6,
+  	0xea, 0xed, 0xf0, 0xf3, 0xf5, 0xf8, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xfe, 0xfd, 0xfc, 0xfb, 0xf9,
+***************
+*** 194,200 ****
+  	0x50, 0x5a, 0x64, 0x70, 0x7c, 0x83, 0x85, 0x88, 0x8a, 0x8c, 0x8e, 0x8f, 0x91, 0x92, 0x93, 0x93
+  };
+  
+! unsigned char *envelope_data[N_ENVELOPE_DATA] = {
+  	env_fall,  env_fall,
+  	env_rise,  env_rise,
+  	env_frise,  env_r_frise,
+--- 194,200 ----
+  	0x50, 0x5a, 0x64, 0x70, 0x7c, 0x83, 0x85, 0x88, 0x8a, 0x8c, 0x8e, 0x8f, 0x91, 0x92, 0x93, 0x93
+  };
+  
+! unsigned const char *envelope_data[N_ENVELOPE_DATA] = {
+  	env_fall,  env_fall,
+  	env_rise,  env_rise,
+  	env_frise,  env_r_frise,
+***************
+*** 255,261 ****
+  
+  #define T_EMPH  1
+  
+! static TONE_HEAD tone_head_table[N_TONE_HEAD_TABLE] = {
+  	{ 46, 57,   78, 50,  drops_0, 3, 7,   5, oflow },      // 0 statement
+  	{ 46, 57,   78, 46,  drops_0, 3, 7,   5, oflow },      // 1 comma
+  	{ 46, 57,   78, 46,  drops_0, 3, 7,   5, oflow },      // 2 question
+--- 255,261 ----
+  
+  #define T_EMPH  1
+  
+! static const TONE_HEAD tone_head_table[N_TONE_HEAD_TABLE] = {
+  	{ 46, 57,   78, 50,  drops_0, 3, 7,   5, oflow },      // 0 statement
+  	{ 46, 57,   78, 46,  drops_0, 3, 7,   5, oflow },      // 1 comma
+  	{ 46, 57,   78, 46,  drops_0, 3, 7,   5, oflow },      // 2 question
+***************
+*** 271,277 ****
+  	{ 46, 57,   55, 50,  drops_0, 3, 7,   5, oflow_less }, // 12 test
+  };
+  
+! static TONE_NUCLEUS tone_nucleus_table[N_TONE_NUCLEUS_TABLE] = {
+  	{ PITCHfall,   64,  8, PITCHfall,   70, 18, NULL, 24, 12, 0 },      //  0 statement
+  	{ PITCHfrise,  80, 18, PITCHfrise2, 78, 22, NULL, 34, 52, 0 },      //  1 comma
+  	{ PITCHfrise,  88, 22, PITCHfrise2, 82, 22, NULL, 34, 64, 0 },      //  2 question
+--- 271,277 ----
+  	{ 46, 57,   55, 50,  drops_0, 3, 7,   5, oflow_less }, // 12 test
+  };
+  
+! static const TONE_NUCLEUS tone_nucleus_table[N_TONE_NUCLEUS_TABLE] = {
+  	{ PITCHfall,   64,  8, PITCHfall,   70, 18, NULL, 24, 12, 0 },      //  0 statement
+  	{ PITCHfrise,  80, 18, PITCHfrise2, 78, 22, NULL, 34, 52, 0 },      //  1 comma
+  	{ PITCHfrise,  88, 22, PITCHfrise2, 82, 22, NULL, 34, 64, 0 },      //  2 question
+***************
+*** 523,529 ****
+  /* Calculate pitches until next RESET or tonic syllable, or end.
+      Increment pitch if stress is >= min_stress.
+      Used for tonic segment */
+! static int calc_pitch_segment(SYLLABLE *syllable_tab, int ix, int end_ix, TONE_HEAD *th, TONE_NUCLEUS *tn, int min_stress, bool continuing)
+  {
+  	int stress;
+  	int pitch = 0;
+--- 523,529 ----
+  /* Calculate pitches until next RESET or tonic syllable, or end.
+      Increment pitch if stress is >= min_stress.
+      Used for tonic segment */
+! static int calc_pitch_segment(SYLLABLE *syllable_tab, int ix, int end_ix, const TONE_HEAD *th, const TONE_NUCLEUS *tn, int min_stress, bool continuing)
+  {
+  	int stress;
+  	int pitch = 0;
+***************
+*** 711,718 ****
+  static int calc_pitches(SYLLABLE *syllable_tab, int control, int start, int end,  int tune_number)
+  {
+  	int ix;
+! 	TONE_HEAD *th;
+! 	TONE_NUCLEUS *tn;
+  	int drop;
+  	bool continuing = false;
+  
+--- 711,718 ----
+  static int calc_pitches(SYLLABLE *syllable_tab, int control, int start, int end,  int tune_number)
+  {
+  	int ix;
+! 	const TONE_HEAD *th;
+! 	const TONE_NUCLEUS *tn;
+  	int drop;
+  	bool continuing = false;
+  
+***************
+*** 937,943 ****
+--- 937,948 ----
+  	PHONEME_TAB *ph;
+  	int ph_end = n_phoneme_list;
+  
++ #if ESPEAK_STACK_HACK
++ 	SYLLABLE *syllable_tab = calloc(1, sizeof(SYLLABLE)*N_PHONEME_LIST);
++ 	assert(syllable_tab!=NULL);
++ #else
+  	SYLLABLE syllable_tab[N_PHONEME_LIST];
++ #endif
+  	n_st = 0;
+  	n_primary = 0;
+  	for (ix = 0; ix < (n_phoneme_list-1); ix++) {
+***************
+*** 956,966 ****
+  	syllable_tab[n_st].stress = 0; // extra 0 entry at the end
+  
+  	if (n_st == 0)
+! 		return; // nothing to do
+  
+  	if (tr->langopts.tone_language == 1) {
+  		CalcPitches_Tone(tr);
+! 		return;
+  	}
+  
+  	option = tr->langopts.intonation_group;
+--- 961,973 ----
+  	syllable_tab[n_st].stress = 0; // extra 0 entry at the end
+  
+  	if (n_st == 0)
+! 		goto end_CalcPitches;
+! 		//return; // nothing to do
+  
+  	if (tr->langopts.tone_language == 1) {
+  		CalcPitches_Tone(tr);
+! 		goto end_CalcPitches;
+! //		return;
+  	}
+  
+  	option = tr->langopts.intonation_group;
+***************
+*** 1095,1098 ****
+--- 1102,1110 ----
+  			st_ix++;
+  		}
+  	}
++ end_CalcPitches:
++ #if ESPEAK_STACK_HACK
++ 	free(syllable_tab);
++ #endif
++ 	return;
+  }
+Only in original/src/libespeak-ng: mbrowrap.c
+Only in original/src/libespeak-ng: mbrowrap.h
+diff -c original/src/libespeak-ng/numbers.c src/libespeak-ng/numbers.c
+*** original/src/libespeak-ng/numbers.c	2022-11-01 10:06:27.000000000 +0100
+--- src/libespeak-ng/numbers.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 1683,1689 ****
+  		if (prev_thousands == 0) {
+  			if ((decimal_point == 0) && (ordinal == 0)) {
+  				// Look for special pronunciation for this number in isolation (LANG=kl)
+! 				sprintf(string, "_%dn", value);
+  				if (Lookup(tr, string, ph_out))
+  					return 1;
+  			}
+--- 1683,1689 ----
+  		if (prev_thousands == 0) {
+  			if ((decimal_point == 0) && (ordinal == 0)) {
+  				// Look for special pronunciation for this number in isolation (LANG=kl)
+! 				sprintf(string, "_%dn", (int) value);
+  				if (Lookup(tr, string, ph_out))
+  					return 1;
+  			}
+diff -c original/src/libespeak-ng/phonemelist.c src/libespeak-ng/phonemelist.c
+*** original/src/libespeak-ng/phonemelist.c	2022-10-27 18:30:17.000000000 +0200
+--- src/libespeak-ng/phonemelist.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 136,153 ****
+  	int word_start;
+  	bool inserted;
+  	bool deleted;
+- 	PHONEME_DATA phdata;
+  	bool start_of_clause = true;
+  
+  	int n_ph_list3;
+  	PHONEME_LIST *plist3;
+  	PHONEME_LIST *plist3_inserted = NULL;
+- 	PHONEME_LIST ph_list3[N_PHONEME_LIST];
+  
+  	PHONEME_LIST2 *plist2;
+- 	WORD_PH_DATA worddata;
+  
+! 	memset(&worddata, 0, sizeof(worddata));
+  	plist2 = ph_list2;
+  	phlist = phoneme_list;
+  	end_sourceix = plist2[n_ph_list2-1].sourceix;
+--- 136,159 ----
+  	int word_start;
+  	bool inserted;
+  	bool deleted;
+  	bool start_of_clause = true;
+  
+  	int n_ph_list3;
+  	PHONEME_LIST *plist3;
+  	PHONEME_LIST *plist3_inserted = NULL;
+  
+  	PHONEME_LIST2 *plist2;
+  
+! #if ESPEAK_STACK_HACK
+! 	PHONEME_LIST *ph_list3 = calloc(1, sizeof(PHONEME_LIST)*N_PHONEME_LIST);
+! 	assert(ph_list3!=NULL);
+! #else
+! 	PHONEME_LIST ph_list3[N_PHONEME_LIST];
+! #endif
+! 	STACK_T PHONEME_DATA phdata;
+! 	STACK_T WORD_PH_DATA worddata;
+! 	memset(&worddata, 0, sizeof(WORD_PH_DATA));
+! 	
+  	plist2 = ph_list2;
+  	phlist = phoneme_list;
+  	end_sourceix = plist2[n_ph_list2-1].sourceix;
+***************
+*** 593,596 ****
+--- 599,607 ----
+  	n_phoneme_list = ix;
+  
+  	SelectPhonemeTable(tr->phoneme_tab_ix);
++ 
++ #if ESPEAK_STACK_HACK
++ 	if(ph_list3)
++ 		free(ph_list3);
++ #endif
+  }
+diff -c original/src/libespeak-ng/readclause.c src/libespeak-ng/readclause.c
+*** original/src/libespeak-ng/readclause.c	2022-11-13 17:02:43.000000000 +0100
+--- src/libespeak-ng/readclause.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 51,59 ****
+  
+  #define N_XML_BUF   500
+  
+- static void DecodeWithPhonemeMode(char *buf, char *phonemes, Translator *tr, Translator *tr2, unsigned int flags[]);
+- static void TerminateBufWithSpaceAndZero(char *buf, int index, int *ungetc);
+- 
+  static const char *xmlbase = ""; // base URL from <speak>
+  
+  static int namedata_ix = 0;
+--- 51,56 ----
+***************
+*** 193,205 ****
+  
+  	flags[0] = flags[1] = 0;
+  	if (LookupDictList(tr, &string1, phonemes, flags, 0, NULL)) {
+! 		DecodeWithPhonemeMode(text_out, phonemes, tr, NULL, flags);
+  		return text_out;
+  	}
+  	return NULL;
+  }
+  
+! static const char *LookupCharName(Translator *tr, int c, bool only)
+  {
+  	// Find the phoneme string (in ascii) to speak the name of character c
+  	// Used for punctuation characters and symbols
+--- 190,205 ----
+  
+  	flags[0] = flags[1] = 0;
+  	if (LookupDictList(tr, &string1, phonemes, flags, 0, NULL)) {
+! 		char phonemes2[55];
+! 		SetWordStress(tr, phonemes, flags, -1, 0);
+! 		DecodePhonemes(phonemes, phonemes2);
+! 		sprintf(text_out, "[\002%s]]", phonemes2);
+  		return text_out;
+  	}
+  	return NULL;
+  }
+  
+! static const char *LookupCharName(Translator *tr, int c, int only)
+  {
+  	// Find the phoneme string (in ascii) to speak the name of character c
+  	// Used for punctuation characters and symbols
+***************
+*** 222,233 ****
+  	ix = utf8_out(c, &single_letter[2]);
+  	single_letter[2+ix] = 0;
+  
+! 	if (only == true) {
+  		string = &single_letter[2];
+  		LookupDictList(tr, &string, phonemes, flags, 0, NULL);
+! 	}
+! 
+! 	if (only == false) {
+  		string = &single_letter[1];
+  		if (LookupDictList(tr, &string, phonemes, flags, 0, NULL) == 0) {
+  			// try _* then *
+--- 222,231 ----
+  	ix = utf8_out(c, &single_letter[2]);
+  	single_letter[2+ix] = 0;
+  
+! 	if (only) {
+  		string = &single_letter[2];
+  		LookupDictList(tr, &string, phonemes, flags, 0, NULL);
+! 	} else {
+  		string = &single_letter[1];
+  		if (LookupDictList(tr, &string, phonemes, flags, 0, NULL) == 0) {
+  			// try _* then *
+***************
+*** 238,268 ****
+  				TranslateRules(tr, &single_letter[2], phonemes, sizeof(phonemes), NULL, 0, NULL);
+  			}
+  		}
+! 		
+! 		if (((phonemes[0] == 0) || (phonemes[0] == phonSWITCH)) && (tr->translator_name != L('e', 'n'))) {
+!     		// not found, try English
+!     		SetTranslator2(ESPEAKNG_DEFAULT_VOICE);
+!     		string = &single_letter[1];
+!     		single_letter[1] = '_';
+!     		if (LookupDictList(translator2, &string, phonemes, flags, 0, NULL) == 0) {
+!     			string = &single_letter[2];
+!     			LookupDictList(translator2, &string, phonemes, flags, 0, NULL);
+!     		}
+!     		if (phonemes[0])
+!     			lang_name = ESPEAKNG_DEFAULT_VOICE;
+!     		else
+!     			SelectPhonemeTable(voice->phoneme_tab_ix); // revert to original phoneme table
+!     	}
+  	}
+  
+  	if (phonemes[0]) {
+  		if (lang_name) {
+! 			DecodeWithPhonemeMode(buf, phonemes, tr, translator2, flags);
+  			SelectPhonemeTable(voice->phoneme_tab_ix); // revert to original phoneme table
+  		} else {
+! 			DecodeWithPhonemeMode(buf, phonemes, tr, NULL, flags);
+  		}
+! 	} else if (only == false)
+  		strcpy(buf, "[\002(X1)(X1)(X1)]]");
+  
+  	return buf;
+--- 236,271 ----
+  				TranslateRules(tr, &single_letter[2], phonemes, sizeof(phonemes), NULL, 0, NULL);
+  			}
+  		}
+! 	}
+! 
+! 	if ((only == 0) && ((phonemes[0] == 0) || (phonemes[0] == phonSWITCH)) && (tr->translator_name != L('e', 'n'))) {
+! 		// not found, try English
+! 		SetTranslator2(ESPEAKNG_DEFAULT_VOICE);
+! 		string = &single_letter[1];
+! 		single_letter[1] = '_';
+! 		if (LookupDictList(translator2, &string, phonemes, flags, 0, NULL) == 0) {
+! 			string = &single_letter[2];
+! 			LookupDictList(translator2, &string, phonemes, flags, 0, NULL);
+! 		}
+! 		if (phonemes[0])
+! 			lang_name = ESPEAKNG_DEFAULT_VOICE;
+! 		else
+! 			SelectPhonemeTable(voice->phoneme_tab_ix); // revert to original phoneme table
+  	}
+  
+  	if (phonemes[0]) {
++ 		char phonemes2[60];
+  		if (lang_name) {
+! 			SetWordStress(translator2, phonemes, flags, -1, 0);
+! 			DecodePhonemes(phonemes, phonemes2);
+! 			sprintf(buf, "[\002_^_%s %s _^_%s]]", ESPEAKNG_DEFAULT_VOICE, phonemes2, WordToString2(tr->translator_name));
+  			SelectPhonemeTable(voice->phoneme_tab_ix); // revert to original phoneme table
+  		} else {
+! 			SetWordStress(tr, phonemes, flags, -1, 0);
+! 			DecodePhonemes(phonemes, phonemes2);
+! 			sprintf(buf, "[\002%s]] ", phonemes2);
+  		}
+! 	} else if (only == 0)
+  		strcpy(buf, "[\002(X1)(X1)(X1)]]");
+  
+  	return buf;
+***************
+*** 298,304 ****
+  				punctname = ph_buf; // use word for 'period' instead of 'dot'
+  		}
+  		if (punctname == NULL)
+! 			punctname = LookupCharName(tr, c1, false);
+  
+  		if (punctname == NULL)
+  			return -1;
+--- 301,307 ----
+  				punctname = ph_buf; // use word for 'period' instead of 'dot'
+  		}
+  		if (punctname == NULL)
+! 			punctname = LookupCharName(tr, c1, 0);
+  
+  		if (punctname == NULL)
+  			return -1;
+***************
+*** 336,343 ****
+  				        punctname, punct_count, punctname);
+  		} else {
+  			// end the clause now and pick up the punctuation next time
+  			ungot_char2 = c1;
+! 			TerminateBufWithSpaceAndZero(buf, 0, &c2);
+  		}
+  	}
+  
+--- 339,348 ----
+  				        punctname, punct_count, punctname);
+  		} else {
+  			// end the clause now and pick up the punctuation next time
++ 			UngetC(c2);
+  			ungot_char2 = c1;
+! 			buf[0] = ' ';
+! 			buf[1] = 0;
+  		}
+  	}
+  
+***************
+*** 600,607 ****
+  					// check for space in the output buffer for embedded commands produced by the SSML tag
+  					if (ix > (n_buf - 20)) {
+  						// Perhaps not enough room, end the clause before the SSML tag
+  						ungot_char2 = c1;
+! 						TerminateBufWithSpaceAndZero(buf, ix, &c2);
+  						return CLAUSE_NONE;
+  					}
+  
+--- 605,614 ----
+  					// check for space in the output buffer for embedded commands produced by the SSML tag
+  					if (ix > (n_buf - 20)) {
+  						// Perhaps not enough room, end the clause before the SSML tag
++ 						UngetC(c2);
+  						ungot_char2 = c1;
+! 						buf[ix] = ' ';
+! 						buf[ix+1] = 0;
+  						return CLAUSE_NONE;
+  					}
+  
+***************
+*** 618,624 ****
+  					terminator = ProcessSsmlTag(xml_buf, buf, &ix, n_buf, xmlbase, &audio_text, current_voice_id, &base_voice, base_voice_variant_name, &ignore_text, &clear_skipping_text, &sayas_mode, &sayas_start, ssml_stack, &n_ssml_stack, &n_param_stack, (int *)speech_parameters);
+  
+  					if (terminator != 0) {
+! 						TerminateBufWithSpaceAndZero(buf, ix, NULL);
+  
+  						if (terminator & CLAUSE_TYPE_VOICE_CHANGE)
+  							strcpy(voice_change, current_voice_id);
+--- 625,632 ----
+  					terminator = ProcessSsmlTag(xml_buf, buf, &ix, n_buf, xmlbase, &audio_text, current_voice_id, &base_voice, base_voice_variant_name, &ignore_text, &clear_skipping_text, &sayas_mode, &sayas_start, ssml_stack, &n_ssml_stack, &n_param_stack, (int *)speech_parameters);
+  
+  					if (terminator != 0) {
+! 						buf[ix] = ' ';
+! 						buf[ix++] = 0;
+  
+  						if (terminator & CLAUSE_TYPE_VOICE_CHANGE)
+  							strcpy(voice_change, current_voice_id);
+***************
+*** 644,650 ****
+  				ix += utf8_out(c1, &buf[ix]);
+  				terminator = CLAUSE_PERIOD; // line doesn't end in punctuation, assume period
+  			}
+! 			TerminateBufWithSpaceAndZero(buf, ix, NULL);
+  			return terminator;
+  		}
+  
+--- 652,659 ----
+  				ix += utf8_out(c1, &buf[ix]);
+  				terminator = CLAUSE_PERIOD; // line doesn't end in punctuation, assume period
+  			}
+! 			buf[ix] = ' ';
+! 			buf[ix+1] = 0;
+  			return terminator;
+  		}
+  
+***************
+*** 740,748 ****
+  			}
+  			if (parag > 0) {
+  				// 2nd newline, assume paragraph
+  				if (end_clause_after_tag)
+  					RemoveChar(&buf[end_clause_index]); // delete clause-end punctiation
+! 				TerminateBufWithSpaceAndZero(buf, ix, &c2);
+  				if (parag > 3)
+  					parag = 3;
+  				if (option_ssml) parag = 1;
+--- 749,760 ----
+  			}
+  			if (parag > 0) {
+  				// 2nd newline, assume paragraph
++ 				UngetC(c2);
++ 
+  				if (end_clause_after_tag)
+  					RemoveChar(&buf[end_clause_index]); // delete clause-end punctiation
+! 				buf[ix] = ' ';
+! 				buf[ix+1] = 0;
+  				if (parag > 3)
+  					parag = 3;
+  				if (option_ssml) parag = 1;
+***************
+*** 751,757 ****
+  
+  			if (linelength <= option_linelength) {
+  				// treat lines shorter than a specified length as end-of-clause
+! 				TerminateBufWithSpaceAndZero(buf, ix, &c2);
+  				return CLAUSE_COLON;
+  			}
+  
+--- 763,771 ----
+  
+  			if (linelength <= option_linelength) {
+  				// treat lines shorter than a specified length as end-of-clause
+! 				UngetC(c2);
+! 				buf[ix] = ' ';
+! 				buf[ix+1] = 0;
+  				return CLAUSE_COLON;
+  			}
+  
+***************
+*** 770,777 ****
+  
+  				if (!iswspace(c1)) {
+  					if (!IsAlpha(c1) || !iswlower(c1)) {
+  						ungot_char2 = c1;
+! 						TerminateBufWithSpaceAndZero(buf, end_clause_index, &c2);
+  						return end_clause_after_tag;
+  					}
+  					end_clause_after_tag = 0;
+--- 784,793 ----
+  
+  				if (!iswspace(c1)) {
+  					if (!IsAlpha(c1) || !iswlower(c1)) {
++ 						UngetC(c2);
+  						ungot_char2 = c1;
+! 						buf[end_clause_index] = ' '; // delete the end-clause punctuation
+! 						buf[end_clause_index+1] = 0;
+  						return end_clause_after_tag;
+  					}
+  					end_clause_after_tag = 0;
+***************
+*** 833,839 ****
+  				char *p2;
+  
+  				p2 = &buf[ix];
+! 				sprintf(p2, "%s", LookupCharName(tr, c1, true));
+  				if (p2[0] != 0) {
+  					ix += strlen(p2);
+  					announced_punctuation = c1;
+--- 849,855 ----
+  				char *p2;
+  
+  				p2 = &buf[ix];
+! 				sprintf(p2, "%s", LookupCharName(tr, c1, 1));
+  				if (p2[0] != 0) {
+  					ix += strlen(p2);
+  					announced_punctuation = c1;
+***************
+*** 904,910 ****
+  				}
+  
+  				if (is_end_clause) {
+! 					TerminateBufWithSpaceAndZero(buf, ix, &c_next);
+  
+  					if (iswdigit(cprev) && !IsAlpha(c_next)) // ????
+  						punct_data &= ~CLAUSE_DOT_AFTER_LAST_WORD;
+--- 920,928 ----
+  				}
+  
+  				if (is_end_clause) {
+! 					UngetC(c_next);
+! 					buf[ix] = ' ';
+! 					buf[ix+1] = 0;
+  
+  					if (iswdigit(cprev) && !IsAlpha(c_next)) // ????
+  						punct_data &= ~CLAUSE_DOT_AFTER_LAST_WORD;
+***************
+*** 949,955 ****
+  			// clause too long, getting near end of buffer, so break here
+  			// try to break at a word boundary (unless we actually reach the end of buffer).
+  			// (n_buf-4) is to allow for 3 bytes of multibyte character plus terminator.
+! 			TerminateBufWithSpaceAndZero(buf, ix, &c2);
+  			return CLAUSE_NONE;
+  		}
+  	}
+--- 967,975 ----
+  			// clause too long, getting near end of buffer, so break here
+  			// try to break at a word boundary (unless we actually reach the end of buffer).
+  			// (n_buf-4) is to allow for 3 bytes of multibyte character plus terminator.
+! 			buf[ix] = ' ';
+! 			buf[ix+1] = 0;
+! 			UngetC(c2);
+  			return CLAUSE_NONE;
+  		}
+  	}
+***************
+*** 958,964 ****
+  		ix += utf8_out(CHAR_EMPHASIS, &buf[ix]);
+  	if (end_clause_after_tag)
+  		RemoveChar(&buf[end_clause_index]); // delete clause-end punctiation
+! 	TerminateBufWithSpaceAndZero(buf, ix, NULL);
+  	return CLAUSE_EOF; // end of file
+  }
+  
+--- 978,985 ----
+  		ix += utf8_out(CHAR_EMPHASIS, &buf[ix]);
+  	if (end_clause_after_tag)
+  		RemoveChar(&buf[end_clause_index]); // delete clause-end punctiation
+! 	buf[ix] = ' ';
+! 	buf[ix+1] = 0;
+  	return CLAUSE_EOF; // end of file
+  }
+  
+***************
+*** 1001,1025 ****
+  
+  	xmlbase = NULL;
+  }
+- 
+- static void TerminateBufWithSpaceAndZero(char *buf, int index, int *ungetc) {
+- 	buf[index] = ' ';
+- 	buf[index+1] = 0;
+- 
+- 	if (ungetc != NULL) {
+- 		UngetC(*ungetc);
+- 	}
+- }
+- 
+- static void DecodeWithPhonemeMode(char *buf, char *phonemes, Translator *tr, Translator *tr2, unsigned int flags[]) {
+- 	char phonemes2[55];
+- 	if (tr2 == NULL) {
+- 		SetWordStress(tr, phonemes, flags, -1, 0);
+- 		DecodePhonemes(phonemes, phonemes2);
+- 		sprintf(buf, "[\002%s]]", phonemes2);
+- 	} else {
+- 		SetWordStress(tr2, phonemes, flags, -1, 0);
+- 	    DecodePhonemes(phonemes, phonemes2);
+- 	    sprintf(buf, "[\002_^_%s %s _^_%s]]", ESPEAKNG_DEFAULT_VOICE, phonemes2, WordToString2(tr->translator_name));
+-     }
+- }
+\ No newline at end of file
+--- 1022,1024 ----
+Only in original/src/libespeak-ng: sPlayer.c
+Only in original/src/libespeak-ng: sPlayer.h
+diff -c original/src/libespeak-ng/setlengths.c src/libespeak-ng/setlengths.c
+*** original/src/libespeak-ng/setlengths.c	2022-10-27 18:30:17.000000000 +0200
+--- src/libespeak-ng/setlengths.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 389,395 ****
+  	int pitch1;
+  
+  	int tone_mod;
+! 	unsigned char *pitch_env = NULL;
+  	PHONEME_DATA phdata_tone;
+  
+  
+--- 389,395 ----
+  	int pitch1;
+  
+  	int tone_mod;
+! 	const unsigned char *pitch_env = NULL;
+  	PHONEME_DATA phdata_tone;
+  
+  
+diff -c original/src/libespeak-ng/soundicon.c src/libespeak-ng/soundicon.c
+*** original/src/libespeak-ng/soundicon.c	2022-11-01 10:06:27.000000000 +0100
+--- src/libespeak-ng/soundicon.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 182,188 ****
+  		return -1;
+  
+  	soundicon_tab[n_soundicon_tab].filename = (char *)realloc(soundicon_tab[n_soundicon_tab].filename, strlen(fname)+1);
+! 	strcpy(soundicon_tab[n_soundicon_tab].filename, fname);
+  	n_soundicon_tab++;
+  	return n_soundicon_tab - 1;
+  }
+--- 182,189 ----
+  		return -1;
+  
+  	soundicon_tab[n_soundicon_tab].filename = (char *)realloc(soundicon_tab[n_soundicon_tab].filename, strlen(fname)+1);
+! 	if (soundicon_tab[n_soundicon_tab].filename)
+! 		strcpy(soundicon_tab[n_soundicon_tab].filename, fname);
+  	n_soundicon_tab++;
+  	return n_soundicon_tab - 1;
+  }
+diff -c original/src/libespeak-ng/spect.c src/libespeak-ng/spect.c
+*** original/src/libespeak-ng/spect.c	2022-11-04 19:17:03.000000000 +0100
+--- src/libespeak-ng/spect.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 25,31 ****
+--- 25,35 ----
+  #include <stdio.h>
+  #include <stdlib.h>
+  #include <string.h>
++ // for BYTE_ORDER, BIG_ENDIAN
++ #if HAVE_ENDIAN_H
+  #include <endian.h>
++ #endif
++ 
+  
+  #include <espeak-ng/espeak_ng.h>
+  #include <espeak-ng/speak_lib.h>
+***************
+*** 210,218 ****
+  	float total = 0;
+  	int maxh;
+  	int height;
+  	int htab[400];
+  	wavegen_peaks_t wpeaks[9];
+! 
+  	for (h = 0; h < 9; h++) {
+  		height = (frame->peaks[h].pkheight * seq_amplitude * frame->amp_adjust)/10000;
+  		wpeaks[h].height = height << 8;
+--- 214,228 ----
+  	float total = 0;
+  	int maxh;
+  	int height;
++ #if ESPEAK_STACK_HACK
++ 	int* htab = calloc(1, sizeof(int)*400);
++ 	assert(htab!=NULL);
++ 	wavegen_peaks_t* wpeaks = calloc(1, sizeof(wavegen_peaks_t)*9);
++ 	assert(wpeaks!=NULL);
++ #else
+  	int htab[400];
+  	wavegen_peaks_t wpeaks[9];
+! #endif
+  	for (h = 0; h < 9; h++) {
+  		height = (frame->peaks[h].pkheight * seq_amplitude * frame->amp_adjust)/10000;
+  		wpeaks[h].height = height << 8;
+***************
+*** 226,231 ****
+--- 236,246 ----
+  	for (h = 1; h < maxh; h++)
+  		total += ((htab[h] * htab[h]) >> 10);
+  	frame->rms = sqrt(total) / 7.25;
++ 
++ #if ESPEAK_STACK_HACK
++ 	free(htab);
++ 	free(wpeaks);
++ #endif
+  	return frame->rms;
+  }
+  
+***************
+*** 348,353 ****
+--- 363,372 ----
+  		free(spect->frames);
+  	}
+  	spect->frames = calloc(n, sizeof(SpectFrame *));
++ 	if (spect->frames==NULL){
++ 		fprintf(stderr, "SpectFrame: Out of memory.\n");
++ 		return ENOMEM;
++ 	}
+  
+  	spect->numframes = 0;
+  	spect->max_x = 3000;
+Only in src/libespeak-ng: spect.c.rej
+diff -c original/src/libespeak-ng/speech.c src/libespeak-ng/speech.c
+*** original/src/libespeak-ng/speech.c	2022-10-27 18:30:17.000000000 +0200
+--- src/libespeak-ng/speech.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 337,343 ****
+  		return;
+  #endif
+  
+! 	strcpy(path_home, PATH_ESPEAK_DATA);
+  }
+  
+  const int param_defaults[N_SPEECH_PARAM] = {
+--- 337,343 ----
+  		return;
+  #endif
+  
+! 	strcpy(path_home, path);
+  }
+  
+  const int param_defaults[N_SPEECH_PARAM] = {
+diff -c original/src/libespeak-ng/speech.h src/libespeak-ng/speech.h
+*** original/src/libespeak-ng/speech.h	2022-10-28 18:10:33.000000000 +0200
+--- src/libespeak-ng/speech.h	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 20,26 ****
+  #ifndef ESPEAK_NG_SPEECH_H
+  #define ESPEAK_NG_SPEECH_H
+  
+! #include <endian.h>               // for BYTE_ORDER, BIG_ENDIAN
+  #include <espeak-ng/espeak_ng.h>
+  
+  #if defined(__has_feature)
+--- 20,30 ----
+  #ifndef ESPEAK_NG_SPEECH_H
+  #define ESPEAK_NG_SPEECH_H
+  
+! // for BYTE_ORDER, BIG_ENDIAN
+! #if HAVE_ENDIAN_H
+! #include <endian.h>
+! #endif
+! 
+  #include <espeak-ng/espeak_ng.h>
+  
+  #if defined(__has_feature)
+diff -c original/src/libespeak-ng/ssml.c src/libespeak-ng/ssml.c
+*** original/src/libespeak-ng/ssml.c	2022-11-13 17:02:43.000000000 +0100
+--- src/libespeak-ng/ssml.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 135,149 ****
+  	int ix = 0;
+  
+  	if (pw != NULL) {
+- 		wchar_t quote = pw[-1];
+- 		if ((quote != '"') && (quote != '\'')) quote = 0;
+- 
+  		unsigned int c;
+  		int prev_c = 0;
+  		while ((ix < (len-4)) && ((c = *pw++) != 0)) {
+! 			if ((quote == 0) && (isspace(c) || (c == '/')))
+! 				break;
+! 			if ((quote != 0) && (c == quote) && (prev_c != '\\'))
+  				break; // " indicates end of attribute, unless preceded by backstroke
+  
+  			int n = utf8_out(c, &buf[ix]);
+--- 135,144 ----
+  	int ix = 0;
+  
+  	if (pw != NULL) {
+  		unsigned int c;
+  		int prev_c = 0;
+  		while ((ix < (len-4)) && ((c = *pw++) != 0)) {
+! 			if ((c == '"') && (prev_c != '\\'))
+  				break; // " indicates end of attribute, unless preceded by backstroke
+  
+  			int n = utf8_out(c, &buf[ix]);
+***************
+*** 304,313 ****
+  				while (iswspace(*pw)) pw++;
+  				if ((*pw == '"') || (*pw == '\'')) // allow single-quotes ?
+  					return pw+1;
+- 				else if (iswspace(*pw) || (*pw == '/')) // end of attribute
+- 					return empty;
+  				else
+! 					return pw;
+  			}
+  		}
+  		pw++;
+--- 299,306 ----
+  				while (iswspace(*pw)) pw++;
+  				if ((*pw == '"') || (*pw == '\'')) // allow single-quotes ?
+  					return pw+1;
+  				else
+! 					return empty;
+  			}
+  		}
+  		pw++;
+***************
+*** 804,810 ****
+  			// add name to circular buffer of marker names
+  			attrcopy_utf8(buf, attr1, sizeof(buf));
+  
+! 			if ((buf[0] != 0) && (strcmp(skip_marker, buf) == 0)) {
+  				// This is the marker we are waiting for before starting to speak
+  				*clear_skipping_text = true;
+  				skip_marker[0] = 0;
+--- 797,803 ----
+  			// add name to circular buffer of marker names
+  			attrcopy_utf8(buf, attr1, sizeof(buf));
+  
+! 			if (strcmp(skip_marker, buf) == 0) {
+  				// This is the marker we are waiting for before starting to speak
+  				*clear_skipping_text = true;
+  				skip_marker[0] = 0;
+***************
+*** 879,895 ****
+  		if ((attr2 = GetSsmlAttribute(px, "time")) != NULL) {
+  			value2 = attrnumber(attr2, 0, 1);   // pause in mS
+  
+- 			int wpm = speech_parameters[espeakRATE];
+- 			espeak_SetParameter(espeakRATE, wpm, 0);
+- 
+- 			#if HAVE_SONIC_H
+- 			if (wpm >= espeakRATE_MAXIMUM) {
+- 				// Compensate speedup with libsonic, see function SetSpeed()
+- 				double sonic = ((double)wpm)/espeakRATE_NORMAL;
+- 				value2 = value2 * sonic;
+- 			}
+- 			#endif
+- 
+  			// compensate for speaking speed to keep constant pause length, see function PauseLength()
+  			// 'value' here is x 10mS
+  			value = (value2 * 256) / (speed.clause_pause_factor * 10);
+--- 872,877 ----
+diff -c original/src/libespeak-ng/synthdata.c src/libespeak-ng/synthdata.c
+*** original/src/libespeak-ng/synthdata.c	2022-11-01 10:06:27.000000000 +0100
+--- src/libespeak-ng/synthdata.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 72,99 ****
+  	char buf[sizeof(path_home)+40];
+  
+  	sprintf(buf, "%s%c%s", path_home, PATHSEP, fname);
+- 	length = GetFileLength(buf);
+- 	if (length < 0) // length == -errno
+- 		return create_file_error_context(context, -length, buf);
+  
+! 	if ((f_in = fopen(buf, "rb")) == NULL)
+! 		return create_file_error_context(context, errno, buf);
+! 
+! 	if (*ptr != NULL)
+! 		free(*ptr);
+  
+- 	if ((*ptr = malloc(length)) == NULL) {
+  		fclose(f_in);
+- 		return ENOMEM;
+  	}
+- 	if (fread(*ptr, 1, length, f_in) != length) {
+- 		int error = errno;
+- 		fclose(f_in);
+- 		free(*ptr);
+- 		return create_file_error_context(context, error, buf);
+- 	}
+- 
+- 	fclose(f_in);
+  	if (size != NULL)
+  		*size = length;
+  	return ENS_OK;
+--- 72,107 ----
+  	char buf[sizeof(path_home)+40];
+  
+  	sprintf(buf, "%s%c%s", path_home, PATHSEP, fname);
+  
+! 	// Arduino memory hack using mem_map from https://github.com/pschatzmann/arduino-posix-fs
+! 	void* ptmp = espeak_mem_map(buf, &length);
+! 	if (ptmp!=NULL){
+! 		if (*ptr != NULL)
+! 			free(*ptr);
+! 		*ptr = ptmp;
+! 	} else {
+! 		length = GetFileLength(buf);
+! 		if (length < 0) // length == -errno
+! 			return create_file_error_context(context, -length, buf);
+! 		if ((f_in = fopen(buf, "rb")) == NULL)
+! 			return create_file_error_context(context, errno, buf);
+! 
+! 		if (*ptr != NULL)
+! 			free(*ptr);
+! 
+! 		if ((*ptr = malloc(length)) == NULL) {
+! 			fclose(f_in);
+! 			return ENOMEM;
+! 		}
+! 		if (fread(*ptr, 1, length, f_in) != length) {
+! 			int error = errno;
+! 			fclose(f_in);
+! 			free(*ptr);
+! 			return create_file_error_context(context, error, buf);
+! 		}
+  
+  		fclose(f_in);
+  	}
+  	if (size != NULL)
+  		*size = length;
+  	return ENS_OK;
+***************
+*** 319,325 ****
+  	return frames;
+  }
+  
+! unsigned char *GetEnvelope(int index)
+  {
+  	if (index == 0) {
+  		fprintf(stderr, "espeak: No envelope\n");
+--- 327,333 ----
+  	return frames;
+  }
+  
+! const unsigned char *GetEnvelope(int index)
+  {
+  	if (index == 0) {
+  		fprintf(stderr, "espeak: No envelope\n");
+diff -c original/src/libespeak-ng/synthdata.h src/libespeak-ng/synthdata.h
+*** original/src/libespeak-ng/synthdata.h	2022-10-27 18:30:17.000000000 +0200
+--- src/libespeak-ng/synthdata.h	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 41,47 ****
+  		PHONEME_DATA *phdata);
+  
+  void FreePhData(void);
+! unsigned char *GetEnvelope(int index);
+  espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context);
+  int LookupPhonemeString(const char *string);
+  int LookupPhonemeTable(const char *name);
+--- 41,47 ----
+  		PHONEME_DATA *phdata);
+  
+  void FreePhData(void);
+! unsigned const char *GetEnvelope(int index);
+  espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context);
+  int LookupPhonemeString(const char *string);
+  int LookupPhonemeTable(const char *name);
+diff -c original/src/libespeak-ng/synthesize.c src/libespeak-ng/synthesize.c
+*** original/src/libespeak-ng/synthesize.c	2022-11-01 10:06:27.000000000 +0100
+--- src/libespeak-ng/synthesize.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 121,127 ****
+  	}
+  }
+  
+! static void DoAmplitude(int amp, unsigned char *amp_env)
+  {
+  	intptr_t *q;
+  
+--- 121,127 ----
+  	}
+  }
+  
+! static void DoAmplitude(int amp, unsigned const char *amp_env)
+  {
+  	intptr_t *q;
+  
+***************
+*** 144,150 ****
+  	WcmdqInc();
+  }
+  
+! static void DoPitch(unsigned char *env, int pitch1, int pitch2)
+  {
+  	intptr_t *q;
+  
+--- 144,150 ----
+  	WcmdqInc();
+  }
+  
+! static void DoPitch(const unsigned char *env, int pitch1, int pitch2)
+  {
+  	intptr_t *q;
+  
+***************
+*** 1131,1138 ****
+  	bool  pre_voiced;
+  	int free_min;
+  	int value;
+! 	unsigned char *pitch_env = NULL;
+! 	unsigned char *amp_env;
+  	PHONEME_TAB *ph;
+  	int use_ipa = 0;
+  	int vowelstart_prev;
+--- 1131,1138 ----
+  	bool  pre_voiced;
+  	int free_min;
+  	int value;
+! 	const unsigned char *pitch_env = NULL;
+! 	const unsigned char *amp_env;
+  	PHONEME_TAB *ph;
+  	int use_ipa = 0;
+  	int vowelstart_prev;
+diff -c original/src/libespeak-ng/synthesize.h src/libespeak-ng/synthesize.h
+*** original/src/libespeak-ng/synthesize.h	2022-10-27 18:30:17.000000000 +0200
+--- src/libespeak-ng/synthesize.h	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 122,128 ****
+  } frame_t2; // without the extra Klatt parameters
+  
+  typedef struct {
+! 	unsigned char *pitch_env;
+  	int pitch;      // pitch Hz*256
+  	int pitch_ix;   // index into pitch envelope (*256)
+  	int pitch_inc;  // increment to pitch_ix
+--- 122,128 ----
+  } frame_t2; // without the extra Klatt parameters
+  
+  typedef struct {
+! 	const unsigned char *pitch_env;
+  	int pitch;      // pitch Hz*256
+  	int pitch_ix;   // index into pitch envelope (*256)
+  	int pitch_inc;  // increment to pitch_ix
+***************
+*** 392,400 ****
+  extern PHONEME_LIST phoneme_list[N_PHONEME_LIST+1];
+  extern unsigned int embedded_list[];
+  
+! extern unsigned char env_fall[128];
+! extern unsigned char env_rise[128];
+! extern unsigned char env_frise[128];
+  
+  #define MAX_PITCH_VALUE  101
+  extern unsigned char pitch_adjust_tab[MAX_PITCH_VALUE+1];
+--- 392,400 ----
+  extern PHONEME_LIST phoneme_list[N_PHONEME_LIST+1];
+  extern unsigned int embedded_list[];
+  
+! extern unsigned const char env_fall[128];
+! extern unsigned const char env_rise[128];
+! extern unsigned const char env_frise[128];
+  
+  #define MAX_PITCH_VALUE  101
+  extern unsigned char pitch_adjust_tab[MAX_PITCH_VALUE+1];
+***************
+*** 453,459 ****
+  #define PITCHfall   0  // standard pitch envelopes
+  #define PITCHrise   2
+  #define N_ENVELOPE_DATA   20
+! extern unsigned char *envelope_data[N_ENVELOPE_DATA];
+  
+  extern int formant_rate[];         // max rate of change of each formant
+  extern SPEED_FACTORS speed;
+--- 453,459 ----
+  #define PITCHfall   0  // standard pitch envelopes
+  #define PITCHrise   2
+  #define N_ENVELOPE_DATA   20
+! extern unsigned const char *envelope_data[N_ENVELOPE_DATA];
+  
+  extern int formant_rate[];         // max rate of change of each formant
+  extern SPEED_FACTORS speed;
+diff -c original/src/libespeak-ng/tr_languages.c src/libespeak-ng/tr_languages.c
+*** original/src/libespeak-ng/tr_languages.c	2022-11-13 17:02:43.000000000 +0100
+--- src/libespeak-ng/tr_languages.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 1657,1661 ****
+  	tr->langopts.numbers = NUM_DECIMAL_COMMA | NUM_OMIT_1_HUNDRED;
+  	tr->langopts.numbers2 = NUM2_THOUSANDPLEX_VAR_THOUSANDS | NUM2_THOUSANDS_VAR1; // variant numbers before thousands
+  	tr->langopts.max_digits = 32;
+- 	tr->langopts.max_initial_consonants = 5;
+  }
+--- 1657,1660 ----
+diff -c original/src/libespeak-ng/translate.c src/libespeak-ng/translate.c
+*** original/src/libespeak-ng/translate.c	2022-11-01 10:06:27.000000000 +0100
+--- src/libespeak-ng/translate.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 771,776 ****
+--- 771,782 ----
+  
+  		// replacement 'from' string (skip the remaining part, if any)
+  		while (*from != '\0') from++;
++ 
++ 		// pschatzmann - Resolve Endless loop issue in Arduino
++ 		if(is_str_totally_null(from, 4)){
++ 			break;
++ 		}
++ 
+  		from++;
+  
+  		// replacement 'to' string
+***************
+*** 921,926 ****
+--- 927,935 ----
+  
+  void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
+  {
++ 	if (tr == NULL)
++ 		return;
++ 
+  	int ix;
+  	int c;
+  	int cc = 0;
+***************
+*** 955,961 ****
+--- 964,978 ----
+  	int charix_top = 0;
+  
+  	short charix[N_TR_SOURCE+4];
++ #if ESPEAK_STACK_HACK
++ 	WORD_TAB* words = calloc(1, sizeof(WORD_TAB)*N_CLAUSE_WORDS);
++ 	assert(words!=NULL);
++ 
++ 	WORD_TAB* num_wtab = calloc(1, sizeof(WORD_TAB)*50);
++ 	assert(num_wtab!=NULL);
++ #else
+  	WORD_TAB words[N_CLAUSE_WORDS];
++ #endif
+  	static char voice_change_name[40];
+  	int word_count = 0; // index into words
+  
+***************
+*** 964,972 ****
+  	int terminator;
+  	int tone;
+  
+- 	if (tr == NULL)
+- 		return;
+- 
+  	MAKE_MEM_UNDEFINED(&voice_change_name, sizeof(voice_change_name));
+  
+  	embedded_ix = 0;
+--- 981,986 ----
+***************
+*** 1490,1497 ****
+  		char *pn;
+  		char *pw;
+  		char number_buf[150];
+  		WORD_TAB num_wtab[50]; // copy of 'words', when splitting numbers into parts
+! 
+  		// start speaking at a specified word position in the text?
+  		count_words++;
+  		if (skip_words > 0) {
+--- 1504,1512 ----
+  		char *pn;
+  		char *pw;
+  		char number_buf[150];
++ #if ESPEAK_STACK_HACK==0
+  		WORD_TAB num_wtab[50]; // copy of 'words', when splitting numbers into parts
+! #endif
+  		// start speaking at a specified word position in the text?
+  		count_words++;
+  		if (skip_words > 0) {
+***************
+*** 1590,1596 ****
+  			}
+  		} else {
+  			pre_pause = 0;
+- 
+  			dict_flags = TranslateWord2(tr, word, &words[ix], words[ix].pre_pause);
+  
+  			if (pre_pause > words[ix+1].pre_pause) {
+--- 1605,1610 ----
+***************
+*** 1668,1673 ****
+--- 1682,1695 ----
+  		else
+  			*voice_change = NULL;
+  	}
++ 
++ #if ESPEAK_STACK_HACK
++ 	if(words)
++ 		free(words);
++ 	if (num_wtab)
++ 		free(num_wtab);
++ #endif
++ 
+  }
+  
+  static int CalcWordLength(int source_index, int charix_top, short int *charix, WORD_TAB *words, int word_count) {
+diff -c original/src/libespeak-ng/translateword.c src/libespeak-ng/translateword.c
+*** original/src/libespeak-ng/translateword.c	2022-11-01 10:06:27.000000000 +0100
+--- src/libespeak-ng/translateword.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 55,60 ****
+--- 55,74 ----
+  static int Unpronouncable(Translator *tr, char *word, int posn);
+  static int Unpronouncable2(Translator *tr, char *word);
+  
++ #if ESPEAK_STACK_HACK
++ typedef struct  {
++ 	char phonemes[N_WORD_PHONEMES];
++ 	char phonemes2[N_WORD_PHONEMES];
++ 	char prefix_phonemes[N_WORD_PHONEMES];
++ 	char unpron_phonemes[N_WORD_PHONEMES];
++ 	char end_phonemes[N_WORD_PHONEMES];
++ 	char end_phonemes2[N_WORD_PHONEMES];
++ 	char word_copy[N_WORD_BYTES];
++ 	char word_copy2[N_WORD_BYTES];
++ 	WORD_TAB wtab_null[8];
++ } TranslateWord3Tables;
++ #endif
++ 
+  int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_out, bool *any_stressed_words, ALPHABET *current_alphabet, char word_phonemes[], size_t size_word_phonemes)
+  {
+  	// word1 is terminated by space (0x20) character
+***************
+*** 72,77 ****
+--- 86,104 ----
+  	int prefix_type = 0;
+  	int prefix_stress;
+  	char *wordx;
++ #if ESPEAK_STACK_HACK
++ 	TranslateWord3Tables *tables = calloc(1, sizeof(TranslateWord3Tables));
++ 	assert(tables!=NULL);
++ 	char *phonemes = tables->phonemes;
++ 	char *phonemes2 =tables->phonemes2;
++ 	char *prefix_phonemes=tables->prefix_phonemes;
++ 	char *unpron_phonemes=tables->unpron_phonemes;
++ 	char *end_phonemes=tables->end_phonemes;
++ 	char *end_phonemes2=tables->end_phonemes2;
++ 	char *word_copy=tables->word_copy;
++ 	char *word_copy2=tables->word_copy2;
++ 	WORD_TAB *wtab_null=tables->wtab_null;
++ #else
+  	char phonemes[N_WORD_PHONEMES];
+  	char phonemes2[N_WORD_PHONEMES];
+  	char prefix_phonemes[N_WORD_PHONEMES];
+***************
+*** 80,87 ****
+  	char end_phonemes2[N_WORD_PHONEMES];
+  	char word_copy[N_WORD_BYTES];
+  	char word_copy2[N_WORD_BYTES];
+! 	int word_copy_length;
+  	char prefix_chars[0x3f + 2];
+  	bool found = false;
+  	int end_flags;
+  	int c_temp; // save a character byte while we temporarily replace it with space
+--- 107,116 ----
+  	char end_phonemes2[N_WORD_PHONEMES];
+  	char word_copy[N_WORD_BYTES];
+  	char word_copy2[N_WORD_BYTES];
+! 	WORD_TAB wtab_null[8];
+! #endif
+  	char prefix_chars[0x3f + 2];
++ 	int word_copy_length;
+  	bool found = false;
+  	int end_flags;
+  	int c_temp; // save a character byte while we temporarily replace it with space
+***************
+*** 96,105 ****
+  	int was_unpronouncable = 0;
+  	int loopcount;
+  	int add_suffix_phonemes = 0;
+- 	WORD_TAB wtab_null[8];
+  
+  	if (wtab == NULL) {
+! 		memset(wtab_null, 0, sizeof(wtab_null));
+  		wtab = wtab_null;
+  	}
+  	wflags = wtab->flags;
+--- 125,133 ----
+  	int was_unpronouncable = 0;
+  	int loopcount;
+  	int add_suffix_phonemes = 0;
+  
+  	if (wtab == NULL) {
+! 		memset(wtab_null, 0, 8);
+  		wtab = wtab_null;
+  	}
+  	wflags = wtab->flags;
+***************
+*** 118,123 ****
+--- 146,154 ----
+  	if (tr->data_dictlist == NULL) {
+  		// dictionary is not loaded
+  		word_phonemes[0] = 0;
++ #if ESPEAK_STACK_HACK
++ 		free(tables);
++ #endif
+  		return 0;
+  	}
+  
+***************
+*** 174,179 ****
+--- 205,213 ----
+  			if (word_out != NULL)
+  				strcpy(word_out, word1);
+  
++ #if ESPEAK_STACK_HACK
++ 			free(tables);
++ #endif
+  			return dictionary_flags[0];
+  		} else if ((found == false) && (dictionary_flags[0] & FLAG_SKIPWORDS) && !(dictionary_flags[0] & FLAG_ABBREV)) {
+  			// grouped words, but no translation.  Join the words with hyphens.
+***************
+*** 202,207 ****
+--- 236,244 ----
+  		if (phonemes[0] == phonSWITCH) {
+  			// change to another language in order to translate this word
+  			strcpy(word_phonemes, phonemes);
++ #if ESPEAK_STACK_HACK
++ 			free(tables);
++ #endif
+  			return 0;
+  		}
+  
+***************
+*** 212,223 ****
+  
+  		if (!found && iswdigit(first_char)) {
+  			Lookup(tr, "_0lang", word_phonemes);
+! 			if (word_phonemes[0] == phonSWITCH)
+  				return 0;
+  
+  			if ((tr->langopts.numbers2 & NUM2_ENGLISH_NUMERALS) && !(wtab->flags & FLAG_CHAR_REPLACED)) {
+  				// for this language, speak English numerals (0-9) with the English voice
+  				sprintf(word_phonemes, "%c", phonSWITCH);
+  				return 0;
+  			}
+  
+--- 249,267 ----
+  
+  		if (!found && iswdigit(first_char)) {
+  			Lookup(tr, "_0lang", word_phonemes);
+! 			if (word_phonemes[0] == phonSWITCH){
+! #if ESPEAK_STACK_HACK
+! 				free(tables);
+! #endif
+  				return 0;
++ 			}	
+  
+  			if ((tr->langopts.numbers2 & NUM2_ENGLISH_NUMERALS) && !(wtab->flags & FLAG_CHAR_REPLACED)) {
+  				// for this language, speak English numerals (0-9) with the English voice
+  				sprintf(word_phonemes, "%c", phonSWITCH);
++ #if ESPEAK_STACK_HACK
++ 				free(tables);
++ #endif
+  				return 0;
+  			}
+  
+***************
+*** 253,265 ****
+  		phonemes[0] = 0;
+  
+  		if (SpeakIndividualLetters(tr, word1, phonemes, spell_word, current_alphabet, word_phonemes) == NULL) {
+! 			if (word_length > 1)
+  				return FLAG_SPELLWORD; // a mixture of languages, retranslate as individual letters, separated by spaces
+  			return 0;
+  		}
+  		strcpy(word_phonemes, phonemes);
+! 		if (wflags & FLAG_TRANSLATOR2)
+  			return 0;
+  
+  		addPluralSuffixes(wflags, tr, last_char, word_phonemes);
+  		return dictionary_flags[0] & FLAG_SKIPWORDS; // for "b.c.d"
+--- 297,317 ----
+  		phonemes[0] = 0;
+  
+  		if (SpeakIndividualLetters(tr, word1, phonemes, spell_word, current_alphabet, word_phonemes) == NULL) {
+! #if ESPEAK_STACK_HACK
+! 			free(tables);
+! #endif
+! 			if (word_length > 1){
+  				return FLAG_SPELLWORD; // a mixture of languages, retranslate as individual letters, separated by spaces
++ 			}
+  			return 0;
+  		}
+  		strcpy(word_phonemes, phonemes);
+! #if ESPEAK_STACK_HACK
+! 		free(tables);
+! #endif
+! 		if (wflags & FLAG_TRANSLATOR2){
+  			return 0;
++ 		}
+  
+  		addPluralSuffixes(wflags, tr, last_char, word_phonemes);
+  		return dictionary_flags[0] & FLAG_SKIPWORDS; // for "b.c.d"
+***************
+*** 292,299 ****
+  			if (unpron_phonemes[0] == phonSWITCH) {
+  				// change to another language in order to translate this word
+  				strcpy(word_phonemes, unpron_phonemes);
+! 				if (strcmp(&unpron_phonemes[1], ESPEAKNG_DEFAULT_VOICE) == 0)
+  					return FLAG_SPELLWORD; // _^_en must have been set in TranslateLetter(), not *_rules which uses only _^_
+  				return 0;
+  			}
+  
+--- 344,358 ----
+  			if (unpron_phonemes[0] == phonSWITCH) {
+  				// change to another language in order to translate this word
+  				strcpy(word_phonemes, unpron_phonemes);
+! 				if (strcmp(&unpron_phonemes[1], ESPEAKNG_DEFAULT_VOICE) == 0){
+! #if ESPEAK_STACK_HACK
+! 					free(tables);
+! #endif
+  					return FLAG_SPELLWORD; // _^_en must have been set in TranslateLetter(), not *_rules which uses only _^_
++ 				}
++ #if ESPEAK_STACK_HACK
++ 				free(tables);
++ #endif
+  				return 0;
+  			}
+  
+***************
+*** 315,320 ****
+--- 374,382 ----
+  			if (phonemes[0] == phonSWITCH) {
+  				// change to another language in order to translate this word
+  				strcpy(word_phonemes, phonemes);
++ #if ESPEAK_STACK_HACK
++ 				free(tables);
++ #endif
+  				return 0;
+  			}
+  
+***************
+*** 324,332 ****
+  				// ?? should we say super/sub-script numbers and letters here?
+  				utf8_in(&wc, wordx);
+  				if ((word_length == 1) && (IsAlpha(wc) || IsSuperscript(wc))) {
+! 					if ((wordx = SpeakIndividualLetters(tr, wordx, phonemes, spell_word, current_alphabet, word_phonemes)) == NULL)
+  						return 0;
+  					strcpy(word_phonemes, phonemes);
+  					return 0;
+  				}
+  			}
+--- 386,401 ----
+  				// ?? should we say super/sub-script numbers and letters here?
+  				utf8_in(&wc, wordx);
+  				if ((word_length == 1) && (IsAlpha(wc) || IsSuperscript(wc))) {
+! 					if ((wordx = SpeakIndividualLetters(tr, wordx, phonemes, spell_word, current_alphabet, word_phonemes)) == NULL){
+! #if ESPEAK_STACK_HACK
+! 						free(tables);
+! #endif
+  						return 0;
++ 					}	
+  					strcpy(word_phonemes, phonemes);
++ #if ESPEAK_STACK_HACK
++ 					free(tables);
++ #endif
+  					return 0;
+  				}
+  			}
+***************
+*** 401,407 ****
+  					char *wordpf;
+  					char prefix_phonemes2[12];
+  
+! 					strncpy0(prefix_phonemes2, end_phonemes, sizeof(prefix_phonemes2));
+  					wordpf = &prefix_chars[1];
+  					strcpy(prefix_phonemes, phonemes);
+  
+--- 470,477 ----
+  					char *wordpf;
+  					char prefix_phonemes2[12];
+  
+! 					// strncpy0(prefix_phonemes2, end_phonemes, sizeof(prefix_phonemes2));
+! 					strncpy0(prefix_phonemes2, end_phonemes, sizeof(char)*N_WORD_PHONEMES);
+  					wordpf = &prefix_chars[1];
+  					strcpy(prefix_phonemes, phonemes);
+  
+***************
+*** 431,436 ****
+--- 501,509 ----
+  						// change to another language in order to translate this word
+  						wordx[-1] = c_temp;
+  						strcpy(word_phonemes, phonemes);
++ #if ESPEAK_STACK_HACK
++ 						free(tables);
++ #endif
+  						return 0;
+  					}
+  				}
+***************
+*** 457,462 ****
+--- 530,538 ----
+  							// change to another language in order to translate this word
+  							memcpy(wordx, word_copy, strlen(word_copy));
+  							strcpy(word_phonemes, phonemes);
++ #if ESPEAK_STACK_HACK
++ 							free(tables);
++ #endif
+  							return 0;
+  						}
+  						if (dictionary_flags[0] == 0) {
+***************
+*** 475,480 ****
+--- 551,559 ----
+  							// change to another language in order to translate this word
+  							memcpy(wordx, word_copy, strlen(word_copy));
+  							strcpy(word_phonemes, phonemes);
++ #if ESPEAK_STACK_HACK
++ 							free(tables);
++ #endif
+  							return 0;
+  						}
+  
+***************
+*** 515,520 ****
+--- 594,602 ----
+  								strcpy(word_phonemes, phonemes);
+  								memcpy(wordx, word_copy, strlen(word_copy));
+  								wordx[-1] = c_temp;
++ #if ESPEAK_STACK_HACK
++ 								free(tables);
++ #endif
+  								return 0;
+  							}
+  						}
+***************
+*** 667,672 ****
+--- 749,758 ----
+  
+  	dictionary_flags[0] |= was_unpronouncable;
+  	memcpy(word_start, word_copy2, word_copy_length);
++ #if ESPEAK_STACK_HACK
++ 	free(tables);
++ #endif
++ 
+  	return dictionary_flags[0];
+  }
+  
+diff -c original/src/libespeak-ng/voices.c src/libespeak-ng/voices.c
+*** original/src/libespeak-ng/voices.c	2022-11-01 10:06:27.000000000 +0100
+--- src/libespeak-ng/voices.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 32,38 ****
+  #if defined(_WIN32) || defined(_WIN64)
+  #include <windows.h>
+  #else
+! #include <dirent.h>
+  #endif
+  
+  #include <espeak-ng/espeak_ng.h>
+--- 32,38 ----
+  #if defined(_WIN32) || defined(_WIN64)
+  #include <windows.h>
+  #else
+! #include "direntx.h"
+  #endif
+  
+  #include <espeak-ng/espeak_ng.h>
+***************
+*** 153,168 ****
+  	       &tone_pts[8], &tone_pts[9]);
+  }
+  
+  static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_language_file)
+  {
+  	// Read a Voice file, allocate a VOICE_DATA and set data from the
+  	// file's  language, gender, name  lines
+! 
+  	char linebuf[120];
+  	char vname[80];
+  	char vgender[80];
+  	char vlanguage[80];
+  	char languages[300]; // allow space for several alternate language names and priorities
+  
+  	unsigned int len;
+  	int langix = 0;
+--- 153,191 ----
+  	       &tone_pts[8], &tone_pts[9]);
+  }
+  
++ /// Microcontroller have limited stack: so we move it to the heap
++ #if ESPEAK_STACK_HACK
++ typedef struct  {
++ 	char linebuf[120];
++ 	char vname[80];
++ 	char vgender[80];
++ 	char vlanguage[80];
++ 	char languages[300]; // allow space for several alternate language names and priorities
++ } ReadVoiceFileData;
++ #endif
++ 
+  static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_language_file)
+  {
+  	// Read a Voice file, allocate a VOICE_DATA and set data from the
+  	// file's  language, gender, name  lines
+! #if ESPEAK_STACK_HACK
+! 	ReadVoiceFileData* data = calloc(1, sizeof(ReadVoiceFileData));
+! 	assert(data!=NULL);
+! 	char *linebuf =  data->linebuf;
+! 	char *vname =  data->vname;
+! 	char *vgender = data->vgender;
+! 	char *vlanguage = data->vlanguage;
+! 	char *languages = data->languages;; // allow space for several alternate language names and priorities
+! #else
+  	char linebuf[120];
+  	char vname[80];
+  	char vgender[80];
+  	char vlanguage[80];
+  	char languages[300]; // allow space for several alternate language names and priorities
++ #endif
++ 	const int vname_size = 80;
++ 	const int linebuf_size = 120;
++ 	const int languages_size = 300;
+  
+  	unsigned int len;
+  	int langix = 0;
+***************
+*** 178,184 ****
+  	vgender[0] = 0;
+  	age = 0;
+  
+! 	while (fgets_strip(linebuf, sizeof(linebuf), f_in) != NULL) {
+  		// isolate the attribute name
+  		for (p = linebuf; (*p != 0) && !iswspace(*p); p++) ;
+  		*p++ = 0;
+--- 201,207 ----
+  	vgender[0] = 0;
+  	age = 0;
+  
+! 	while (fgets_strip(linebuf, linebuf_size, f_in) != NULL) {
+  		// isolate the attribute name
+  		for (p = linebuf; (*p != 0) && !iswspace(*p); p++) ;
+  		*p++ = 0;
+***************
+*** 189,195 ****
+  		{
+  		case V_NAME:
+  			while (isspace(*p)) p++;
+! 			strncpy0(vname, p, sizeof(vname));
+  			break;
+  		case V_LANGUAGE:
+  			priority = DEFAULT_LANGUAGE_PRIORITY;
+--- 212,218 ----
+  		{
+  		case V_NAME:
+  			while (isspace(*p)) p++;
+! 			strncpy0(vname, p, vname_size);
+  			break;
+  		case V_LANGUAGE:
+  			priority = DEFAULT_LANGUAGE_PRIORITY;
+***************
+*** 198,204 ****
+  			sscanf(p, "%s %d", vlanguage, &priority);
+  			len = strlen(vlanguage) + 2;
+  			// check for space in languages[]
+! 			if (len < (sizeof(languages)-langix-1)) {
+  				languages[langix] = priority;
+  
+  				strcpy(&languages[langix+1], vlanguage);
+--- 221,227 ----
+  			sscanf(p, "%s %d", vlanguage, &priority);
+  			len = strlen(vlanguage) + 2;
+  			// check for space in languages[]
+! 			if (len < (languages_size-langix-1)) {
+  				languages[langix] = priority;
+  
+  				strcpy(&languages[langix+1], vlanguage);
+***************
+*** 219,228 ****
+  
+  	gender = LookupMnem(genders, vgender);
+  
+! 	if (n_languages == 0)
+  		return NULL; // no language lines in the voice file
+  
+  	p = (char *)calloc(sizeof(espeak_VOICE) + langix + strlen(fname) + strlen(vname) + 3, 1);
+  	voice_data = (espeak_VOICE *)p;
+  	p = &p[sizeof(espeak_VOICE)];
+  
+--- 242,261 ----
+  
+  	gender = LookupMnem(genders, vgender);
+  
+! 	if (n_languages == 0){
+! #if ESPEAK_STACK_HACK
+! 		free(data);
+! #endif
+  		return NULL; // no language lines in the voice file
++ 	}
+  
+  	p = (char *)calloc(sizeof(espeak_VOICE) + langix + strlen(fname) + strlen(vname) + 3, 1);
++ 	if (p==NULL) {
++ #if ESPEAK_STACK_HACK
++ 		free(data);
++ #endif
++ 		return NULL;
++ 	}
+  	voice_data = (espeak_VOICE *)p;
+  	p = &p[sizeof(espeak_VOICE)];
+  
+***************
+*** 243,248 ****
+--- 276,284 ----
+  	voice_data->gender = gender;
+  	voice_data->variant = 0;
+  	voice_data->xx1 = n_variants;
++ #if ESPEAK_STACK_HACK
++ 	free(data);
++ #endif
+  	return voice_data;
+  }
+  
+***************
+*** 1055,1063 ****
+  	const char *p, *p_start;
+  	espeak_VOICE *vp = NULL;
+  	espeak_VOICE *vp2;
+! 	espeak_VOICE voice_select2;
+! 	espeak_VOICE *voices[N_VOICES_LIST]; // list of candidates
+! 	espeak_VOICE *voices2[N_VOICES_LIST+N_VOICE_VARIANTS];
+  	static espeak_VOICE voice_variants[N_VOICE_VARIANTS];
+  	static char voice_id[50];
+  
+--- 1091,1099 ----
+  	const char *p, *p_start;
+  	espeak_VOICE *vp = NULL;
+  	espeak_VOICE *vp2;
+! 	STACK_T espeak_VOICE voice_select2;
+! 	STACK_T espeak_VOICE *voices[N_VOICES_LIST]; // list of candidates
+! 	STACK_T espeak_VOICE *voices2[N_VOICES_LIST+N_VOICE_VARIANTS];
+  	static espeak_VOICE voice_variants[N_VOICE_VARIANTS];
+  	static char voice_id[50];
+  
+***************
+*** 1225,1230 ****
+--- 1261,1267 ----
+  
+  	}
+  	closedir(dir);
++ 
+  #endif
+  }
+  
+diff -c original/src/libespeak-ng/wavegen.c src/libespeak-ng/wavegen.c
+*** original/src/libespeak-ng/wavegen.c	2022-11-13 17:02:43.000000000 +0100
+--- src/libespeak-ng/wavegen.c	2022-11-13 18:49:24.000000000 +0100
+***************
+*** 1369,1380 ****
+  #if HAVE_SONIC_H
+  		case WCMD_SONIC_SPEED:
+  			sonicSpeed = (double)q[1] / 1024;
+- 			if (sonicSpeedupStream && (sonicSpeed <= 1.0)) {
+- 				sonicFlushStream(sonicSpeedupStream);
+- 				int length = (out_end - out_ptr);
+- 				length = sonicReadShortFromStream(sonicSpeedupStream, (short*)out_ptr, length/2);
+- 				out_ptr += length * 2;
+- 			}
+  			break;
+  #endif
+  		}
+--- 1369,1374 ----

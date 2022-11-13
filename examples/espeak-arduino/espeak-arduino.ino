@@ -36,7 +36,6 @@ void setup() {
 }
 
 void loop() {
-  const char* msg = "Hello world!";
-  espeak.say(msg);
+  espeak.say("Hello world!");
   delay(5000);
 }

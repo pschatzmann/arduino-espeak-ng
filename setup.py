@@ -1,4 +1,3 @@
-# setup of Arduino Library from https://github.com/espeak-ng/espeak-ng.git 
 import os, command, shutil
 from subprocess import run
 
@@ -116,7 +115,7 @@ def create_data():
 
 # creates an individual patch file
 def create_patch_file(updated, original, patchfile):
-    cmd = "diff -u "+ original+" "+ updated
+    cmd = "diff -c "+ original+" "+ updated
     stream = os.popen(cmd)
     output = stream.read()
     text_file = open("arduino/patches/"+patchfile, "w")
@@ -125,7 +124,7 @@ def create_patch_file(updated, original, patchfile):
 
 # applies a patch file
 def apply_patch_file(infile, patchfile):
-    cmd = "patch -u "+ infile+ " arduino/patches/"+patchfile
+    cmd = "patch "+ infile+ " arduino/patches/"+patchfile
     print(cmd)
     stream = os.popen(cmd)
     output = stream.read()
@@ -134,28 +133,20 @@ def apply_patch_file(infile, patchfile):
 # create patches for changed files
 def create_patch_files():
     if os.path.exists("src/libespeak-ng"):
-        create_patch_file("src/libespeak-ng/speech.h","original/src/libespeak-ng/speech.h", "speech.patch")
-        create_patch_file("src/libespeak-ng/spect.c","original/src/libespeak-ng/spect.c", "spect.patch")
-        create_patch_file("src/libespeak-ng/voices.c","original/src/libespeak-ng/voices.c", "voices.patch")
-        #nmap support
-        create_patch_file("src/libespeak-ng/dictionary.c","original/src/libespeak-ng/dictionary.c", "dictionary.patch")
-        create_patch_file("src/libespeak-ng/soundicon.c","original/src/libespeak-ng/soundicon.c", "soundicon.patch")
-        create_patch_file("src/libespeak-ng/spect.c","original/src/libespeak-ng/spect.c", "spect.patch")
-        create_patch_file("src/libespeak-ng/synthdata.c","original/src/libespeak-ng/synthdata.c", "synthdata.patch")
+        create_patch_file("src/libespeak-ng","original/src/libespeak-ng", "libespeak.patch")
+        create_patch_file("src/speak_lib.h","original/src/include/espeak-ng/speak_lib.h", "speak_lib.patch")
+
 
 
 # apply patches to files
 def apply_patch_files():
     print("apply_patch_files")
     if os.path.exists("arduino/patches/speech.patch"):
-        apply_patch_file("src/libespeak-ng/speech.h","speech.patch")
-        apply_patch_file("src/libespeak-ng/spect.c","spect.patch")
-        apply_patch_file("src/libespeak-ng/voices.c", "voices.patch")
-        #nmap support
-        apply_patch_file("src/libespeak-ng/dictionary.c", "dictionary.patch")
-        apply_patch_file("src/libespeak-ng/soundicon.c", "soundicon.patch")
-        apply_patch_file("src/libespeak-ng/spect.c", "spect.patch")
-        apply_patch_file("src/libespeak-ng/synthdata.c", "synthdata.patch")
+        apply_patch_file("src/speak_lib.h","speak_lib.patch")
+        cmd = ["./patch.sh"]
+        print(cmd)
+        res = command.run(cmd) 
+
     else:
         print("no patch files")
 
@@ -172,11 +163,11 @@ def apply_patches():
 res = execute_git("https://github.com/espeak-ng/espeak-ng.git", "original")
 if res.exit==0:
     create_patch_files()
-    clean_src()
+    # clean_src()
     copy_files()
     link_files()
     cleanup()
-    create_data()
+    # create_data()
     apply_patch_files()
     print("setup completed")
 else:
