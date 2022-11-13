@@ -73,7 +73,7 @@ protected:
     unsigned int  end_position = 0;
     unsigned int  flags = espeakCHARS_AUTO;
     espeak_POSITION_TYPE position_type = POS_CHARACTER;
-    file_systems::FileSystemMemory fsm = file_systems::FileSystemMemory("/mem"); // File system data in PROGMEM
+    file_systems::FileSystemMemory fsm{"/mem"}; // File system data in PROGMEM
 };
 /**
  * @brief Simple Arduino C++ class API for ESpeak using PROGMEM
