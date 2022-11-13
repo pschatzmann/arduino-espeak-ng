@@ -4,7 +4,7 @@ Common subdirectories: original/src/libespeak-ng/.libs and src/libespeak-ng/.lib
 Only in original/src/libespeak-ng: compilembrola.c
 diff -c original/src/libespeak-ng/dictionary.c src/libespeak-ng/dictionary.c
 *** original/src/libespeak-ng/dictionary.c	2022-11-13 17:02:43.000000000 +0100
---- src/libespeak-ng/dictionary.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/dictionary.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 211,238 ****
   	// bytes 0-3:  offset to rules data
@@ -215,7 +215,7 @@ diff -c original/src/libespeak-ng/dictionary.c src/libespeak-ng/dictionary.c
   
 diff -c original/src/libespeak-ng/intonation.c src/libespeak-ng/intonation.c
 *** original/src/libespeak-ng/intonation.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/intonation.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/intonation.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 62,68 ****
   #define PITCHfrise    4 // and 3 must be for the variant preceded by 'r'
@@ -565,7 +565,7 @@ Only in original/src/libespeak-ng: mbrowrap.c
 Only in original/src/libespeak-ng: mbrowrap.h
 diff -c original/src/libespeak-ng/numbers.c src/libespeak-ng/numbers.c
 *** original/src/libespeak-ng/numbers.c	2022-11-01 10:06:27.000000000 +0100
---- src/libespeak-ng/numbers.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/numbers.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 1683,1689 ****
   		if (prev_thousands == 0) {
@@ -585,7 +585,7 @@ diff -c original/src/libespeak-ng/numbers.c src/libespeak-ng/numbers.c
   			}
 diff -c original/src/libespeak-ng/phonemelist.c src/libespeak-ng/phonemelist.c
 *** original/src/libespeak-ng/phonemelist.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/phonemelist.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/phonemelist.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 136,153 ****
   	int word_start;
@@ -645,7 +645,7 @@ diff -c original/src/libespeak-ng/phonemelist.c src/libespeak-ng/phonemelist.c
   }
 diff -c original/src/libespeak-ng/readclause.c src/libespeak-ng/readclause.c
 *** original/src/libespeak-ng/readclause.c	2022-11-13 17:02:43.000000000 +0100
---- src/libespeak-ng/readclause.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/readclause.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 51,59 ****
   
@@ -1050,7 +1050,7 @@ Only in original/src/libespeak-ng: sPlayer.c
 Only in original/src/libespeak-ng: sPlayer.h
 diff -c original/src/libespeak-ng/setlengths.c src/libespeak-ng/setlengths.c
 *** original/src/libespeak-ng/setlengths.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/setlengths.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/setlengths.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 389,395 ****
   	int pitch1;
@@ -1070,7 +1070,7 @@ diff -c original/src/libespeak-ng/setlengths.c src/libespeak-ng/setlengths.c
   
 diff -c original/src/libespeak-ng/soundicon.c src/libespeak-ng/soundicon.c
 *** original/src/libespeak-ng/soundicon.c	2022-11-01 10:06:27.000000000 +0100
---- src/libespeak-ng/soundicon.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/soundicon.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 182,188 ****
   		return -1;
@@ -1091,7 +1091,7 @@ diff -c original/src/libespeak-ng/soundicon.c src/libespeak-ng/soundicon.c
   }
 diff -c original/src/libespeak-ng/spect.c src/libespeak-ng/spect.c
 *** original/src/libespeak-ng/spect.c	2022-11-04 19:17:03.000000000 +0100
---- src/libespeak-ng/spect.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/spect.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 25,31 ****
 --- 25,35 ----
@@ -1163,7 +1163,7 @@ diff -c original/src/libespeak-ng/spect.c src/libespeak-ng/spect.c
 Only in src/libespeak-ng: spect.c.rej
 diff -c original/src/libespeak-ng/speech.c src/libespeak-ng/speech.c
 *** original/src/libespeak-ng/speech.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/speech.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/speech.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 337,343 ****
   		return;
@@ -1183,7 +1183,7 @@ diff -c original/src/libespeak-ng/speech.c src/libespeak-ng/speech.c
   const int param_defaults[N_SPEECH_PARAM] = {
 diff -c original/src/libespeak-ng/speech.h src/libespeak-ng/speech.h
 *** original/src/libespeak-ng/speech.h	2022-10-28 18:10:33.000000000 +0200
---- src/libespeak-ng/speech.h	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/speech.h	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 20,26 ****
   #ifndef ESPEAK_NG_SPEECH_H
@@ -1207,7 +1207,7 @@ diff -c original/src/libespeak-ng/speech.h src/libespeak-ng/speech.h
   #if defined(__has_feature)
 diff -c original/src/libespeak-ng/ssml.c src/libespeak-ng/ssml.c
 *** original/src/libespeak-ng/ssml.c	2022-11-13 17:02:43.000000000 +0100
---- src/libespeak-ng/ssml.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/ssml.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 135,149 ****
   	int ix = 0;
@@ -1296,7 +1296,7 @@ diff -c original/src/libespeak-ng/ssml.c src/libespeak-ng/ssml.c
 --- 872,877 ----
 diff -c original/src/libespeak-ng/synthdata.c src/libespeak-ng/synthdata.c
 *** original/src/libespeak-ng/synthdata.c	2022-11-01 10:06:27.000000000 +0100
---- src/libespeak-ng/synthdata.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/synthdata.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 72,99 ****
   	char buf[sizeof(path_home)+40];
@@ -1383,7 +1383,7 @@ diff -c original/src/libespeak-ng/synthdata.c src/libespeak-ng/synthdata.c
   		fprintf(stderr, "espeak: No envelope\n");
 diff -c original/src/libespeak-ng/synthdata.h src/libespeak-ng/synthdata.h
 *** original/src/libespeak-ng/synthdata.h	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/synthdata.h	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/synthdata.h	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 41,47 ****
   		PHONEME_DATA *phdata);
@@ -1403,7 +1403,7 @@ diff -c original/src/libespeak-ng/synthdata.h src/libespeak-ng/synthdata.h
   int LookupPhonemeTable(const char *name);
 diff -c original/src/libespeak-ng/synthesize.c src/libespeak-ng/synthesize.c
 *** original/src/libespeak-ng/synthesize.c	2022-11-01 10:06:27.000000000 +0100
---- src/libespeak-ng/synthesize.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/synthesize.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 121,127 ****
   	}
@@ -1459,7 +1459,7 @@ diff -c original/src/libespeak-ng/synthesize.c src/libespeak-ng/synthesize.c
   	int vowelstart_prev;
 diff -c original/src/libespeak-ng/synthesize.h src/libespeak-ng/synthesize.h
 *** original/src/libespeak-ng/synthesize.h	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/synthesize.h	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/synthesize.h	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 122,128 ****
   } frame_t2; // without the extra Klatt parameters
@@ -1517,7 +1517,7 @@ diff -c original/src/libespeak-ng/synthesize.h src/libespeak-ng/synthesize.h
   extern SPEED_FACTORS speed;
 diff -c original/src/libespeak-ng/tr_languages.c src/libespeak-ng/tr_languages.c
 *** original/src/libespeak-ng/tr_languages.c	2022-11-13 17:02:43.000000000 +0100
---- src/libespeak-ng/tr_languages.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/tr_languages.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 1657,1661 ****
   	tr->langopts.numbers = NUM_DECIMAL_COMMA | NUM_OMIT_1_HUNDRED;
@@ -1528,7 +1528,7 @@ diff -c original/src/libespeak-ng/tr_languages.c src/libespeak-ng/tr_languages.c
 --- 1657,1660 ----
 diff -c original/src/libespeak-ng/translate.c src/libespeak-ng/translate.c
 *** original/src/libespeak-ng/translate.c	2022-11-01 10:06:27.000000000 +0100
---- src/libespeak-ng/translate.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/translate.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 771,776 ****
 --- 771,782 ----
@@ -1635,7 +1635,7 @@ diff -c original/src/libespeak-ng/translate.c src/libespeak-ng/translate.c
   static int CalcWordLength(int source_index, int charix_top, short int *charix, WORD_TAB *words, int word_count) {
 diff -c original/src/libespeak-ng/translateword.c src/libespeak-ng/translateword.c
 *** original/src/libespeak-ng/translateword.c	2022-11-01 10:06:27.000000000 +0100
---- src/libespeak-ng/translateword.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/translateword.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 55,60 ****
 --- 55,74 ----
@@ -1978,7 +1978,7 @@ diff -c original/src/libespeak-ng/translateword.c src/libespeak-ng/translateword
   
 diff -c original/src/libespeak-ng/voices.c src/libespeak-ng/voices.c
 *** original/src/libespeak-ng/voices.c	2022-11-01 10:06:27.000000000 +0100
---- src/libespeak-ng/voices.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/voices.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 32,38 ****
   #if defined(_WIN32) || defined(_WIN64)
@@ -2183,7 +2183,7 @@ diff -c original/src/libespeak-ng/voices.c src/libespeak-ng/voices.c
   
 diff -c original/src/libespeak-ng/wavegen.c src/libespeak-ng/wavegen.c
 *** original/src/libespeak-ng/wavegen.c	2022-11-13 17:02:43.000000000 +0100
---- src/libespeak-ng/wavegen.c	2022-11-13 18:49:24.000000000 +0100
+--- src/libespeak-ng/wavegen.c	2022-11-13 18:51:18.000000000 +0100
 ***************
 *** 1369,1380 ****
   #if HAVE_SONIC_H
