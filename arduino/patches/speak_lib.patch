@@ -1,5 +1,5 @@
 *** original/src/include/espeak-ng/speak_lib.h	2022-10-27 18:30:17.000000000 +0200
---- src/speak_lib.h	2022-11-13 18:51:18.000000000 +0100
+--- src/speak_lib.h	2022-11-13 19:07:08.000000000 +0100
 ***************
 *** 1,6 ****
   #ifndef SPEAK_LIB_H
