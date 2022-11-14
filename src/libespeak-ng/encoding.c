@@ -660,6 +660,7 @@ static const encoding_t string_decoders[] = {
 espeak_ng_TEXT_DECODER *
 create_text_decoder(void)
 {
+	ESPK_LOG("-> create_text_decoder\n");
 	espeak_ng_TEXT_DECODER *decoder = malloc(sizeof(espeak_ng_TEXT_DECODER));
 	if (!decoder) return NULL;
 
@@ -740,6 +741,8 @@ text_decoder_decode_string_multibyte(espeak_ng_TEXT_DECODER *decoder,
                                      espeak_ng_ENCODING encoding,
                                      int flags)
 {
+	ESPK_LOG("-> text_decoder_decode_string_multibyte\n");
+
 	switch (flags & 7)
 	{
 	case espeakCHARS_WCHAR:

@@ -71,6 +71,7 @@ typedef struct  {
 
 int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_out, bool *any_stressed_words, ALPHABET *current_alphabet, char word_phonemes[], size_t size_word_phonemes)
 {
+	ESPK_LOG("-> TranslateWord3\n");
 	// word1 is terminated by space (0x20) character
 
 	char *word1;
@@ -149,6 +150,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 		free(tables);
 #endif
+		ESPK_LOG("-> TranslateWord3\n");
 		return 0;
 	}
 
@@ -208,6 +210,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 			free(tables);
 #endif
+			ESPK_LOG("-> TranslateWord3\n");
 			return dictionary_flags[0];
 		} else if ((found == false) && (dictionary_flags[0] & FLAG_SKIPWORDS) && !(dictionary_flags[0] & FLAG_ABBREV)) {
 			// grouped words, but no translation.  Join the words with hyphens.
@@ -239,6 +242,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 			free(tables);
 #endif
+			ESPK_LOG("-> TranslateWord3\n");
 			return 0;
 		}
 
@@ -253,6 +257,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 				free(tables);
 #endif
+				ESPK_LOG("-> TranslateWord3\n");
 				return 0;
 			}	
 
@@ -262,6 +267,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 				free(tables);
 #endif
+				ESPK_LOG("-> TranslateWord3\n");
 				return 0;
 			}
 
@@ -300,6 +306,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 			free(tables);
 #endif
+			ESPK_LOG("-> TranslateWord3\n");
 			if (word_length > 1){
 				return FLAG_SPELLWORD; // a mixture of languages, retranslate as individual letters, separated by spaces
 			}
@@ -309,6 +316,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 		free(tables);
 #endif
+		ESPK_LOG("-> TranslateWord3\n");
 		if (wflags & FLAG_TRANSLATOR2){
 			return 0;
 		}
@@ -348,11 +356,13 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 					free(tables);
 #endif
+					ESPK_LOG("-> TranslateWord3\n");
 					return FLAG_SPELLWORD; // _^_en must have been set in TranslateLetter(), not *_rules which uses only _^_
 				}
 #if ESPEAK_STACK_HACK
 				free(tables);
 #endif
+				ESPK_LOG("-> TranslateWord3\n");
 				return 0;
 			}
 
@@ -377,6 +387,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 				free(tables);
 #endif
+				ESPK_LOG("-> TranslateWord3\n");
 				return 0;
 			}
 
@@ -390,12 +401,14 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 						free(tables);
 #endif
+						ESPK_LOG("-> TranslateWord3\n");
 						return 0;
 					}	
 					strcpy(word_phonemes, phonemes);
 #if ESPEAK_STACK_HACK
 					free(tables);
 #endif
+					ESPK_LOG("-> TranslateWord3\n");
 					return 0;
 				}
 			}
@@ -504,6 +517,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 						free(tables);
 #endif
+						ESPK_LOG("-> TranslateWord3\n");
 						return 0;
 					}
 				}
@@ -533,6 +547,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 							free(tables);
 #endif
+							ESPK_LOG("-> TranslateWord3\n");
 							return 0;
 						}
 						if (dictionary_flags[0] == 0) {
@@ -554,6 +569,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 							free(tables);
 #endif
+							ESPK_LOG("-> TranslateWord3\n");
 							return 0;
 						}
 
@@ -597,6 +613,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 								free(tables);
 #endif
+								ESPK_LOG("-> TranslateWord3\n");
 								return 0;
 							}
 						}
@@ -752,7 +769,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 	free(tables);
 #endif
-
+	ESPK_LOG("-> TranslateWord3\n");
 	return dictionary_flags[0];
 }
 

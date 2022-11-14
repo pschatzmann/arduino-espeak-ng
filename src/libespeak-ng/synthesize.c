@@ -1121,6 +1121,7 @@ extern espeak_ng_OUTPUT_HOOKS* output_hooks;
 
 int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 {
+	ESPK_LOG("-> Generate\n");
 	static int ix;
 	static int embedded_ix;
 	static int word_count;
@@ -1528,6 +1529,7 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 
 int SpeakNextClause(int control)
 {
+	ESPK_LOG("-> SpeakNextClause\n");
 	// Speak text from memory (text_in)
 	// control 0: start
 	//    text_in is set
@@ -1543,12 +1545,13 @@ int SpeakNextClause(int control)
 		// stop speaking
 		n_phoneme_list = 0;
 		WcmdqStop();
-
+		ESPK_LOG("<- SpeakNextClause\n");
 		return 0;
 	}
 
 	if (text_decoder_eof(p_decoder)) {
 		skipping_text = false;
+		ESPK_LOG("<- SpeakNextClause\n");
 		return 0;
 	}
 
@@ -1573,6 +1576,7 @@ int SpeakNextClause(int control)
 
 	if (skipping_text) {
 		n_phoneme_list = 0;
+		ESPK_LOG("<- SpeakNextClause\n");
 		return 1;
 	}
 
@@ -1590,5 +1594,6 @@ int SpeakNextClause(int control)
 		new_voice = NULL;
 	}
 
+	ESPK_LOG("<- SpeakNextClause\n");
 	return 1;
 }

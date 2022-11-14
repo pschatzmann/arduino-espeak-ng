@@ -166,6 +166,8 @@ typedef struct  {
 
 static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_language_file)
 {
+	ESPK_LOG("-> ReadVoiceFile: %s\n", fname);
+
 	// Read a Voice file, allocate a VOICE_DATA and set data from the
 	// file's  language, gender, name  lines
 #if ESPEAK_STACK_HACK
@@ -202,6 +204,7 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 	age = 0;
 
 	while (fgets_strip(linebuf, linebuf_size, f_in) != NULL) {
+		// ESPK_LOG("%s\n",linebuf);
 		// isolate the attribute name
 		for (p = linebuf; (*p != 0) && !iswspace(*p); p++) ;
 		*p++ = 0;
@@ -238,6 +241,7 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 			sscanf(p, "%d", &n_variants);
 		}
 	}
+
 	languages[langix++] = 0;
 
 	gender = LookupMnem(genders, vgender);
@@ -245,6 +249,7 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 	if (n_languages == 0){
 #if ESPEAK_STACK_HACK
 		free(data);
+		ESPK_LOG("<- ReadVoiceFile: %s\n", fname);
 #endif
 		return NULL; // no language lines in the voice file
 	}
@@ -253,6 +258,7 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 	if (p==NULL) {
 #if ESPEAK_STACK_HACK
 		free(data);
+		ESPK_LOG("<- ReadVoiceFile: %s\n", fname);
 #endif
 		return NULL;
 	}
@@ -278,6 +284,7 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 	voice_data->xx1 = n_variants;
 #if ESPEAK_STACK_HACK
 	free(data);
+	ESPK_LOG("<- ReadVoiceFile: %s\n", fname);
 #endif
 	return voice_data;
 }
@@ -433,6 +440,7 @@ void ReadNumbers(char *p, int *flags, int maxValue,  const MNEM_TAB *keyword_tab
 
 voice_t *LoadVoice(const char *vname, int control)
 {
+	ESPK_LOG("->LoadVoice: %s\n", vname);
 	// control, bit 0  1= no_default
 	//          bit 1  1 = change tone only, not language
 	//          bit 2  1 = don't report error on LoadDictionary
@@ -477,8 +485,10 @@ voice_t *LoadVoice(const char *vname, int control)
 	strncpy0(voicename, vname, sizeof(voicename));
 	if (control & 0x10) {
 		strcpy(buf, vname);
-		if (GetFileLength(buf) <= 0)
+		if (GetFileLength(buf) <= 0){
+			ESPK_LOG("<-LoadVoice: %s\n", vname);
 			return NULL;
+		}
 	} else {
 		if (voicename[0] == 0 && !(control & 8)/*compiling phonemes*/)
 			strcpy(voicename, ESPEAKNG_DEFAULT_VOICE);
@@ -535,6 +545,7 @@ voice_t *LoadVoice(const char *vname, int control)
 	VoiceReset(tone_only);
 
 	while ((f_voice != NULL) && (fgets_strip(buf, sizeof(buf), f_voice) != NULL)) {
+		// ESPK_LOG("%s\n",buf);
 		// isolate the attribute name
 		for (p = buf; (*p != 0) && !isspace(*p); p++) ;
 		*p++ = 0;
@@ -620,10 +631,6 @@ voice_t *LoadVoice(const char *vname, int control)
                     voice->formant_factor = (int)((1+factor/4) * 256); // nominal formant shift for a different voice pitch
                 }
                 break;
-
-
-
-
 
             case V_REPLACE:
                 if (phonemes_set == false) {
@@ -757,6 +764,7 @@ voice_t *LoadVoice(const char *vname, int control)
 		voice_languages[langix] = 0;
 	}
 
+	ESPK_LOG("<-LoadVoice: %s\n", vname);
 	return voice;
 }
 
@@ -1305,6 +1313,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByFile(const char *filename)
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByName(const char *name)
 {
+	ESPK_LOG("->espeak_ng_SetVoiceByName: %s\n", name);
 	espeak_VOICE *v;
 	int ix;
 	espeak_VOICE voice_selector;
@@ -1334,6 +1343,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByName(const char *name)
 		DoVoiceChange(voice);
 		voice_selector.languages = voice->language_name;
 		SetVoiceStack(&voice_selector, variant_name);
+		ESPK_LOG("<-espeak_ng_SetVoiceByName: %s\n", name);
 		return ENS_OK;
 	}
 
@@ -1347,9 +1357,11 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByName(const char *name)
 			DoVoiceChange(voice);
 			voice_selector.languages = voice->language_name;
 			SetVoiceStack(&voice_selector, variant_name);
+			ESPK_LOG("<-espeak_ng_SetVoiceByName: %s\n", name);
 			return ENS_OK;
 		}
 	}
+	ESPK_LOG("<-espeak_ng_SetVoiceByName: %s - ENS_VOICE_NOT_FOUND\n", name);
 	return ENS_VOICE_NOT_FOUND;
 }
 

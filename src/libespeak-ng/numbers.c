@@ -638,6 +638,7 @@ int IsSuperscript(int letter)
 
 void SetSpellingStress(Translator *tr, char *phonemes, int control, int n_chars)
 {
+	ESPK_LOG("-> SetSpellingStress\n");
 	// Individual letter names, reduce the stress of some.
 	int ix;
 	unsigned int c;
@@ -683,6 +684,7 @@ void SetSpellingStress(Translator *tr, char *phonemes, int control, int n_chars)
 	if (control >= 2)
 		*phonemes++ = phonPAUSE_NOLINK;
 	*phonemes = 0;
+	ESPK_LOG("<- SetSpellingStress\n");
 }
 
 // Numbers

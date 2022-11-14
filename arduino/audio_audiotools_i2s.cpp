@@ -1,9 +1,17 @@
 #include "config.h"
 #include "audio.h"
 #include "audio_object.h"
+
 #if ESPEAK_ARDUINO_POSIX_FS
 #  include "FileSystems.h" // https://github.com/pschatzmann/arduino-posix-fs
 #endif
+
+#ifdef ARDUINO_ARCH_MBED
+   REDIRECT_STDOUT_TO(Serial)  // MBED  printf(...) to console
+#endif
+
+
+
 // audio callback
 void (*audio_stream_factory_callback)(audio_info *cfg) = nullptr;
 // actual audio output
@@ -37,9 +45,7 @@ void audio_object_destroy(audio_object *object){
 int audio_object_write(audio_object *object,
                    const void *data,
                    size_t bytes){
-#if ESPEAK_LOGGING
-    printf("audio_object_write(%d)\n",(int)bytes);
-#endif
+    ESPK_LOG("audio_object_write(%d)\n",(int)bytes);
     return object->write(data, bytes);
 }
 

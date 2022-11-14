@@ -143,6 +143,7 @@ char *strchr_w(const char *s, int c)
 
 int TranslateWord(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_out)
 {
+	ESPK_LOG("-> TranslateWord\n");
 	char words_phonemes[N_WORD_PHONEMES]; // a word translated into phoneme codes
 	char *phonemes = words_phonemes;
 
@@ -207,6 +208,7 @@ int TranslateWord(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_o
 			snprintf(word_phonemes, sizeof(word_phonemes), "%s", words_phonemes);
 		}
 	}
+	ESPK_LOG("<- TranslateWord\n");
 	return flags;
 }
 
@@ -301,6 +303,7 @@ int SetTranslator3(const char *new_language)
 
 static int TranslateWord2(Translator *tr, char *word, WORD_TAB *wtab, int pre_pause)
 {
+	ESPK_LOG("-> TranslateWord2\n");
 	int flags = 0;
 	int stress;
 	int next_stress;
@@ -339,6 +342,7 @@ static int TranslateWord2(Translator *tr, char *word, WORD_TAB *wtab, int pre_pa
 
 	if (n_ph_list2 >= N_PHONEME_LIST-2) {
 		// No room, can't translate anything
+		ESPK_LOG("<- TranslateWord2\n");
 		return 0;
 	}
 
@@ -351,11 +355,13 @@ static int TranslateWord2(Translator *tr, char *word, WORD_TAB *wtab, int pre_pa
 			embedded_flag = 0;
 		}
 		word_phonemes[0] = 0;
+		ESPK_LOG("<- TranslateWord2\n");
 		return 0;
 	}
 
 	if (n_ph_list2 >= N_PHONEME_LIST-7-2) {
 		// We may require up to 7 phonemes, plus the 2 phonemes from the caller, can't translate safely
+		ESPK_LOG("<- TranslateWord2\n");
 		return 0;
 	}
 
@@ -406,6 +412,7 @@ static int TranslateWord2(Translator *tr, char *word, WORD_TAB *wtab, int pre_pa
 		if (flags & FLAG_SPELLWORD) {
 			// re-translate the word as individual letters, separated by spaces
 			memcpy(word, word_copy, word_copy_len);
+			ESPK_LOG("<- TranslateWord2\n");
 			return flags;
 		}
 
@@ -675,6 +682,7 @@ static int TranslateWord2(Translator *tr, char *word, WORD_TAB *wtab, int pre_pa
 	}
 
 	tr->prev_dict_flags[0] = flags;
+	ESPK_LOG("<- TranslateWord2\n");
 	return flags;
 }
 
@@ -929,6 +937,7 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 {
 	if (tr == NULL)
 		return;
+	ESPK_LOG("-> TranslateClause\n");
 
 	int ix;
 	int c;
@@ -1689,7 +1698,7 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 	if (num_wtab)
 		free(num_wtab);
 #endif
-
+	ESPK_LOG("<- TranslateClause\n");
 }
 
 static int CalcWordLength(int source_index, int charix_top, short int *charix, WORD_TAB *words, int word_count) {

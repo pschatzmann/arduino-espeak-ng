@@ -252,3 +252,12 @@
 // activate some logging
 #define ESPEAK_LOGGING 0
 
+// Defin log makro
+#if ESPEAK_LOGGING 
+#  define ESPK_LOG(...) printf(__VA_ARGS__)
+#else
+#  define ESPK_LOG(...)
+#endif
+
+
+//#define STACK_CHECK() {int x; printf("!!! stack: %p available: %d \n", &x, -0x20000bac+(unsigned)&x);}

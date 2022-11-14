@@ -198,6 +198,7 @@ static int dispatch_audio(short *outbuf, int length, espeak_EVENT *event)
 
 static int create_events(short *outbuf, int length, espeak_EVENT *event_list)
 {
+	ESPK_LOG("-> create_events\n");
 	int finished;
 	int i = 0;
 
@@ -427,6 +428,7 @@ ESPEAK_NG_API int espeak_ng_GetSampleRate(void)
 
 static espeak_ng_STATUS Synthesize(unsigned int unique_identifier, const void *text, int flags)
 {
+	ESPK_LOG("-> Synthesize: %s\n", text);
 	// Fill the buffer with output sound
 	int length;
 	int finished = 0;

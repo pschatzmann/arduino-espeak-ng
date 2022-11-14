@@ -62,7 +62,7 @@ static const unsigned short diereses_list[7] = { 0xe4, 0xeb, 0xef, 0xf6, 0xfc, 0
 // convert characters to an approximate 7 bit ascii equivalent
 // used for checking for vowels (up to 0x259=schwa)
 #define N_REMOVE_ACCENT  0x25e
-static unsigned char remove_accent[N_REMOVE_ACCENT] = {
+static const unsigned char remove_accent[N_REMOVE_ACCENT] = {
 	'a', 'a', 'a', 'a', 'a', 'a', 'a', 'c', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i',  // 0c0
 	'd', 'n', 'o', 'o', 'o', 'o', 'o',   0, 'o', 'u', 'u', 'u', 'u', 'y', 't', 's',  // 0d0
 	'a', 'a', 'a', 'a', 'a', 'a', 'a', 'c', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i',  // 0e0
@@ -194,9 +194,11 @@ static void InitGroups(Translator *tr)
 
 int LoadDictionary(Translator *tr, const char *name, int no_error)
 {
+	ESPK_LOG("->LoadDictionary: %s\n", name);
 	int hash;
 	char *p;
-	int *pw;
+	// int *pw;
+	int pw[2];
 	int length;
 	FILE *f;
 	int size;
@@ -241,8 +243,10 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 		fclose(f);
 	}
 
+	//pschatzmann: mbed is crashing when we access pw
+	//pw = (int *)(tr->data_dictlist);
+	memmove(pw,tr->data_dictlist,sizeof(int)*2);
 
-	pw = (int *)(tr->data_dictlist);
 	length = Reverse4Bytes(pw[1]);
 
 	if (size <= (N_HASH_DICT + sizeof(int)*2)) {
@@ -273,6 +277,7 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 	if ((tr->dict_min_size > 0) && (size < (unsigned int)tr->dict_min_size))
 		fprintf(stderr, "Full dictionary is not installed for '%s'\n", name);
 
+	ESPK_LOG("<-LoadDictionary\n");
 	return 0;
 }
 
@@ -398,6 +403,7 @@ const char *EncodePhonemes(const char *p, char *outptr, int *bad_phoneme)
 
 void DecodePhonemes(const char *inptr, char *outptr)
 {
+	ESPK_LOG("-> DecodePhonemes\n");
 	// Translate from internal phoneme codes into phoneme mnemonics
 	unsigned char phcode;
 	unsigned char c;
@@ -429,10 +435,11 @@ void DecodePhonemes(const char *inptr, char *outptr)
 		}
 	}
 	*outptr = 0; // string terminator
+	ESPK_LOG("<- DecodePhonemes\n");
 }
 
 // using Kirschenbaum to IPA translation, ascii 0x20 to 0x7f
-unsigned short ipa1[96] = {
+const unsigned short ipa1[96] = {
 	0x20,  0x21,  0x22,  0x2b0, 0x24,  0x25,  0x0e6, 0x2c8, 0x28,  0x29,  0x27e, 0x2b,  0x2cc, 0x2d,  0x2e,  0x2f,
 	0x252, 0x31,  0x32,  0x25c, 0x34,  0x35,  0x36,  0x37,  0x275, 0x39,  0x2d0, 0x2b2, 0x3c,  0x3d,  0x3e,  0x294,
 	0x259, 0x251, 0x3b2, 0xe7,  0xf0,  0x25b, 0x46,  0x262, 0x127, 0x26a, 0x25f, 0x4b,  0x26b, 0x271, 0x14b, 0x254,
@@ -773,6 +780,10 @@ int IsVowel(Translator *tr, int letter)
 
 int GetVowelStress(Translator *tr, unsigned char *phonemes, signed char *vowel_stress, int *vowel_count, int *stressed_syllable, int control)
 {
+	ESPK_LOG("-> GetVowelStress\n");
+	assert(stressed_syllable!=NULL);
+	assert(vowel_count!=NULL);
+	assert(phoneme_tab!=NULL);
 	// control = 1, set stress to 1 for forced unstressed vowels
 	unsigned char phcode;
 	PHONEME_TAB *ph;
@@ -784,11 +795,12 @@ int GetVowelStress(Translator *tr, unsigned char *phonemes, signed char *vowel_s
 	int stress = -1;
 	int primary_posn = 0;
 
+
 	vowel_stress[0] = STRESS_IS_UNSTRESSED;
 	while (((phcode = *phonemes++) != 0) && (count < (N_WORD_PHONEMES/2)-1)) {
-		if ((ph = phoneme_tab[phcode]) == NULL)
+		if ((ph = phoneme_tab[phcode]) == NULL){
 			continue;
-
+		}
 		if ((ph->type == phSTRESS) && (ph->program == 0)) {
 			// stress marker, use this for the following vowel
 
@@ -844,7 +856,6 @@ int GetVowelStress(Translator *tr, unsigned char *phonemes, signed char *vowel_s
 				vowel_stress[count] = STRESS_IS_UNSTRESSED; // syllabic consonant, usually unstressed
 			count++;
 		}
-
 		*ph_out++ = phcode;
 	}
 	vowel_stress[count] = STRESS_IS_UNSTRESSED;
@@ -880,6 +891,7 @@ int GetVowelStress(Translator *tr, unsigned char *phonemes, signed char *vowel_s
 
 	*stressed_syllable = primary_posn;
 	*vowel_count = count;
+	ESPK_LOG("<- GetVowelStress\n");
 	return max_stress;
 }
 
@@ -890,6 +902,7 @@ const char stress_phonemes[] = {
 
 void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags, int tonic, int control)
 {
+	ESPK_LOG("-> SetWordStress\n");
 	/* Guess stress pattern of word.  This is language specific
 
 	   'output' is used for input and output
@@ -925,7 +938,7 @@ void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags,
 	int dflags = 0;
 	int first_primary;
 	int long_vowel;
-
+//  TODO pschatzmann: Memory Hack ?
 	signed char vowel_stress[N_WORD_PHONEMES/2];
 	char syllable_weight[N_WORD_PHONEMES/2];
 	char vowel_length[N_WORD_PHONEMES/2];
@@ -947,7 +960,10 @@ void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags,
 		if (phonetic[ix] == 0)
 			break;
 	}
-	if (ix == 0) return;
+	if (ix == 0) {
+		ESPK_LOG("<- SetWordStress\n");
+		return;
+	}
 	final_ph = phonetic[ix-1];
 	final_ph2 = phonetic[(ix > 1) ? ix-2 : ix-1];
 
@@ -992,6 +1008,7 @@ void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags,
 			syllable_weight[ix] = weight;
 			ix++;
 		}
+	
 	}
 
 	switch (tr->langopts.stress_rule)
@@ -1407,11 +1424,13 @@ void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags,
 	}
 	*output++ = 0;
 
+	ESPK_LOG("<- SetWordStress\n");
 	return;
 }
 
 void AppendPhonemes(Translator *tr, char *string, int size, const char *ph)
 {
+	ESPK_LOG("-> AppendPhonemes\n");
 	/* Add new phoneme string "ph" to "string"
 	    Keeps count of the number of vowel phonemes in the word, and whether these
 	   can be stressed syllables.  These values can be used in translation rules
@@ -1422,8 +1441,10 @@ void AppendPhonemes(Translator *tr, char *string, int size, const char *ph)
 	int length;
 
 	length = strlen(ph) + strlen(string);
-	if (length >= size)
+	if (length >= size){
+		ESPK_LOG("<- AppendPhonemes\n");
 		return;
+	}
 
 	// any stressable vowel ?
 	bool unstress_mark = false;
@@ -1448,10 +1469,12 @@ void AppendPhonemes(Translator *tr, char *string, int size, const char *ph)
 
 	if (string != NULL)
 		strcat(string, ph);
+	ESPK_LOG("<- AppendPhonemes\n");
 }
 
 static void MatchRule(Translator *tr, char *word[], char *word_start, int group_length, char *rule, MatchRecord *match_out, int word_flags, int dict_flags)
 {
+	ESPK_LOG("-> MatchRule\n");
 	/* Checks a specified word against dictionary rules.
 	    Returns with phoneme code string, or NULL if no match found.
 
@@ -2071,10 +2094,12 @@ static void MatchRule(Translator *tr, char *word[], char *word_start, int group_
 	if (best.points == 0)
 		best.phonemes = "";
 	memcpy(match_out, &best, sizeof(MatchRecord));
+	ESPK_LOG("<- MatchRule\n");
 }
 
 int TranslateRules(Translator *tr, char *p_start, char *phonemes, int ph_size, char *end_phonemes, int word_flags, unsigned int *dict_flags)
 {
+	ESPK_LOG("-> TranslateRules\n");
 	/* Translate a word bounded by space characters
 	   Append the result to 'phonemes' and any standard prefix/suffix in 'end_phonemes' */
 
@@ -2098,8 +2123,10 @@ int TranslateRules(Translator *tr, char *p_start, char *phonemes, int ph_size, c
 	char word_copy[N_WORD_BYTES];
 	static const char str_pause[2] = { phonPAUSE_NOLINK, 0 };
 
-	if (tr->data_dictrules == NULL)
+	if (tr->data_dictrules == NULL){
+		ESPK_LOG("<- TranslateRules\n");
 		return 0;
+	}
 
 	if (dict_flags != NULL)
 		dict_flags0 = dict_flags[0];
@@ -2206,6 +2233,7 @@ int TranslateRules(Translator *tr, char *p_start, char *phonemes, int ph_size, c
 							// not a Latin alphabet, switch to the default Latin alphabet language
 							if ((letter <= 0x241) && iswalpha(letter)) {
 								sprintf(phonemes, "%cen", phonSWITCH);
+								ESPK_LOG("<- TranslateRules\n");
 								return 0;
 							}
 						}
@@ -2247,11 +2275,13 @@ int TranslateRules(Translator *tr, char *p_start, char *phonemes, int ph_size, c
 						if (((alphabet = AlphabetFromChar(letter)) != NULL)  && (alphabet->offset != tr->letter_bits_offset)) {
 							if (tr->langopts.alt_alphabet == alphabet->offset) {
 								sprintf(phonemes, "%c%s", phonSWITCH, WordToString2(tr->langopts.alt_alphabet_lang));
+								ESPK_LOG("<- TranslateRules\n");
 								return 0;
 							}
 							if (alphabet->flags & AL_WORDS) {
 								// switch to the nominated language for this alphabet
 								sprintf(phonemes, "%c%s", phonSWITCH, WordToString2(alphabet->language));
+								ESPK_LOG("<- TranslateRules\n");
 								return 0;
 							}
 						}
@@ -2287,11 +2317,13 @@ int TranslateRules(Translator *tr, char *p_start, char *phonemes, int ph_size, c
 
 		if (match1.points > 0) {
 			if (word_flags & FLAG_UNPRON_TEST)
+				ESPK_LOG("<- TranslateRules\n");
 				return match1.end_type | 1;
 
 			if ((match1.phonemes[0] == phonSWITCH) && ((word_flags & FLAG_DONT_SWITCH_TRANSLATOR) == 0)) {
 				// an instruction to switch language, return immediately so we can re-translate
 				strcpy(phonemes, match1.phonemes);
+				ESPK_LOG("<- TranslateRules\n");
 				return 0;
 			}
 
@@ -2311,6 +2343,7 @@ int TranslateRules(Translator *tr, char *p_start, char *phonemes, int ph_size, c
 					}
 					strcpy(end_phonemes, match1.phonemes);
 					memcpy(p_start, word_copy, strlen(word_copy));
+					ESPK_LOG("<- TranslateRules\n");
 					return match1.end_type;
 				}
 			}
@@ -2322,6 +2355,7 @@ int TranslateRules(Translator *tr, char *p_start, char *phonemes, int ph_size, c
 
 	memcpy(p_start, word_copy, strlen(word_copy));
 
+	ESPK_LOG("<- TranslateRules\n");
 	return 0;
 }
 
@@ -2692,7 +2726,7 @@ static const char *LookupDict2(Translator *tr, const char *word, const char *wor
 }
 
 
-    static int utf8_nbytes(const char *buf)
+static int utf8_nbytes(const char *buf)
 {
 	// Returns the number of bytes for the first UTF-8 character in buf
 
@@ -2713,6 +2747,7 @@ static const char *LookupDict2(Translator *tr, const char *word, const char *wor
  */
 int LookupDictList(Translator *tr, char **wordptr, char *ph_out, unsigned int *flags, int end_flags, WORD_TAB *wtab)
 {
+	ESPK_LOG("-> LookupDictList\n");
 	int length;
 	const char *found;
 	const char *word1;
@@ -2748,6 +2783,7 @@ int LookupDictList(Translator *tr, char **wordptr, char *ph_out, unsigned int *f
 			// set the skip words flag
 			flags[0] |= FLAG_SKIPWORDS;
 			dictionary_skipwords = length;
+			ESPK_LOG("<- LookupDictList\n");
 			return 1;
 		}
 	}
@@ -2828,13 +2864,16 @@ int LookupDictList(Translator *tr, char **wordptr, char *ph_out, unsigned int *f
 			}
 
 			ph_out[0] = 0;
+			ESPK_LOG("<- LookupDictList\n");
 			return 0;
 		}
 
+		ESPK_LOG("<- LookupDictList\n");
 		return 1;
 	}
 
 	ph_out[0] = 0;
+	ESPK_LOG("<- LookupDictList\n");
 	return 0;
 }
 
@@ -2842,7 +2881,8 @@ extern char word_phonemes[N_WORD_PHONEMES]; // a word translated into phoneme co
 
 int Lookup(Translator *tr, const char *word, char *ph_out)
 {
-	// Look up in *_list, returns dictionary flags[0] and phonemes
+	// Look up in *_list, returns dictionary flags[0] and phonemes			ESPK_LOG("<- LookupDictList\n");
+	ESPK_LOG("-> Lookup\n");
 
 	int flags0;
 	unsigned int flags[2];
@@ -2869,6 +2909,7 @@ int Lookup(Translator *tr, const char *word, char *ph_out)
 		strcpy(ph_out, word_phonemes);
 		option_sayas = say_as;
 	}
+	ESPK_LOG("<- Lookup\n");
 	return flags0;
 }
 

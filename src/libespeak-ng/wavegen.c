@@ -1408,6 +1408,7 @@ static int SpeedUp(short *outbuf, int length_in, int length_out, int end_of_text
 // Call WavegenFill2, and then speed up the output samples.
 int WavegenFill(void)
 {
+	ESPK_LOG("-> WavegenFill\n");
 	int finished;
 #if HAVE_SONIC_H
 	unsigned char *p_start;
