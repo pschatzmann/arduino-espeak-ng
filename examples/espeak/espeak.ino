@@ -55,7 +55,7 @@ void setup() {
 }
 
 void loop() {
-  char text[] = "Hello world!";
+  char text[] = "Hello my name is Phil!";
   Serial.println(text);
   espeak_Synth(text, buflength, position, position_type, end_position, flags,
                identifier, user_data);

@@ -1,6 +1,6 @@
 #pragma once
-/* config.h.  Generated from config.h.in by configure.  */
-/* config.h.in.  Generated from configure.ac by autoheader.  */
+/* config-espk.h.  Generated from config-espk.h.in by configure.  */
+/* config-espk.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 0
@@ -260,4 +260,4 @@
 #endif
 
 
-//#define STACK_CHECK() {int x; printf("!!! stack: %p available: %d \n", &x, -0x20000bac+(unsigned)&x);}
+void* espeak_mem_map(const char* path, int *len);

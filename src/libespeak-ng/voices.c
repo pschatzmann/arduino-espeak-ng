@@ -18,13 +18,13 @@
  * along with this program; if not, see: <http://www.gnu.org/licenses/>.
  */
 
-#include "config.h"
+#include "config-espk.h"
 
 #include <ctype.h>
 #include <wctype.h>
 #include <errno.h>
 #include <stdint.h>
-#include <stdio.h>
+//#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
@@ -51,6 +51,7 @@
 #include "synthesize.h"               // for SetSpeed, SPEED_FACTORS, speed
 #include "translate.h"                // for LANGUAGE_OPTIONS, DeleteTranslator
 #include "wavegen.h"                  // for InitBreath
+
 
 static int AddToVoicesList(const char *fname, int len_path_voices, int is_language_file);
 

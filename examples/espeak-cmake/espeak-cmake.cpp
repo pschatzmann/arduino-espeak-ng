@@ -14,7 +14,7 @@
 #include "espeak.h"
 
 PortAudioStream out; // or replace with AudioKitStream for AudioKit
-ESpeak espeak(out, "../../../espeak-ng-data");
+ESpeakPROGMEM espeak(out);
 
 void setup() {
   Serial.begin(115200);
@@ -32,6 +32,6 @@ void setup() {
 }
 
 void loop() {
-  espeak.say("Hello world!");
+  espeak.say("hello hello hello hello");
   delay(5000);
 }

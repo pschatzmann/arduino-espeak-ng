@@ -1,4 +1,4 @@
-#include "config.h"
+#include "config-espk.h"
 #include "audio.h"
 #include "audio_object.h"
 
@@ -74,7 +74,7 @@ struct audio_object * create_audio_device_object(const char *device,
 void* espeak_mem_map(const char* path, int *len) {
 #if ESPEAK_ARDUINO_POSIX_FS
     size_t size;
-    auto result = file_systems::DefaultRegistry.fileSystemByName("FileSystemMemory").mem_map(path, &size);
+    auto result = file_systems::Registry::DefaultRegistry().fileSystemByName("FileSystemMemory").mem_map(path, &size);
     if (len!=nullptr){
         *len = size;
     }

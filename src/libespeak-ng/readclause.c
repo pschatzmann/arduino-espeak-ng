@@ -17,7 +17,7 @@
  * along with this program; if not, see: <http://www.gnu.org/licenses/>.
  */
 
-#include "config.h"
+#include "config-espk.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <wchar.h>
 #include <wctype.h>
 
@@ -38,7 +38,7 @@
 
 #include "readclause.h"
 #include "common.h"               // for GetFileLength, strncpy0
-#include "config.h"               // for HAVE_MKSTEMP
+#include "config-espk.h"               // for HAVE_MKSTEMP
 #include "dictionary.h"           // for LookupDictList, DecodePhonemes, Set...
 #include "error.h"                // for create_file_error_context
 #include "phoneme.h"              // for phonSWITCH

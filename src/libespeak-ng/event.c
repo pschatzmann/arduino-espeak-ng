@@ -18,7 +18,7 @@
 
 // This source file is only used for asynchronous modes
 
-#include "config.h"
+#include "config-espk.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
-#include <unistd.h>
+//#include <unistd.h>
 
 #include <espeak-ng/espeak_ng.h>
 #include <espeak-ng/speak_lib.h>

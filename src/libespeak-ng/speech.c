@@ -17,7 +17,7 @@
  * along with this program; if not, see: <http://www.gnu.org/licenses/>.
  */
 
-#include "config.h"
+#include "config-espk.h"
 
 #include <assert.h>
 #include <ctype.h>
@@ -30,7 +30,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <wchar.h>
 
 #ifdef HAVE_PCAUDIOLIB_AUDIO_H

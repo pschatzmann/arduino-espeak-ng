@@ -1,5 +1,5 @@
 #pragma once
-#include "config.h"
+#include "config-espk.h"
 #include "speak_lib.h"
 #include "pcaudiolib/audio_object.h"
 #include "espeak-ng-data.h"
@@ -13,7 +13,7 @@
  */
 class ESpeak {
 public:
-    ESpeak(Print &out, const char* path="../../../espeak-ng-data-min"){
+    ESpeak(Print &out, const char* path="../../../espeak-ng-data"){
         // setup min file system
         espeak_set_audio_output(&out);
         if (path!=nullptr){
@@ -62,6 +62,46 @@ public:
         return rc==EE_OK;
     }
 
+    /// speaking speed in word per minute. Values 80 to 450.
+    bool setRate(int rate) {
+        return setParameter(espeakRATE, rate);
+    }
+
+    /// volume in range 0-200 or more. 0=silence, 100=normal full volume, greater values may produce amplitude compression or distortion
+    bool setVolume(int vol){
+        return setParameter(espeakVOLUME, vol);
+    }
+
+    /// PITCH: base pitch, range 0-100. 50=normal
+    bool setPitch(int pitch){
+        return setParameter(espeakPITCH, pitch);
+    }
+
+    /// RANGE: pitch range, range 0-100. 0-monotone, 50=normal
+    bool setPitchRange(int range){
+        return setParameter(espeakRANGE, range);
+    }
+
+    /// PUNCTUATION: which punctuation characters to announce: value in espeak_PUNCT_TYPE (none, all, some), see espeak_GetParameter() to specify which characters are announced.
+    bool setPunctuation(espeak_PUNCT_TYPE punct){
+        return setParameter(espeakPUNCTUATION, punct);
+    }
+
+    /// CAPITALS: announce capital letters by: 0=none, 1=sound icon, 2=spelling, 3 or higher, by raising pitch. This values gives the amount in Hz by which the pitch of a word raised to indicate it has a capital letter.
+    bool setAnnounceCapitals(int caps){
+        return setParameter(espeakCAPITALS, caps);
+    }
+
+    /// WORDGAP: pause between words, units of 10mS (at the default speed)
+    bool setWordGap(int gap){
+        return setParameter(espeakWORDGAP, gap);
+    }
+
+    /// Sets Parameter: espeakRATE, espeakVOLUME etc
+    bool setParameter(espeak_PARAMETER parameter, int value, int relative=0){
+        return espeak_SetParameter(parameter, value, relative)==EE_OK;
+    }
+
 protected:
     const short memory_guard = GUARD_VALUE; // check that memory was not overwritten by stack overflow
     const espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
@@ -73,7 +113,6 @@ protected:
     unsigned int  end_position = 0;
     unsigned int  flags = espeakCHARS_AUTO;
     espeak_POSITION_TYPE position_type = POS_CHARACTER;
-    file_systems::FileSystemMemory fsm{"/mem"}; // File system data in PROGMEM
 };
 /**
  * @brief Simple Arduino C++ class API for ESpeak using PROGMEM
@@ -91,7 +130,7 @@ public:
         fsm.add(fileName, fileContent, len);
     }
 
-    bool begin(int buflength=5) {
+    bool begin(int buflength=500) {
         if (!is_fs_setup){
             add("/mem/data/phontab", espeak_ng_data_phontab,espeak_ng_data_phontab_len);
             add("/mem/data/phonindex", espeak_ng_data_phonindex,espeak_ng_data_phonindex_len);
@@ -107,6 +146,7 @@ public:
     }
 
 protected:
+    file_systems::FileSystemMemory fsm{"/mem"}; // File system data in PROGMEM
     bool is_setup_english;
     bool is_fs_setup = false;
 };

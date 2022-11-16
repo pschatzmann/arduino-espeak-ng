@@ -23,7 +23,7 @@
 
 // See URL: ftp://svr-ftp.eng.cam.ac.uk/pub/comp.speech/synthesis/klatt.3.04.tar.gz
 
-#include "config.h"
+#include "config-espk.h"
 
 #include <math.h>
 #include <stdint.h>

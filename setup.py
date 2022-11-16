@@ -48,7 +48,7 @@ def link_files():
     link('../../arduino/audio_object.h', 'src/pcaudiolib/audio_object.h') 
     link('../../arduino/audio_audiotools_i2s.cpp', 'src/pcaudiolib/audio_audiotools_i2s.cpp') 
     # config
-    link('../arduino/config.h', 'src/config.h') 
+    link('../arduino/config-espk.h', 'src/config-espk.h') 
     link('../arduino/espeak.h', 'src/espeak.h') 
     link('../arduino/direntx.h', 'src/direntx.h') 
 

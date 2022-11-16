@@ -1,4 +1,5 @@
 #pragma once
+#include "ConfigFS.h"
 
 #ifdef __cplusplus
 extern "C" {
