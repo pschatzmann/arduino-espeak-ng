@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['options_0',['options',['../class_e_speak.html#aba504a405b581990d31f4a4f20d51c80',1,'ESpeak']]],
-  ['out_1',['out',['../structaudio__info.html#afa7bac34a26363e54b2bcaca023f3383',1,'audio_info']]],
-  ['output_2',['output',['../class_e_speak.html#ae8047d6dbc0cebfee8d6735c5908ce21',1,'ESpeak']]]
+  ['name_2229',['name',['../structespeak___e_v_e_n_t.html#aaafe9c49720d23545e33824f2890fe15',1,'espeak_EVENT::name()'],['../structespeak___v_o_i_c_e.html#a23520bb9b5b63914306bde6c82f83057',1,'espeak_VOICE::name()']]],
+  ['number_2230',['number',['../structespeak___e_v_e_n_t.html#a987fcaf6939009179a60cf3455262a59',1,'espeak_EVENT']]]
 ];

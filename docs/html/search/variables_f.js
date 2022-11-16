@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['unique_5fidentifier_0',['unique_identifier',['../structespeak___e_v_e_n_t.html#a899378327aa61379d913f51b0f893e4e',1,'espeak_EVENT']]],
-  ['user_5fdata_1',['user_data',['../structespeak___e_v_e_n_t.html#a23fa9411d77c54211a8130a1d58b27c2',1,'espeak_EVENT::user_data()'],['../class_e_speak.html#a1aa06a149c3adeff6e0bd903faa6c976',1,'ESpeak::user_data()']]]
+  ['text_5fposition_2245',['text_position',['../structespeak___e_v_e_n_t.html#a6c68c5805c5643afa0635099dac29ac5',1,'espeak_EVENT']]],
+  ['type_2246',['type',['../structespeak___e_v_e_n_t.html#a5c1605442325d07e3f3304a888c2836d',1,'espeak_EVENT']]]
 ];
