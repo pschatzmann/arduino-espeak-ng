@@ -363,10 +363,6 @@ espeak_ng_STATUS LoadSpectSeq(SpectSeq *spect, const char *filename)
 		free(spect->frames);
 	}
 	spect->frames = calloc(n, sizeof(SpectFrame *));
-	if (spect->frames==NULL){
-		fprintf(stderr, "SpectFrame: Out of memory.\n");
-		return ENOMEM;
-	}
 
 	spect->numframes = 0;
 	spect->max_x = 3000;

@@ -24,7 +24,7 @@
 #include <wctype.h>
 #include <errno.h>
 #include <stdint.h>
-//#include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
@@ -51,7 +51,6 @@
 #include "synthesize.h"               // for SetSpeed, SPEED_FACTORS, speed
 #include "translate.h"                // for LANGUAGE_OPTIONS, DeleteTranslator
 #include "wavegen.h"                  // for InitBreath
-
 
 static int AddToVoicesList(const char *fname, int len_path_voices, int is_language_file);
 
@@ -167,8 +166,6 @@ typedef struct  {
 
 static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_language_file)
 {
-	ESPK_LOG("-> ReadVoiceFile: %s\n", fname);
-
 	// Read a Voice file, allocate a VOICE_DATA and set data from the
 	// file's  language, gender, name  lines
 #if ESPEAK_STACK_HACK
@@ -205,7 +202,6 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 	age = 0;
 
 	while (fgets_strip(linebuf, linebuf_size, f_in) != NULL) {
-		// ESPK_LOG("%s\n",linebuf);
 		// isolate the attribute name
 		for (p = linebuf; (*p != 0) && !iswspace(*p); p++) ;
 		*p++ = 0;
@@ -242,7 +238,6 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 			sscanf(p, "%d", &n_variants);
 		}
 	}
-
 	languages[langix++] = 0;
 
 	gender = LookupMnem(genders, vgender);
@@ -441,7 +436,6 @@ void ReadNumbers(char *p, int *flags, int maxValue,  const MNEM_TAB *keyword_tab
 
 voice_t *LoadVoice(const char *vname, int control)
 {
-	ESPK_LOG("->LoadVoice: %s\n", vname);
 	// control, bit 0  1= no_default
 	//          bit 1  1 = change tone only, not language
 	//          bit 2  1 = don't report error on LoadDictionary
@@ -486,10 +480,8 @@ voice_t *LoadVoice(const char *vname, int control)
 	strncpy0(voicename, vname, sizeof(voicename));
 	if (control & 0x10) {
 		strcpy(buf, vname);
-		if (GetFileLength(buf) <= 0){
-			ESPK_LOG("<-LoadVoice: %s\n", vname);
+		if (GetFileLength(buf) <= 0)
 			return NULL;
-		}
 	} else {
 		if (voicename[0] == 0 && !(control & 8)/*compiling phonemes*/)
 			strcpy(voicename, ESPEAKNG_DEFAULT_VOICE);
@@ -546,7 +538,6 @@ voice_t *LoadVoice(const char *vname, int control)
 	VoiceReset(tone_only);
 
 	while ((f_voice != NULL) && (fgets_strip(buf, sizeof(buf), f_voice) != NULL)) {
-		// ESPK_LOG("%s\n",buf);
 		// isolate the attribute name
 		for (p = buf; (*p != 0) && !isspace(*p); p++) ;
 		*p++ = 0;
@@ -632,6 +623,10 @@ voice_t *LoadVoice(const char *vname, int control)
                     voice->formant_factor = (int)((1+factor/4) * 256); // nominal formant shift for a different voice pitch
                 }
                 break;
+
+
+
+
 
             case V_REPLACE:
                 if (phonemes_set == false) {
@@ -765,7 +760,6 @@ voice_t *LoadVoice(const char *vname, int control)
 		voice_languages[langix] = 0;
 	}
 
-	ESPK_LOG("<-LoadVoice: %s\n", vname);
 	return voice;
 }
 
@@ -1100,9 +1094,9 @@ char const *SelectVoice(espeak_VOICE *voice_select, int *found)
 	const char *p, *p_start;
 	espeak_VOICE *vp = NULL;
 	espeak_VOICE *vp2;
-	STACK_T espeak_VOICE voice_select2;
-	STACK_T espeak_VOICE *voices[N_VOICES_LIST]; // list of candidates
-	STACK_T espeak_VOICE *voices2[N_VOICES_LIST+N_VOICE_VARIANTS];
+	espeak_VOICE voice_select2;
+	espeak_VOICE *voices[N_VOICES_LIST]; // list of candidates
+	espeak_VOICE *voices2[N_VOICES_LIST+N_VOICE_VARIANTS];
 	static espeak_VOICE voice_variants[N_VOICE_VARIANTS];
 	static char voice_id[50];
 
@@ -1270,7 +1264,6 @@ static void GetVoices(const char *path, int len_path_voices, int is_language_fil
 
 	}
 	closedir(dir);
-
 #endif
 }
 
@@ -1314,7 +1307,6 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByFile(const char *filename)
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByName(const char *name)
 {
-	ESPK_LOG("->espeak_ng_SetVoiceByName: %s\n", name);
 	espeak_VOICE *v;
 	int ix;
 	espeak_VOICE voice_selector;
@@ -1344,7 +1336,6 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByName(const char *name)
 		DoVoiceChange(voice);
 		voice_selector.languages = voice->language_name;
 		SetVoiceStack(&voice_selector, variant_name);
-		ESPK_LOG("<-espeak_ng_SetVoiceByName: %s\n", name);
 		return ENS_OK;
 	}
 
@@ -1358,11 +1349,9 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByName(const char *name)
 			DoVoiceChange(voice);
 			voice_selector.languages = voice->language_name;
 			SetVoiceStack(&voice_selector, variant_name);
-			ESPK_LOG("<-espeak_ng_SetVoiceByName: %s\n", name);
 			return ENS_OK;
 		}
 	}
-	ESPK_LOG("<-espeak_ng_SetVoiceByName: %s - ENS_VOICE_NOT_FOUND\n", name);
 	return ENS_VOICE_NOT_FOUND;
 }
 

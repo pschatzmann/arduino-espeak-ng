@@ -61,7 +61,7 @@
 #define OFFSET_ETHIOPIC 0x1200
 
 // character ranges must be listed in ascending unicode order
-ALPHABET alphabets[] = {
+const ALPHABET alphabets[] = {
 	{ "_el",    OFFSET_GREEK,    0x380, 0x3ff,  L('e', 'l'), AL_DONT_NAME | AL_NOT_LETTERS | AL_WORDS },
 	{ "_cyr",   OFFSET_CYRILLIC, 0x400, 0x52f,  0, 0 },
 	{ "_hy",    OFFSET_ARMENIAN, 0x530, 0x58f,  L('h', 'y'), AL_WORDS },
@@ -92,10 +92,10 @@ ALPHABET alphabets[] = {
 	{ NULL, 0, 0, 0, 0, 0 }
 };
 
-ALPHABET *AlphabetFromChar(int c)
+const ALPHABET *AlphabetFromChar(int c)
 {
 	// Find the alphabet from a character.
-	ALPHABET *alphabet = alphabets;
+	const ALPHABET *alphabet = alphabets;
 
 	while (alphabet->name != NULL) {
 		if (c <= alphabet->range_max) {
@@ -1657,4 +1657,5 @@ static void Translator_Russian(Translator *tr)
 	tr->langopts.numbers = NUM_DECIMAL_COMMA | NUM_OMIT_1_HUNDRED;
 	tr->langopts.numbers2 = NUM2_THOUSANDPLEX_VAR_THOUSANDS | NUM2_THOUSANDS_VAR1; // variant numbers before thousands
 	tr->langopts.max_digits = 32;
+	tr->langopts.max_initial_consonants = 5;
 }

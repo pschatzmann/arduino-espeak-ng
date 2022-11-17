@@ -63,16 +63,16 @@
 #include "voice.h"                // for FreeVoiceList, VoiceReset, current_...
 #include "wavegen.h"              // for WavegenFill, WavegenInit, WcmdqUsed
 
-unsigned char *outbuf = NULL;
-int outbuf_size = 0;
-unsigned char *out_start;
+static unsigned char *outbuf = NULL;
+static int outbuf_size = 0;
+static unsigned char *out_start;
 
 espeak_EVENT *event_list = NULL;
-int event_list_ix = 0;
-int n_event_list;
-long count_samples;
+static int event_list_ix = 0;
+static int n_event_list;
+static long count_samples;
 #ifdef HAVE_PCAUDIOLIB_AUDIO_H
-struct audio_object *my_audio = NULL;
+static struct audio_object *my_audio = NULL;
 #endif
 
 static unsigned int my_unique_identifier = 0;
@@ -83,7 +83,7 @@ static int voice_samplerate = 22050;
 static int min_buffer_length = 60; // minimum buffer length in ms
 static espeak_ng_STATUS err = ENS_OK;
 
-t_espeak_callback *synth_callback = NULL;
+static t_espeak_callback *synth_callback = NULL;
 int (*uri_callback)(int, const char *, const char *) = NULL;
 int (*phoneme_callback)(const char *) = NULL;
 
@@ -198,7 +198,6 @@ static int dispatch_audio(short *outbuf, int length, espeak_EVENT *event)
 
 static int create_events(short *outbuf, int length, espeak_EVENT *event_list)
 {
-	ESPK_LOG("-> create_events\n");
 	int finished;
 	int i = 0;
 
@@ -405,6 +404,9 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Initialize(espeak_ng_ERROR_CONTEXT *con
 	option_phonemes = 0;
 	option_phoneme_events = 0;
 
+	// Seed random generator
+	espeak_srand(time(NULL));
+
 	return ENS_OK;
 }
 
@@ -428,7 +430,6 @@ ESPEAK_NG_API int espeak_ng_GetSampleRate(void)
 
 static espeak_ng_STATUS Synthesize(unsigned int unique_identifier, const void *text, int flags)
 {
-	ESPK_LOG("-> Synthesize: %s\n", text);
 	// Fill the buffer with output sound
 	int length;
 	int finished = 0;

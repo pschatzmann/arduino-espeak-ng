@@ -121,7 +121,7 @@ static void EndPitch(int voice_break)
 	}
 }
 
-static void DoAmplitude(int amp, unsigned const char *amp_env)
+static void DoAmplitude(int amp, unsigned char *amp_env)
 {
 	intptr_t *q;
 
@@ -144,7 +144,7 @@ static void DoPhonemeAlignment(char* pho, int type)
 	WcmdqInc();
 }
 
-static void DoPitch(const unsigned char *env, int pitch1, int pitch2)
+static void DoPitch(unsigned char *env, int pitch1, int pitch2)
 {
 	intptr_t *q;
 
@@ -1121,7 +1121,6 @@ extern espeak_ng_OUTPUT_HOOKS* output_hooks;
 
 int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 {
-	ESPK_LOG("-> Generate\n");
 	static int ix;
 	static int embedded_ix;
 	static int word_count;
@@ -1132,8 +1131,8 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 	bool  pre_voiced;
 	int free_min;
 	int value;
-	const unsigned char *pitch_env = NULL;
-	const unsigned char *amp_env;
+	unsigned char *pitch_env = NULL;
+	unsigned char *amp_env;
 	PHONEME_TAB *ph;
 	int use_ipa = 0;
 	int vowelstart_prev;
@@ -1529,7 +1528,6 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 
 int SpeakNextClause(int control)
 {
-	ESPK_LOG("-> SpeakNextClause\n");
 	// Speak text from memory (text_in)
 	// control 0: start
 	//    text_in is set
@@ -1545,13 +1543,12 @@ int SpeakNextClause(int control)
 		// stop speaking
 		n_phoneme_list = 0;
 		WcmdqStop();
-		ESPK_LOG("<- SpeakNextClause\n");
+
 		return 0;
 	}
 
 	if (text_decoder_eof(p_decoder)) {
 		skipping_text = false;
-		ESPK_LOG("<- SpeakNextClause\n");
 		return 0;
 	}
 
@@ -1576,7 +1573,6 @@ int SpeakNextClause(int control)
 
 	if (skipping_text) {
 		n_phoneme_list = 0;
-		ESPK_LOG("<- SpeakNextClause\n");
 		return 1;
 	}
 
@@ -1594,6 +1590,5 @@ int SpeakNextClause(int control)
 		new_voice = NULL;
 	}
 
-	ESPK_LOG("<- SpeakNextClause\n");
 	return 1;
 }

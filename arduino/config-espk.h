@@ -263,6 +263,6 @@
 #endif
 
 // declaration for espeak_mem_map()
-#include "../arduino/common.h"
+#include "../arduino/common-ext.h"
 
 #undef B0

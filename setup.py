@@ -154,13 +154,13 @@ def apply_patch_files():
 ## Main logic starts here
 res = execute_git("https://github.com/espeak-ng/espeak-ng.git", "original")
 if res.exit==0:
-    create_patch_files()
+    # create_patch_files()
     # clean_src()
     copy_files()
     link_files()
     cleanup()
     # create_data()
-    apply_patch_files()
+    # apply_patch_files()
     print("setup completed")
 else:
     print("Could not execute git command")

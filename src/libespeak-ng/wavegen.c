@@ -33,6 +33,7 @@
 #include <espeak-ng/speak_lib.h>
 
 #include "wavegen.h"
+#include "common.h"                   // for espeak_rand
 #include "synthesize.h"               // for WGEN_DATA, RESONATOR, frame_t
 #include "mbrola.h"                  // for MbrolaFill, MbrolaReset, mbrola...
 
@@ -49,7 +50,7 @@
 
 static void SetSynth(int length, int modn, frame_t *fr1, frame_t *fr2, voice_t *v);
 
-voice_t *wvoice = NULL;
+static voice_t *wvoice = NULL;
 
 static int option_harmonic1 = 10;
 static int flutter_amp = 64;
@@ -88,7 +89,7 @@ static int modulation_type = 0;
 static int glottal_flag = 0;
 static int glottal_reduce = 0;
 
-WGEN_DATA wdata;
+static WGEN_DATA wdata;
 
 static int amp_ix;
 static int amp_inc;
@@ -110,7 +111,7 @@ unsigned char *out_ptr;
 unsigned char *out_end;
 
 espeak_ng_OUTPUT_HOOKS* output_hooks = NULL;
-int const_f0 = 0;
+static int const_f0 = 0;
 
 // the queue of operations passed to wavegen from sythesize
 intptr_t wcmdq[N_WCMDQ][4];
@@ -120,8 +121,6 @@ int wcmdq_tail = 0;
 // pitch,speed,
 int embedded_default[N_EMBEDDED_VALUES]    = { 0,     50, espeakRATE_NORMAL, 100, 50,  0,  0, 0, espeakRATE_NORMAL, 0, 0, 0, 0, 0, 0 };
 static int embedded_max[N_EMBEDDED_VALUES] = { 0, 0x7fff, 750, 300, 99, 99, 99, 0, 750, 0, 0, 0, 0, 4, 0 };
-
-int current_source_index = 0;
 
 #if HAVE_SONIC_H
 static sonicStream sonicSpeedupStream = NULL;
@@ -668,7 +667,7 @@ static int ApplyBreath(void)
 	int ix;
 
 	// use two random numbers, for alternate formants
-	noise = (rand() & 0x3fff) - 0x2000;
+	noise = espeak_rand(-0x2000, 0x1fff);
 
 	for (ix = 1; ix < N_PEAKS; ix++) {
 		int amp;
@@ -1345,8 +1344,6 @@ static int WavegenFill2()
 		case WCMD_MARKER:
 			marker_type = q[0] >> 8;
 			MarkerEvent(marker_type, q[1], q[2], q[3], out_ptr);
-			if (marker_type == 1) // word marker
-				current_source_index = q[1] & 0xffffff;
 			break;
 		case WCMD_AMPLITUDE:
 			SetAmplitude(length, (unsigned char *)q[2], q[3]);
@@ -1369,6 +1366,12 @@ static int WavegenFill2()
 #if HAVE_SONIC_H
 		case WCMD_SONIC_SPEED:
 			sonicSpeed = (double)q[1] / 1024;
+			if (sonicSpeedupStream && (sonicSpeed <= 1.0)) {
+				sonicFlushStream(sonicSpeedupStream);
+				int length = (out_end - out_ptr);
+				length = sonicReadShortFromStream(sonicSpeedupStream, (short*)out_ptr, length/2);
+				out_ptr += length * 2;
+			}
 			break;
 #endif
 		}
@@ -1408,7 +1411,6 @@ static int SpeedUp(short *outbuf, int length_in, int length_out, int end_of_text
 // Call WavegenFill2, and then speed up the output samples.
 int WavegenFill(void)
 {
-	ESPK_LOG("-> WavegenFill\n");
 	int finished;
 #if HAVE_SONIC_H
 	unsigned char *p_start;

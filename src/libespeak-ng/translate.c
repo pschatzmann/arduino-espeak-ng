@@ -77,17 +77,17 @@ char skip_marker[N_MARKER_LENGTH];
 bool skipping_text; // waiting until word count, sentence count, or named marker is reached
 int end_character_position;
 int count_sentences;
-int count_words;
+static int count_words;
 int clause_start_char;
 int clause_start_word;
-bool new_sentence;
+static bool new_sentence;
 static int word_emphasis = 0; // set if emphasis level 3 or 4
 static int embedded_flag = 0; // there are embedded commands to be applied to the next phoneme, used in TranslateWord2()
 
 static int max_clause_pause = 0;
 static bool any_stressed_words;
 int pre_pause;
-ALPHABET *current_alphabet;
+static ALPHABET *current_alphabet;
 
 char word_phonemes[N_WORD_PHONEMES]; // a word translated into phoneme codes
 int n_ph_list2;
@@ -143,7 +143,6 @@ char *strchr_w(const char *s, int c)
 
 int TranslateWord(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_out)
 {
-	ESPK_LOG("-> TranslateWord\n");
 	char words_phonemes[N_WORD_PHONEMES]; // a word translated into phoneme codes
 	char *phonemes = words_phonemes;
 
@@ -208,7 +207,6 @@ int TranslateWord(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_o
 			snprintf(word_phonemes, sizeof(word_phonemes), "%s", words_phonemes);
 		}
 	}
-	ESPK_LOG("<- TranslateWord\n");
 	return flags;
 }
 
@@ -303,7 +301,6 @@ int SetTranslator3(const char *new_language)
 
 static int TranslateWord2(Translator *tr, char *word, WORD_TAB *wtab, int pre_pause)
 {
-	ESPK_LOG("-> TranslateWord2\n");
 	int flags = 0;
 	int stress;
 	int next_stress;
@@ -342,7 +339,6 @@ static int TranslateWord2(Translator *tr, char *word, WORD_TAB *wtab, int pre_pa
 
 	if (n_ph_list2 >= N_PHONEME_LIST-2) {
 		// No room, can't translate anything
-		ESPK_LOG("<- TranslateWord2\n");
 		return 0;
 	}
 
@@ -355,13 +351,11 @@ static int TranslateWord2(Translator *tr, char *word, WORD_TAB *wtab, int pre_pa
 			embedded_flag = 0;
 		}
 		word_phonemes[0] = 0;
-		ESPK_LOG("<- TranslateWord2\n");
 		return 0;
 	}
 
 	if (n_ph_list2 >= N_PHONEME_LIST-7-2) {
 		// We may require up to 7 phonemes, plus the 2 phonemes from the caller, can't translate safely
-		ESPK_LOG("<- TranslateWord2\n");
 		return 0;
 	}
 
@@ -412,7 +406,6 @@ static int TranslateWord2(Translator *tr, char *word, WORD_TAB *wtab, int pre_pa
 		if (flags & FLAG_SPELLWORD) {
 			// re-translate the word as individual letters, separated by spaces
 			memcpy(word, word_copy, word_copy_len);
-			ESPK_LOG("<- TranslateWord2\n");
 			return flags;
 		}
 
@@ -682,7 +675,6 @@ static int TranslateWord2(Translator *tr, char *word, WORD_TAB *wtab, int pre_pa
 	}
 
 	tr->prev_dict_flags[0] = flags;
-	ESPK_LOG("<- TranslateWord2\n");
 	return flags;
 }
 
@@ -989,6 +981,9 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 
 	int terminator;
 	int tone;
+
+	if (tr == NULL)
+		return;
 
 	MAKE_MEM_UNDEFINED(&voice_change_name, sizeof(voice_change_name));
 
@@ -1614,6 +1609,7 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 			}
 		} else {
 			pre_pause = 0;
+
 			dict_flags = TranslateWord2(tr, word, &words[ix], words[ix].pre_pause);
 
 			if (pre_pause > words[ix+1].pre_pause) {
@@ -1665,8 +1661,6 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 	}
 	n_ph_list2 += 2;
 
-	if (count_words == 0)
-		clause_pause = 0;
 	if (Eof() && ((word_count == 0) || (option_endpause == 0)))
 		clause_pause = 10;
 

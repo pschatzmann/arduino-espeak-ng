@@ -52,12 +52,12 @@ int n_phoneme_tab;
 int current_phoneme_table;
 PHONEME_TAB *phoneme_tab[N_PHONEME_TAB];
 
-unsigned short *phoneme_index = NULL;
-char *phondata_ptr = NULL;
+static unsigned short *phoneme_index = NULL;
+static char *phondata_ptr = NULL;
 unsigned char *wavefile_data = NULL;
 static unsigned char *phoneme_tab_data = NULL;
 
-int n_phoneme_tables;
+static int n_phoneme_tables;
 PHONEME_TAB_LIST phoneme_tab_list[N_PHONEME_TABS];
 int phoneme_tab_number = 0;
 
@@ -114,10 +114,6 @@ espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context)
 	int length = 0;
 	int rate;
 	unsigned char *p;
-
-	// claear phoneme_tab pschatzmann
-	memset(phoneme_tab,0,sizeof(phoneme_tab));
-	n_phoneme_tab = 0;
 
 	espeak_ng_STATUS status;
 	if ((status = ReadPhFile((void **)&phoneme_tab_data, "phontab", NULL, context)) != ENS_OK)
@@ -331,7 +327,7 @@ frameref_t *LookupSpect(PHONEME_TAB *this_ph, int which, FMT_PARAMS *fmt_params,
 	return frames;
 }
 
-const unsigned char *GetEnvelope(int index)
+unsigned char *GetEnvelope(int index)
 {
 	if (index == 0) {
 		fprintf(stderr, "espeak: No envelope\n");
@@ -365,13 +361,11 @@ static void SetUpPhonemeTable(int number)
 
 void SelectPhonemeTable(int number)
 {
-	ESPK_LOG("-> SelectPhonemeTable\n");
 	n_phoneme_tab = 0;
 	MAKE_MEM_UNDEFINED(&phoneme_tab, sizeof(phoneme_tab));
 	SetUpPhonemeTable(number); // recursively for included phoneme tables
 	n_phoneme_tab++;
 	current_phoneme_table = number;
-	ESPK_LOG("<- SelectPhonemeTable\n");
 }
 
 int LookupPhonemeTable(const char *name)

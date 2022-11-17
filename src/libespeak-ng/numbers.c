@@ -638,7 +638,6 @@ int IsSuperscript(int letter)
 
 void SetSpellingStress(Translator *tr, char *phonemes, int control, int n_chars)
 {
-	ESPK_LOG("-> SetSpellingStress\n");
 	// Individual letter names, reduce the stress of some.
 	int ix;
 	unsigned int c;
@@ -684,7 +683,6 @@ void SetSpellingStress(Translator *tr, char *phonemes, int control, int n_chars)
 	if (control >= 2)
 		*phonemes++ = phonPAUSE_NOLINK;
 	*phonemes = 0;
-	ESPK_LOG("<- SetSpellingStress\n");
 }
 
 // Numbers
@@ -1685,7 +1683,7 @@ static int TranslateNumber_1(Translator *tr, char *word, char *ph_out, unsigned 
 		if (prev_thousands == 0) {
 			if ((decimal_point == 0) && (ordinal == 0)) {
 				// Look for special pronunciation for this number in isolation (LANG=kl)
-				sprintf(string, "_%dn", (int) value);
+				sprintf(string, "_%dn", value);
 				if (Lookup(tr, string, ph_out))
 					return 1;
 			}
