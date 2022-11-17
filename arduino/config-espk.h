@@ -51,10 +51,10 @@
 #define HAVE_MKDIR 1
 
 /* Define to 1 if you have the `mkstemp' function. */
-#define HAVE_MKSTEMP 1
+#define HAVE_MKSTEMP 0
 
 /* Define to 1 if you have the <pcaudiolib/audio.h> header file. */
-#define HAVE_PCAUDIOLIB_AUDIO_H 1
+#define HAVE_PCAUDIOLIB_AUDIO_H 0
 
 /* Define to 1 if you have the `pow' function. */
 #define HAVE_POW 1
