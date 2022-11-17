@@ -235,7 +235,14 @@
 #endif
 
 // Activate big stack allocations moved to heap
-#define ESPEAK_STACK_HACK 1
+#ifndef ESPEAK_STACK_HACK
+#  define ESPEAK_STACK_HACK 1
+#endif
+
+// Activate some logging
+#ifndef ESPEAK_LOGGING
+#  define ESPEAK_LOGGING 1
+#endif
 
 #if ESPEAK_STACK_HACK
 #  define STACK_T static
@@ -244,13 +251,9 @@
 #  define STACK_T 
 #endif
 
-// declaration for espeak_mem_map()
 #if ESPEAK_ARDUINO_POSIX_FS
-#  include "../arduino/posix-fs.h"
+#  include "ConfigFS.h"
 #endif
-
-// activate some logging
-#define ESPEAK_LOGGING 0
 
 // Defin log makro
 #if ESPEAK_LOGGING 
@@ -259,5 +262,7 @@
 #  define ESPK_LOG(...)
 #endif
 
+// declaration for espeak_mem_map()
+#include "../arduino/common.h"
 
-void* espeak_mem_map(const char* path, int *len);
+#undef B0

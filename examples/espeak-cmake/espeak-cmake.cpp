@@ -13,7 +13,8 @@
 #include "AudioLibs/PortAudioStream.h"
 #include "espeak.h"
 
-PortAudioStream out; // or replace with AudioKitStream for AudioKit
+CsvStream<int16_t> out(Serial); // or replace with AudioKitStream for AudioKit
+//ESpeak espeak(out,"/Users/pschatzmann/Documents/Arduino/libraries/arduino-espeak-ng/espeak-ng-data");
 ESpeakPROGMEM espeak(out);
 
 void setup() {
@@ -32,6 +33,6 @@ void setup() {
 }
 
 void loop() {
-  espeak.say("hello hello hello hello");
+  espeak.say("hello world");
   delay(5000);
 }
