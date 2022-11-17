@@ -1,14 +1,14 @@
 var searchData=
 [
-  ['say_1699',['say',['../class_e_speak.html#a62923abbf365592a14408bd19214c2b8',1,'ESpeak']]],
-  ['setannouncecapitals_1700',['setAnnounceCapitals',['../class_e_speak.html#a33d46f41bf4e6700d798d23bbb76b316',1,'ESpeak']]],
-  ['setparameter_1701',['setParameter',['../class_e_speak.html#ae9468614d2ea93b8e2dd6587a1464d9f',1,'ESpeak']]],
-  ['setpitch_1702',['setPitch',['../class_e_speak.html#a11233137e2e675f9412df647b6696284',1,'ESpeak']]],
-  ['setpitchrange_1703',['setPitchRange',['../class_e_speak.html#a024577df34e46fca6643c65ac94cea08',1,'ESpeak']]],
-  ['setpunctuation_1704',['setPunctuation',['../class_e_speak.html#a5ee8e68f3bea4ab8ed03d6a3a365e58a',1,'ESpeak']]],
-  ['setrate_1705',['setRate',['../class_e_speak.html#a9cf0d77f4506da11512804380120c711',1,'ESpeak']]],
-  ['setvoice_1706',['setVoice',['../class_e_speak.html#a85e53b255d2553255e24439ebef36c71',1,'ESpeak::setVoice(const char *voiceName)'],['../class_e_speak.html#a73fa6a33c47beb8f70159c68b72c99b4',1,'ESpeak::setVoice(espeak_VOICE *voice_spec)']]],
-  ['setvolume_1707',['setVolume',['../class_e_speak.html#ad54dbd8eb5616a88aecf4f28abdf3f3a',1,'ESpeak']]],
-  ['setwordgap_1708',['setWordGap',['../class_e_speak.html#ae3420879b212c55dac73639bff6c1930',1,'ESpeak']]],
-  ['strerror_1709',['strerror',['../structaudio__object.html#a78a2f41c358a86a2e14b5b90b30ad441',1,'audio_object']]]
+  ['say_0',['say',['../class_e_speak_files.html#ae8470e658b787bfb599ff328a28d349e',1,'ESpeakFiles']]],
+  ['setannouncecapitals_1',['setAnnounceCapitals',['../class_e_speak_files.html#ad469305ff4addc5fa4289fc04a0d134d',1,'ESpeakFiles']]],
+  ['setparameter_2',['setParameter',['../class_e_speak_files.html#a3480cd2304a6f32d6a454272933001e6',1,'ESpeakFiles']]],
+  ['setpitch_3',['setPitch',['../class_e_speak_files.html#a47f589f250f1595d83b39240cfb71e9b',1,'ESpeakFiles']]],
+  ['setpitchrange_4',['setPitchRange',['../class_e_speak_files.html#ad28f730f7f42c751dae9c2873e51659c',1,'ESpeakFiles']]],
+  ['setpunctuation_5',['setPunctuation',['../class_e_speak_files.html#a247793b538efc31d63ebb1adea3f967b',1,'ESpeakFiles']]],
+  ['setrate_6',['setRate',['../class_e_speak_files.html#a6a80fe5efaec7ebee85e53a5327df7a0',1,'ESpeakFiles']]],
+  ['setvoice_7',['setVoice',['../class_e_speak_files.html#aa7abcaea96de0b878bbbeb8600c75c3c',1,'ESpeakFiles::setVoice(const char *voiceName)'],['../class_e_speak_files.html#ace7d385e7c5e2d7d9b5c73b06cf61090',1,'ESpeakFiles::setVoice(espeak_VOICE *voice_spec)']]],
+  ['setvolume_8',['setVolume',['../class_e_speak_files.html#a8d03c3b0d0820e5e7ef631ff1fef8f80',1,'ESpeakFiles']]],
+  ['setwordgap_9',['setWordGap',['../class_e_speak_files.html#ae71d1bb3bc8bce953551e31183775f9c',1,'ESpeakFiles']]],
+  ['strerror_10',['strerror',['../structaudio__object.html#a00928044798a01160bd04dd8d9fa0ad7',1,'audio_object']]]
 ];

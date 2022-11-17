@@ -14,7 +14,7 @@
 #include "espeak.h"
 
 PortAudioStream out; // or replace with AudioKitStream for AudioKit
-ESpeak espeak(out,"../../../espeak-ng-data-min");
+ESpeakFiles espeak(out,"../../../espeak-ng-data-min");
 
 void setup() {
   Serial.begin(115200);

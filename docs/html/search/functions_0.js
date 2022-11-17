@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['add_1663',['add',['../class_e_speak_p_r_o_g_m_e_m.html#ae55cd22473f5066c3385ac9fb94d7517',1,'ESpeakPROGMEM']]],
-  ['audioinfo_1664',['audioInfo',['../class_e_speak.html#a3144c5e6ddc771ed4521defd6452bc46',1,'ESpeak']]]
+  ['add_0',['add',['../class_e_speak.html#aa71f938ff7033ebf86b56d499d8e8fc0',1,'ESpeak']]],
+  ['audioinfo_1',['audioInfo',['../class_e_speak_files.html#af101f470bdc2112076fdfe52c60d0259',1,'ESpeakFiles']]]
 ];

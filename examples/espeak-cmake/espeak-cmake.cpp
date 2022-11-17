@@ -15,7 +15,7 @@
 
 PortAudioStream out; // or replace with AudioKitStream for AudioKit
 //ESpeak espeak(out,"/Users/pschatzmann/Documents/Arduino/libraries/arduino-espeak-ng/espeak-ng-data");
-ESpeakPROGMEM espeak(out);
+ESpeak espeak(out);
 
 void setup() {
   Serial.begin(115200);
@@ -33,6 +33,6 @@ void setup() {
 }
 
 void loop() {
-  espeak.say("hello world");
+  espeak.say("hello my name is Phil");
   delay(5000);
 }

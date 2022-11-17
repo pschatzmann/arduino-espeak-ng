@@ -18,7 +18,7 @@
 
 I2SStream i2s; // or replace with AudioKitStream for AudioKit
 const bool load_english = false;
-ESpeakPROGMEM espeak(i2s, load_english);
+ESpeak espeak(i2s, load_english);
 
 void setup() {
   Serial.begin(115200);

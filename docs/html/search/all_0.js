@@ -2,7 +2,7 @@ var searchData=
 [
   ['active_0',['active',['../structaudio__object.html#a29963982e643314d4faaded87f5acb6c',1,'audio_object']]],
   ['adam_2eh_1',['adam.h',['../adam_8h.html',1,'']]],
-  ['add_2',['add',['../class_e_speak_p_r_o_g_m_e_m.html#ae55cd22473f5066c3385ac9fb94d7517',1,'ESpeakPROGMEM']]],
+  ['add_2',['add',['../class_e_speak.html#aa71f938ff7033ebf86b56d499d8e8fc0',1,'ESpeak']]],
   ['af_2eh_3',['af.h',['../af_8h.html',1,'']]],
   ['af1_5fphtrans_2eh_4',['af1_phtrans.h',['../af1__phtrans_8h.html',1,'']]],
   ['af_5fdict_2eh_5',['af_dict.h',['../af__dict_8h.html',1,'']]],
@@ -38,7 +38,7 @@ var searchData=
   ['audio_5foutput_5fsynchronous_35',['AUDIO_OUTPUT_SYNCHRONOUS',['../speak__lib_8h.html#a23dea85b1ce61e5ce20312cf6512471ba639877b8e2621b5897c487db183d19ac',1,'speak_lib.h']]],
   ['audio_5fposition_36',['audio_position',['../structespeak___e_v_e_n_t.html#aa3092f6c2654c6cbc3f6b05dad937db4',1,'espeak_EVENT']]],
   ['audio_5fstream_5ffactory_5fcallback_37',['audio_stream_factory_callback',['../audio__object_8h.html#af118307c331de3d30b6f00c3cfce69e0',1,'audio_object.h']]],
-  ['audioinfo_38',['audioInfo',['../class_e_speak.html#a3144c5e6ddc771ed4521defd6452bc46',1,'ESpeak']]],
+  ['audioinfo_38',['audioInfo',['../class_e_speak_files.html#af101f470bdc2112076fdfe52c60d0259',1,'ESpeakFiles']]],
   ['aunty_2eh_39',['aunty.h',['../aunty_8h.html',1,'']]],
   ['az_2eh_40',['az.h',['../az_8h.html',1,'']]],
   ['az_5fdict_2eh_41',['az_dict.h',['../az__dict_8h.html',1,'']]]

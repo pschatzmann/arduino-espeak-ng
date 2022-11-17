@@ -11,9 +11,9 @@
 /**
  * @brief Simple Arduino C++ class API for ESpeak using files
  */
-class ESpeak {
+class ESpeakFiles {
 public:
-    ESpeak(Print &out, const char* path="../../../espeak-ng-data"){
+    ESpeakFiles(Print &out, const char* path="../../../espeak-ng-data"){
         // setup min file system
         espeak_set_audio_output(&out);
         if (path!=nullptr){
@@ -119,9 +119,9 @@ protected:
  * 
  */
 
-class ESpeakPROGMEM :  public ESpeak {
+class ESpeak :  public ESpeakFiles {
 public:
-    ESpeakPROGMEM(Print &out, bool setupEnglish=true) : ESpeak(out, "/mem/data"){
+    ESpeak(Print &out, bool setupEnglish=true) : ESpeakFiles(out, "/mem/data"){
         // setup min file system
         is_setup_english = setupEnglish;
     }
