@@ -17,6 +17,9 @@ extern Print *audio_out;
 
 /// Callback to define the AudioStream
 extern void(*audio_stream_factory_callback)(audio_info *cfg);
+extern void(*audio_stream_start_callback)();
+extern void(*audio_stream_stop_callback)();
+
 /// Defines the audio output
 extern void espeak_set_audio_output(Print *p);
 /// Provides the audio information
@@ -39,6 +42,7 @@ struct audio_object {
     bool active = false;
 
     int open(enum audio_object_format format,uint32_t rate, uint8_t channels){
+        ESPK_LOG("audio_object::open()");
         this->format = format;
         this->rate = rate;
         this->channels = channels;
@@ -57,21 +61,41 @@ struct audio_object {
                 p_out_stream = espeak_audio_info.out;
             }
         }
+        if (audio_stream_start_callback!=nullptr){
+            audio_stream_start_callback();
+        }
         active = p_out_stream!=nullptr;
         return active ? 0 : -1;
     }
 
     void close(){
+        ESPK_LOG("audio_object::close()");
+        if (audio_stream_stop_callback!=nullptr){
+            audio_stream_stop_callback();
+        }
         active = false;
     }
 
     int write(const void *data, size_t bytes){
+        if (!active && p_out_stream!=nullptr){
+            if (audio_stream_start_callback!=nullptr){
+                ESPK_LOG("audio_object::audio_stream_start_callback");
+                audio_stream_start_callback();
+            }
+            active = true;
+        }
         if (!active) return -1;
+        ESPK_LOG("audio_object::write(%d)", (int) bytes);
         p_out_stream->write((uint8_t*)data, bytes);
         return 0;
     }
 
     int drain(){
+        if (audio_stream_stop_callback!=nullptr){
+            ESPK_LOG("audio_object::audio_stream_stop_callback");
+            audio_stream_stop_callback();
+            active = false;
+        }
         return 0;
     }
 
@@ -83,5 +107,6 @@ struct audio_object {
         static char errormsg[50] = {0};
         snprintf(errormsg, 50, "Error %d", error);
         return (const char*)errormsg;
+
     }
 };

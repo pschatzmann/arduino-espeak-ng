@@ -929,7 +929,6 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 {
 	if (tr == NULL)
 		return;
-	ESPK_LOG("-> TranslateClause\n");
 
 	int ix;
 	int c;
@@ -1692,7 +1691,6 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 	if (num_wtab)
 		free(num_wtab);
 #endif
-	ESPK_LOG("<- TranslateClause\n");
 }
 
 static int CalcWordLength(int source_index, int charix_top, short int *charix, WORD_TAB *words, int word_count) {

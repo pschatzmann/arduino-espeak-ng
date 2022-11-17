@@ -30,6 +30,16 @@ public:
         return sample_rate!=-1;
     }
 
+    // defines a callback which is executed at the begin of the audio output
+    void setOutputBeginCallback(void(*cb)()){
+        audio_stream_start_callback=cb;
+    }
+
+    // defines a callback which is executed at the end of the audio output
+    void setOutputEndCallback(void(*cb)()){
+        audio_stream_stop_callback=cb;
+    }
+
     /// Defines the voice by i'ts name
     bool setVoice(const char *voiceName){
         espeak_ERROR rc = espeak_SetVoiceByName(voiceName);
@@ -142,7 +152,7 @@ public:
             }
             is_fs_setup = true;
         }
-        return ESpeak::begin(buflength);
+        return ESpeakFiles::begin(buflength);
     }
 
 protected:

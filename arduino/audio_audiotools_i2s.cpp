@@ -11,9 +11,11 @@
 #endif
 
 
-
 // audio callback
 void (*audio_stream_factory_callback)(audio_info *cfg) = nullptr;
+void (*audio_stream_start_callback)() = nullptr;
+void (*audio_stream_stop_callback)() = nullptr;
+
 // actual audio output
 Print *audio_out = nullptr;
 // actual audio info
