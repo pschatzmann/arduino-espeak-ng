@@ -13,7 +13,7 @@
 #include "AudioLibs/PortAudioStream.h"
 #include "espeak.h"
 
-CsvStream<int16_t> out(Serial); // or replace with AudioKitStream for AudioKit
+PortAudioStream out; // or replace with AudioKitStream for AudioKit
 //ESpeak espeak(out,"/Users/pschatzmann/Documents/Arduino/libraries/arduino-espeak-ng/espeak-ng-data");
 ESpeakPROGMEM espeak(out);
 
