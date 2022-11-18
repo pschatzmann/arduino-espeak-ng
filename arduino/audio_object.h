@@ -42,7 +42,7 @@ struct audio_object {
     bool active = false;
 
     int open(enum audio_object_format format,uint32_t rate, uint8_t channels){
-        ESPK_LOG("audio_object::open()");
+        ESPK_LOG("audio_object::open()\n");
         this->format = format;
         this->rate = rate;
         this->channels = channels;
@@ -64,12 +64,11 @@ struct audio_object {
         if (audio_stream_start_callback!=nullptr){
             audio_stream_start_callback();
         }
-        active = p_out_stream!=nullptr;
-        return active ? 0 : -1;
+        return p_out_stream!=nullptr ? 0 : -1;
     }
 
     void close(){
-        ESPK_LOG("audio_object::close()");
+        ESPK_LOG("audio_object::close()\n");
         if (audio_stream_stop_callback!=nullptr){
             audio_stream_stop_callback();
         }
@@ -79,22 +78,36 @@ struct audio_object {
     int write(const void *data, size_t bytes){
         if (!active && p_out_stream!=nullptr){
             if (audio_stream_start_callback!=nullptr){
-                ESPK_LOG("audio_object::audio_stream_start_callback");
+                ESPK_LOG("audio_object::audio_stream_start_callback\n");
                 audio_stream_start_callback();
             }
             active = true;
         }
-        if (!active) return -1;
-        ESPK_LOG("audio_object::write(%d)", (int) bytes);
-        p_out_stream->write((uint8_t*)data, bytes);
+        if (p_out_stream==nullptr) return -1;
+        ESPK_LOG("audio_object::write(%d)\n", (int) bytes);
+        // write in batches of 512 bytes
+        int open = bytes;
+        int offset = 0;
+        while(open>0){
+            int to_write = open>1024? 1024 : open;
+            int result = p_out_stream->write(((uint8_t*)data)+offset, to_write);
+            offset+=to_write;
+            open-=to_write;
+        }
         return 0;
     }
 
     int drain(){
         if (audio_stream_stop_callback!=nullptr){
-            ESPK_LOG("audio_object::audio_stream_stop_callback");
+            ESPK_LOG("audio_object::audio_stream_stop_callback\n");
             audio_stream_stop_callback();
             active = false;
+        } else {
+            // prevent some ending noise on the ESP32
+            uint8_t none[1024]={0};
+            for (int j=0;j<10;j++){
+                p_out_stream->write(none, 1024);
+            }
         }
         return 0;
     }

@@ -17,11 +17,20 @@ PortAudioStream out; // or replace with AudioKitStream for AudioKit
 //ESpeak espeak(out,"/Users/pschatzmann/Documents/Arduino/libraries/arduino-espeak-ng/espeak-ng-data");
 ESpeak espeak(out);
 
+void i2sStart(){
+}
+
+void i2sStop(){
+}
+
+
 void setup() {
   Serial.begin(115200);
 
   // setup espeak
   espeak.begin();
+  espeak.setOutputBeginCallback(i2sStart);
+  espeak.setOutputEndCallback(i2sStop);  
 
   // setup output
   audio_info info = espeak.audioInfo();
@@ -29,6 +38,7 @@ void setup() {
   cfg.channels = info.channels; // 1
   cfg.sample_rate = info.sample_rate; //22050;
   out.begin(cfg);
+
 
 }
 
