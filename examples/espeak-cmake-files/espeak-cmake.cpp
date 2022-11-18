@@ -21,6 +21,7 @@ void setup() {
 
   // setup espeak
   espeak.begin();
+  espeak.setVoice("en+Alicia");
 
   // setup output
   audio_info info = espeak.audioInfo();
@@ -32,6 +33,6 @@ void setup() {
 }
 
 void loop() {
-  espeak.say("hello world");
+  espeak.say("hello my name is Alicia");
   delay(5000);
 }
