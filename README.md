@@ -31,8 +31,8 @@ If you use an ESP32, don't forget to select the partition scheme Huge APP!
 ## Examples
 
 - [espeak-arduino](examples/espeak-arduino/espeak-arduino.ino): Recommended example
+- [espeak-arduino-voice](examples/espeak-arduino-voice/espeak-arduino-voice.ino): Example defining a voice.
 - [espeak](examples/espeak/espeak.ino): functional example
-- [espeak-sd](examples/espeak-sd/espeak-sd.ino): Example using SD drive.
 - [espeak-cmake](examples/espeak-cmake/espeak-cmake.ino): Example compiled and running on desktop.
 
 
