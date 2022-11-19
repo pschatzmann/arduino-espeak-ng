@@ -888,6 +888,17 @@ const char stress_phonemes[] = {
 	phonSTRESS_P, phonSTRESS_P2, phonSTRESS_TONIC
 };
 
+/// Microcontroller have limited stack: so we move it to the heap
+#if ESPEAK_STACK_HACK
+typedef struct  {
+	signed char vowel_stress[N_WORD_PHONEMES/2];
+	char syllable_weight[N_WORD_PHONEMES/2];
+	char vowel_length[N_WORD_PHONEMES/2];
+	unsigned char phonetic[N_WORD_PHONEMES];
+} SetWordStressData;
+#endif
+
+
 void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags, int tonic, int control)
 {
 	/* Guess stress pattern of word.  This is language specific
@@ -925,12 +936,19 @@ void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags,
 	int dflags = 0;
 	int first_primary;
 	int long_vowel;
-//  TODO pschatzmann: Memory Hack ?
+#if ESPEAK_STACK_HACK
+	SetWordStressData *p_data = malloc(sizeof(SetWordStressData));
+	assert(p_data!=NULL);
+	signed char *vowel_stress = p_data->vowel_stress;
+	char *syllable_weight = p_data->syllable_weight;
+	char *vowel_length = p_data->vowel_length;
+	unsigned char *phonetic = p_data->phonetic;
+#else
 	signed char vowel_stress[N_WORD_PHONEMES/2];
 	char syllable_weight[N_WORD_PHONEMES/2];
 	char vowel_length[N_WORD_PHONEMES/2];
 	unsigned char phonetic[N_WORD_PHONEMES];
-
+#endif
 	static const char consonant_types[16] = { 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0 };
 
 	stressflags = tr->langopts.stress_flags;
@@ -947,7 +965,12 @@ void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags,
 		if (phonetic[ix] == 0)
 			break;
 	}
-	if (ix == 0) return;
+	if (ix == 0) {
+#if ESPEAK_STACK_HACK
+		free(p_data);
+#endif
+		return;
+	}
 	final_ph = phonetic[ix-1];
 	final_ph2 = phonetic[(ix > 1) ? ix-2 : ix-1];
 
@@ -1407,6 +1430,9 @@ void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags,
 	}
 	*output++ = 0;
 
+#if ESPEAK_STACK_HACK
+		free(p_data);
+#endif
 	return;
 }
 
