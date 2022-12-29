@@ -112,6 +112,12 @@ public:
         return espeak_SetParameter(parameter, value, relative)==EE_OK;
     }
 
+    /// sets the flags espeakCHARS_UTF8,espeakCHARS_8BIT,espeakCHARS_WCHAR (by default we use espeakCHARS_AUTO)
+    bool setFlags(int flag){
+        flags = flag;
+        return true;
+    }
+
 protected:
     const short memory_guard = GUARD_VALUE; // check that memory was not overwritten by stack overflow
     const espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;
