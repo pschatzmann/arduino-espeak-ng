@@ -28,7 +28,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <wctype.h>
+// On ESP32 and possibly other toolchains the wide char versions of isalpha() appear to be broken, do not
+// include wctypes and use UCD functions instead
+// #include <wctype.h>
 
 #include <espeak-ng/espeak_ng.h>
 #include <espeak-ng/speak_lib.h>
@@ -171,56 +173,7 @@ int utf8_in2(int *c, const char *buf, int backwards)
 
 int IsAlpha(unsigned int c)
 {
-	// Replacement for iswalph() which also checks for some in-word symbols
-
-	static const unsigned short extra_indic_alphas[] = {
-		0xa70, 0xa71, // Gurmukhi: tippi, addak
-		0
-	};
-
-	if (iswalpha(c))
-		return 1;
-
-	if (c < 0x300)
-		return 0;
-
-	if ((c >= 0x901) && (c <= 0xdf7)) {
-		// Indic scripts: Devanagari, Tamil, etc
-		if ((c & 0x7f) < 0x64)
-			return 1;
-		if (lookupwchar(extra_indic_alphas, c) != 0)
-			return 1;
-		if ((c >= 0xd7a) && (c <= 0xd7f))
-			return 1; // malaytalam chillu characters
-
-		return 0;
-	}
-
-	if ((c >= 0x5b0) && (c <= 0x5c2))
-		return 1; // Hebrew vowel marks
-
-	if (c == 0x0605)
-		return 1;
-
-	if ((c == 0x670) || ((c >= 0x64b) && (c <= 0x65e)))
-		return 1; // arabic vowel marks
-
-	if ((c >= 0x300) && (c <= 0x36f))
-		return 1; // combining accents
-
-	if ((c >= 0xf40) && (c <= 0xfbc))
-		return 1; // tibetan
-
-	if ((c >= 0x1100) && (c <= 0x11ff))
-		return 1; // Korean jamo
-
-	if ((c >= 0x2800) && (c <= 0x28ff))
-		return 1; // braille
-
-	if ((c > 0x3040) && (c <= 0xa700))
-		return 1; // Chinese/Japanese.  Should never get here, but Mac OS 10.4's iswalpha seems to be broken, so just make sure
-
-	return 0;
+	return ucd_isalpha(c);
 }
 
 // brackets, also 0x2014 to 0x021f which don't need to be in this list
@@ -248,7 +201,7 @@ int IsDigit09(unsigned int c)
 
 int IsDigit(unsigned int c)
 {
-	if (iswdigit(c))
+	if (isdigit(c))
 		return 1;
 
 	if ((c >= 0x966) && (c <= 0x96f))
@@ -265,7 +218,7 @@ int IsSpace(unsigned int c)
 		return 1; // box drawing characters
 	if ((c >= 0xfff9) && (c <= 0xffff))
 		return 1; // unicode specials
-	return iswspace(c);
+	return isspace(c);
 }
 
 int isspace2(unsigned int c)
