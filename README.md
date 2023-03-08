@@ -46,7 +46,7 @@ This library requires the installation of the following additinal libraries:
 
 ## Documentation
 
-- [C++ API](https://pschatzmann.github.io/arduino-espeak-ng/docs/html/class_e_speak.html)
+- [C++ API](https://pschatzmann.github.io/arduino-espeak-ng/docs/html/classESpeak.html)
 - [Functional API](https://pschatzmann.github.io/arduino-espeak-ng/docs/html/speak__lib_8h.html)
 
 You can also find further information in the [Wiki](https://github.com/pschatzmann/arduino-espeak-ng/wiki)...
