@@ -1,27 +1,5 @@
 var searchData=
 [
-  ['espeak_5fcancel_1602',['espeak_Cancel',['../speak__lib_8h.html#a8d0e48de349009162376527c9e10a55b',1,'speak_lib.h']]],
-  ['espeak_5fchar_1603',['espeak_Char',['../speak__lib_8h.html#a188cc5184c038128d822a672a27e5bd2',1,'speak_lib.h']]],
-  ['espeak_5fcompiledictionary_1604',['espeak_CompileDictionary',['../speak__lib_8h.html#a50ed40889e2f8a96d9ec8c21227aba91',1,'speak_lib.h']]],
-  ['espeak_5fgetcurrentvoice_1605',['espeak_GetCurrentVoice',['../speak__lib_8h.html#a0b0b95afde994470ff8c26f352b18670',1,'speak_lib.h']]],
-  ['espeak_5fgetparameter_1606',['espeak_GetParameter',['../speak__lib_8h.html#a7741613926f4d38b6d27999b8ff80d47',1,'speak_lib.h']]],
-  ['espeak_5finfo_1607',['espeak_Info',['../speak__lib_8h.html#a75312dcc5e0ebbde650c2a7ec8ef0a2a',1,'speak_lib.h']]],
-  ['espeak_5finitialize_1608',['espeak_Initialize',['../speak__lib_8h.html#af5562abcb04f9866d131b0ced1f71e6a',1,'speak_lib.h']]],
-  ['espeak_5fisplaying_1609',['espeak_IsPlaying',['../speak__lib_8h.html#a2ade8f73a4a653d7dc1680bb9e0960e1',1,'speak_lib.h']]],
-  ['espeak_5fkey_1610',['espeak_Key',['../speak__lib_8h.html#a92d7918f7d832ebc9816bc0829e564f1',1,'speak_lib.h']]],
-  ['espeak_5flistvoices_1611',['espeak_ListVoices',['../speak__lib_8h.html#a39a6f7cf8b9b65d31c278325476290a6',1,'speak_lib.h']]],
-  ['espeak_5fsetparameter_1612',['espeak_SetParameter',['../speak__lib_8h.html#ae2fe73a2f94f8668f5e81daa1939c870',1,'speak_lib.h']]],
-  ['espeak_5fsetphonemecallback_1613',['espeak_SetPhonemeCallback',['../speak__lib_8h.html#af366f2b4e07dd032b92071ecfae4d427',1,'speak_lib.h']]],
-  ['espeak_5fsetphonemetrace_1614',['espeak_SetPhonemeTrace',['../speak__lib_8h.html#aa7d7ead38dc9de8516357e9321f3c9ee',1,'speak_lib.h']]],
-  ['espeak_5fsetpunctuationlist_1615',['espeak_SetPunctuationList',['../speak__lib_8h.html#a1572771c9adc97599c55347a0379b380',1,'speak_lib.h']]],
-  ['espeak_5fsetsynthcallback_1616',['espeak_SetSynthCallback',['../speak__lib_8h.html#aab7084c81b3fe6a266dc0c5758063a7e',1,'speak_lib.h']]],
-  ['espeak_5fseturicallback_1617',['espeak_SetUriCallback',['../speak__lib_8h.html#a1f75bd1b434c4bf55a0861a6e4ece0fc',1,'speak_lib.h']]],
-  ['espeak_5fsetvoicebyfile_1618',['espeak_SetVoiceByFile',['../speak__lib_8h.html#a60022320da9596ed551a4ce29eaf0828',1,'speak_lib.h']]],
-  ['espeak_5fsetvoicebyname_1619',['espeak_SetVoiceByName',['../speak__lib_8h.html#add5fdf459b7429bd2850e34dacc7ab74',1,'speak_lib.h']]],
-  ['espeak_5fsetvoicebyproperties_1620',['espeak_SetVoiceByProperties',['../speak__lib_8h.html#a6cdb6bbe542f757ee73b220b39d5bb86',1,'speak_lib.h']]],
-  ['espeak_5fsynchronize_1621',['espeak_Synchronize',['../speak__lib_8h.html#aaa2d366845024e4c95cc6f47c7c25206',1,'speak_lib.h']]],
-  ['espeak_5fsynth_1622',['espeak_Synth',['../speak__lib_8h.html#acbfcd3cadfe05c3ae4d6b680b95300d7',1,'speak_lib.h']]],
-  ['espeak_5fsynth_5fmark_1623',['espeak_Synth_Mark',['../speak__lib_8h.html#a7e05103df96fa6844d4ee36e2edfb9b2',1,'speak_lib.h']]],
-  ['espeak_5fterminate_1624',['espeak_Terminate',['../speak__lib_8h.html#aa9e2f5fc55b6ebb10ad7a5a073e24b79',1,'speak_lib.h']]],
-  ['espeak_5ftexttophonemes_1625',['espeak_TextToPhonemes',['../speak__lib_8h.html#ad243c528265a761bc326002db8722569',1,'speak_lib.h']]]
+  ['add_1668',['add',['../classESpeak.html#aa71f938ff7033ebf86b56d499d8e8fc0',1,'ESpeak']]],
+  ['audioinfo_1669',['audioInfo',['../classESpeakFiles.html#af101f470bdc2112076fdfe52c60d0259',1,'ESpeakFiles']]]
 ];

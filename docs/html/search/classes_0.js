@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['espeak_5fevent_1104',['espeak_EVENT',['../structespeak__EVENT.html',1,'']]],
-  ['espeak_5fvoice_1105',['espeak_VOICE',['../structespeak__VOICE.html',1,'']]]
+  ['audio_5finfo_1164',['audio_info',['../structaudio__info.html',1,'']]],
+  ['audio_5fobject_1165',['audio_object',['../structaudio__object.html',1,'']]]
 ];

@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['text_5fposition_2134',['text_position',['../structespeak__EVENT.html#a6c68c5805c5643afa0635099dac29ac5',1,'espeak_EVENT']]],
-  ['type_2135',['type',['../structespeak__EVENT.html#a5c1605442325d07e3f3304a888c2836d',1,'espeak_EVENT']]]
+  ['languages_2236',['languages',['../structespeak__VOICE.html#a72f5fe87bb84535203cfe386fbfe1a27',1,'espeak_VOICE']]],
+  ['length_2237',['length',['../structespeak__EVENT.html#abbd21434c4786c17c5b8f6c549deb21d',1,'espeak_EVENT']]]
 ];
