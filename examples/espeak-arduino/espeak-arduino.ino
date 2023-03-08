@@ -3,7 +3,10 @@
  * @author Phil Schatzmann
  * @brief Arduino C++ API - minimum example. The espeak-ng-data is stored on in
  * progmem with the arduino-posix-fs library and we output audio to I2S with the
- * help of the AudioTools library
+ * help of the AudioTools library.
+ * WARNING: It is recommended to lead a voice (see other examples). Otherwise some
+ * sounds might be missing!
+ * 
  * @version 0.1
  * @date 2022-10-27
  *
