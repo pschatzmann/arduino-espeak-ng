@@ -49,7 +49,11 @@ static void SmoothSpect(void);
 
 // list of phonemes in a clause
 int n_phoneme_list = 0;
+#ifdef ESPEAK_HEAP_HACK
+PHONEME_LIST *phoneme_list=NULL;
+#else
 PHONEME_LIST phoneme_list[N_PHONEME_LIST+1];
+#endif
 
 SPEED_FACTORS speed;
 
@@ -88,6 +92,11 @@ const char *WordToString(unsigned int word)
 
 void SynthesizeInit()
 {
+#ifdef ESPEAK_HEAP_HACK
+    if (phoneme_list==NULL)
+		phoneme_list = malloc(sizeof(PHONEME_LIST)*(N_PHONEME_LIST+1));
+#endif
+
 	last_pitch_cmd = 0;
 	last_amp_cmd = 0;
 	last_frame = NULL;

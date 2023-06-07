@@ -389,7 +389,12 @@ extern PHONEME_TAB *phoneme_tab[N_PHONEME_TAB];
 
 // list of phonemes in a clause
 extern int n_phoneme_list;
+#ifdef ESPEAK_HEAP_HACK
+extern PHONEME_LIST *phoneme_list;
+#else
 extern PHONEME_LIST phoneme_list[N_PHONEME_LIST+1];
+#endif
+
 extern unsigned int embedded_list[];
 
 extern unsigned char env_fall[128];
@@ -434,7 +439,11 @@ extern int samplerate_native;
 extern int echo_head;
 extern int echo_tail;
 extern int echo_amp;
+#ifdef ESPEAK_HEAP_HACK
+extern short *echo_buf;
+#else
 extern short echo_buf[N_ECHO_BUF];
+#endif
 
 void SynthesizeInit(void);
 int  Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume);

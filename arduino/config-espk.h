@@ -239,6 +239,11 @@
 #  define ESPEAK_STACK_HACK 1
 #endif
 
+// Activate big heap allocations to be dynamic
+#ifndef ESPEAK_HEAP_HACK
+#  define ESPEAK_HEAP_HACK 0
+#endif
+
 // Activate some logging
 #ifndef ESPEAK_LOGGING
 #  define ESPEAK_LOGGING 1

@@ -71,7 +71,11 @@ static int peak_height[N_PEAKS];
 int echo_head;
 int echo_tail;
 int echo_amp = 0;
+#ifdef ESPEAK_HEAP_HACK
+short *echo_buf=NULL;
+#else
 short echo_buf[N_ECHO_BUF];
+#endif
 static int echo_length = 0; // period (in sample\) to ensure completion of echo at the end of speech, set in WavegenSetEcho()
 
 static int voicing;
@@ -400,6 +404,13 @@ static void WavegenSetEcho(void)
 		delay = N_ECHO_BUF-1;
 	if (amp > 100)
 		amp = 100;
+
+
+#ifdef ESPEAK_HEAP_HACK
+	if (echo_buf==NULL)
+		echo_buf = malloc(sizeof(short)*N_ECHO_BUF);
+	assert(echo_buf!=NULL);
+#endif
 
 	memset(echo_buf, 0, sizeof(echo_buf));
 	echo_tail = 0;
