@@ -24,7 +24,7 @@ You could load the data from an SD drive, however this is using an excessive amo
 With the miminum configuration we get the following on an ESP32:
 
 - Sketch uses 1638633 bytes (52%) of program storage space. Maximum is 3145728 bytes.
-- Global variables use 120924 bytes (36%) of dynamic memory, leaving 206756 bytes for
+- Global variables use 120924 bytes (36%) of dynamic memory, leaving 206756 bytes 
 
 If you use an ESP32, don't forget to select the partition scheme Huge APP!
 
