@@ -574,6 +574,7 @@ typedef struct {
 
 	char *data_dictrules;     // language_1   translation rules file
 	char *data_dictlist;      // language_2   dictionary lookup file
+	bool data_dictlist_is_mapped;
 	char *dict_hashtab[N_HASH_DICT];   // hash table to index dictionary lookup file
 	char *letterGroups[N_LETTER_GROUPS];
 

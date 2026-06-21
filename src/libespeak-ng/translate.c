@@ -116,7 +116,7 @@ void DeleteTranslator(Translator *tr)
 {
 	if (!tr) return;
 
-	if (tr->data_dictlist != NULL)
+	if (tr->data_dictlist != NULL && !tr->data_dictlist_is_mapped)
 		free(tr->data_dictlist);
 	free(tr);
 }

@@ -57,13 +57,18 @@ static char *phondata_ptr = NULL;
 unsigned char *wavefile_data = NULL;
 static unsigned char *phoneme_tab_data = NULL;
 
+static bool phoneme_tab_data_is_mapped = false;
+static bool phoneme_index_is_mapped = false;
+static bool phondata_ptr_is_mapped = false;
+static bool tunes_is_mapped = false;
+
 static int n_phoneme_tables;
 PHONEME_TAB_LIST phoneme_tab_list[N_PHONEME_TABS];
 int phoneme_tab_number = 0;
 
 int seq_len_adjust;
 
-static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, espeak_ng_ERROR_CONTEXT *context)
+static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, bool *is_mapped, espeak_ng_ERROR_CONTEXT *context)
 {
 	if (!ptr) return EINVAL;
 
@@ -76,9 +81,10 @@ static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, esp
 	// Arduino memory hack using mem_map from https://github.com/pschatzmann/arduino-posix-fs
 	void* ptmp = espeak_mem_map(buf, &length);
 	if (ptmp!=NULL){
-		if (*ptr != NULL)
+		if (*ptr != NULL && is_mapped != NULL && !*is_mapped)
 			free(*ptr);
 		*ptr = ptmp;
+		if (is_mapped != NULL) *is_mapped = true;
 	} else {
 		length = GetFileLength(buf);
 		if (length < 0) // length == -errno
@@ -86,8 +92,9 @@ static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, esp
 		if ((f_in = fopen(buf, "rb")) == NULL)
 			return create_file_error_context(context, errno, buf);
 
-		if (*ptr != NULL)
+		if (*ptr != NULL && (is_mapped == NULL || !*is_mapped))
 			free(*ptr);
+		if (is_mapped != NULL) *is_mapped = false;
 
 		if ((*ptr = malloc(length)) == NULL) {
 			fclose(f_in);
@@ -116,13 +123,13 @@ espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context)
 	unsigned char *p;
 
 	espeak_ng_STATUS status;
-	if ((status = ReadPhFile((void **)&phoneme_tab_data, "phontab", NULL, context)) != ENS_OK)
+	if ((status = ReadPhFile((void **)&phoneme_tab_data, "phontab", NULL, &phoneme_tab_data_is_mapped, context)) != ENS_OK)
 		return status;
-	if ((status = ReadPhFile((void **)&phoneme_index, "phonindex", NULL, context)) != ENS_OK)
+	if ((status = ReadPhFile((void **)&phoneme_index, "phonindex", NULL, &phoneme_index_is_mapped, context)) != ENS_OK)
 		return status;
-	if ((status = ReadPhFile((void **)&phondata_ptr, "phondata", NULL, context)) != ENS_OK)
+	if ((status = ReadPhFile((void **)&phondata_ptr, "phondata", NULL, &phondata_ptr_is_mapped, context)) != ENS_OK)
 		return status;
-	if ((status = ReadPhFile((void **)&tunes, "intonations", &length, context)) != ENS_OK)
+	if ((status = ReadPhFile((void **)&tunes, "intonations", &length, &tunes_is_mapped, context)) != ENS_OK)
 		return status;
 	wavefile_data = (unsigned char *)phondata_ptr;
 	n_tunes = length / sizeof(TUNE);
@@ -164,14 +171,22 @@ espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context)
 
 void FreePhData(void)
 {
-	free(phoneme_tab_data);
-	free(phoneme_index);
-	free(phondata_ptr);
-	free(tunes);
+	if (!phoneme_tab_data_is_mapped)
+		free(phoneme_tab_data);
+	if (!phoneme_index_is_mapped)
+		free(phoneme_index);
+	if (!phondata_ptr_is_mapped)
+		free(phondata_ptr);
+	if (!tunes_is_mapped)
+		free(tunes);
 	phoneme_tab_data = NULL;
 	phoneme_index = NULL;
 	phondata_ptr = NULL;
 	tunes = NULL;
+	phoneme_tab_data_is_mapped = false;
+	phoneme_index_is_mapped = false;
+	phondata_ptr_is_mapped = false;
+	tunes_is_mapped = false;
 }
 
 int PhonemeCode(unsigned int mnem)

@@ -251,6 +251,7 @@ static Translator *NewTranslator(void)
 	tr->dict_min_size = 0;
 	tr->data_dictrules = NULL; // language_1   translation rules file
 	tr->data_dictlist = NULL;  // language_2   dictionary lookup file
+	tr->data_dictlist_is_mapped = false;
 
 	tr->transpose_min = 0x60;
 	tr->transpose_max = 0x17f;
