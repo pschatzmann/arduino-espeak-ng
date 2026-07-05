@@ -13,12 +13,20 @@
  */
 class ESpeakFiles {
 public:
-    ESpeakFiles(Print &out, const char* path="../../../espeak-ng-data"){
-        // setup min file system
-        espeak_set_audio_output(&out);
+    /// Default constructor: define the output later via setOutput()
+    ESpeakFiles(const char* path="../../../espeak-ng-data"){
         if (path!=nullptr){
             this->path = path;
         }
+    }
+
+    ESpeakFiles(Print &out, const char* path="../../../espeak-ng-data") : ESpeakFiles(path){
+        setOutput(out);
+    }
+
+    /// Defines the output to which the generated audio is written
+    void setOutput(Print &out){
+        espeak_set_audio_output(&out);
     }
 
     /// Provides information about the sample rate, channels ....
@@ -137,6 +145,11 @@ protected:
 
 class ESpeak :  public ESpeakFiles {
 public:
+    /// Default constructor: define the output later via setOutput()
+    ESpeak(bool setupEnglish=true) : ESpeakFiles("/mem/data"){
+        is_setup_english = setupEnglish;
+    }
+
     ESpeak(Print &out, bool setupEnglish=true) : ESpeakFiles(out, "/mem/data"){
         // setup min file system
         is_setup_english = setupEnglish;
