@@ -64,7 +64,7 @@ static const MNEM_TAB genders[] = {
 int tone_points[12] = { 600, 170, 1200, 135, 2000, 110, 3000, 110, -1, 0 };
 
 // limit the rate of change for each formant number
-static int formant_rate_22050[9] = { 240, 170, 170, 170, 170, 170, 170, 170, 170 }; // values for 22kHz sample rate
+static const int formant_rate_22050[9] = { 240, 170, 170, 170, 170, 170, 170, 170, 170 }; // values for 22kHz sample rate
 int formant_rate[9]; // values adjusted for actual sample rate
 
 #define DEFAULT_LANGUAGE_PRIORITY  5
@@ -72,13 +72,13 @@ int formant_rate[9]; // values adjusted for actual sample rate
 static int n_voices_list = 0;
 static espeak_VOICE *voices_list[N_VOICES_LIST];
 
-espeak_VOICE current_voice_selected;
+static espeak_VOICE current_voice_selected;
 
 #define N_VOICE_VARIANTS   12
-const char variants_either[N_VOICE_VARIANTS] = { 1, 2, 12, 3, 13, 4, 14, 5, 11, 0 };
-const char variants_male[N_VOICE_VARIANTS] = { 1, 2, 3, 4, 5, 6, 0 };
-const char variants_female[N_VOICE_VARIANTS] = { 11, 12, 13, 14, 0 };
-const char *variant_lists[3] = { variants_either, variants_male, variants_female };
+static const char variants_either[N_VOICE_VARIANTS] = { 1, 2, 12, 3, 13, 4, 14, 5, 11, 0 };
+static const char variants_male[N_VOICE_VARIANTS] = { 1, 2, 3, 4, 5, 6, 0 };
+static const char variants_female[N_VOICE_VARIANTS] = { 11, 12, 13, 14, 0 };
+static const char *const variant_lists[3] = { variants_either, variants_male, variants_female };
 
 static voice_t voicedata;
 voice_t *voice = &voicedata;
@@ -310,7 +310,7 @@ void VoiceReset(int tone_only)
 	voice->voicing = 64;
 	voice->consonant_amp = 90; // change from 100 to 90 for v.1.47
 	voice->consonant_ampv = 100;
-	voice->samplerate = samplerate_native;
+	voice->samplerate = samplerate;
 	memset(voice->klattv, 0, sizeof(voice->klattv));
 
 	speed.fast_settings = espeakRATE_MAXIMUM;
@@ -344,7 +344,9 @@ void VoiceReset(int tone_only)
 
 	if (tone_only == 0) {
 		n_replace_phonemes = 0;
+#if USE_MBROLA
 		LoadMbrolaTable(NULL, NULL, 0);
+#endif
 	}
 
 // probably unnecessary, but removing this would break tests
@@ -461,8 +463,10 @@ voice_t *LoadVoice(const char *vname, int control)
 	char phonemes_name[40] = "";
 	const char *language_type;
 	char buf[sizeof(path_home)+30];
+#if USE_MBROLA
 	char name1[40];
 	char name2[80];
+#endif
 
 	int pitch1;
 	int pitch2;
@@ -475,6 +479,10 @@ voice_t *LoadVoice(const char *vname, int control)
 		MAKE_MEM_UNDEFINED(&voice_identifier, sizeof(voice_identifier));
 		MAKE_MEM_UNDEFINED(&voice_name, sizeof(voice_name));
 		MAKE_MEM_UNDEFINED(&voice_languages, sizeof(voice_languages));
+	}
+
+	if ((vname == NULL || vname[0] == 0) && !(control & 8)) {
+		return NULL;
 	}
 
 	strncpy0(voicename, vname, sizeof(voicename));
@@ -688,6 +696,7 @@ voice_t *LoadVoice(const char *vname, int control)
                 sscanf(p, "%d", &voice->speed_percent);
                 SetSpeed(3);
                 break;
+#if USE_MBROLA
             case V_MBROLA:
             {
                 int srate = 16000;
@@ -704,11 +713,14 @@ voice_t *LoadVoice(const char *vname, int control)
                     voice->samplerate = srate;
             }
                 break;
+#endif
+#if USE_KLATT
             case V_KLATT:
                 voice->klattv[0] = 1; // default source: IMPULSIVE
                 Read8Numbers(p, voice->klattv);
                 voice->klattv[KLATT_Kopen] -= 40;
                 break;
+#endif
             case V_FAST:
                 sscanf(p, "%d", &speed.fast_settings);
                 SetSpeed(3);
@@ -733,14 +745,14 @@ voice_t *LoadVoice(const char *vname, int control)
 
 	if (!tone_only) {
 		if (!!(control & 8/*compiling phonemes*/)) {
-                        /* Set by espeak_ng_CompilePhonemeDataPath when it
-                         * calls LoadVoice("", 8) to set up a dummy(?) voice.
-                         * As phontab may not yet exist this avoids the spurious
-                         * error message and guarantees consistent results by
-                         * not actually reading a potentially bogus phontab...
-                         */
-                        ix = 0;
-                } else if ((ix = SelectPhonemeTableName(phonemes_name)) < 0) {
+			/* Set by espeak_ng_CompilePhonemeDataPath when it
+				* calls LoadVoice("", 8) to set up a dummy(?) voice.
+				* As phontab may not yet exist this avoids the spurious
+				* error message and guarantees consistent results by
+				* not actually reading a potentially bogus phontab...
+				*/
+			ix = 0;
+		} else if ((ix = SelectPhonemeTableName(phonemes_name)) < 0) {
 			fprintf(stderr, "Unknown phoneme table: '%s'\n", phonemes_name);
 			ix = 0;
 		}
@@ -1111,9 +1123,7 @@ char const *SelectVoice(espeak_VOICE *voice_select, int *found)
 
 	if ((voice_select2.languages == NULL) || (voice_select2.languages[0] == 0)) {
 		// no language is specified. Get language from the named voice
-		static char buf[60];
-
-		MAKE_MEM_UNDEFINED(&buf, sizeof(buf));
+		char buf[60];
 
 		if (voice_select2.name == NULL) {
 			if ((voice_select2.name = voice_select2.identifier) == NULL)
@@ -1139,7 +1149,8 @@ char const *SelectVoice(espeak_VOICE *voice_select, int *found)
 	}
 
 	// select and sort voices for the required language
-	nv = SetVoiceScores(&voice_select2, voices, 0);
+	nv = SetVoiceScores(&voice_select2, voices,
+			voice_select2.identifier && strncmp(voice_select2.identifier, "mb/", 3) == 0 ? 1 : 0);
 
 	if (nv == 0) {
 		// no matching voice, choose the default
@@ -1217,7 +1228,7 @@ static void GetVoices(const char *path, int len_path_voices, int is_language_fil
 {
 	char fname[sizeof(path_home)+100];
 
-#ifdef PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
 	WIN32_FIND_DATAA FindFileData;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
 
@@ -1373,7 +1384,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByProperties(espeak_VOICE *voic
 
 #pragma GCC visibility pop
 
-void FreeVoiceList()
+void FreeVoiceList(void)
 {
 	int ix;
 	for (ix = 0; ix < n_voices_list; ix++) {
@@ -1458,7 +1469,6 @@ static int AddToVoicesList(const char *fname, int len_path_voices, int is_langua
 
 		if (voice_data != NULL)
 			voices_list[n_voices_list++] = voice_data;
-			return 0;
 	}
 	return 0;
 }

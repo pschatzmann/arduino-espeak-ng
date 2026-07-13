@@ -87,6 +87,8 @@ static const MNEM_TAB ssmltags[] = {
 	{ NULL, 0 }
 };
 
+static int (*uri_callback)(int, const char *, const char *) = NULL;
+
 static int attrcmp(const wchar_t *string1, const char *string2)
 {
 	int ix;
@@ -216,6 +218,7 @@ static const char *VoiceFromStack(SSML_STACK *ssml_stack, int n_ssml_stack, espe
 	int voice_found;
 	espeak_VOICE voice_select;
 	static char voice_name[40];
+	static char identifier[40];
 	char language[40];
 
 	MAKE_MEM_UNDEFINED(&voice_name, sizeof(voice_name));
@@ -228,12 +231,14 @@ static const char *VoiceFromStack(SSML_STACK *ssml_stack, int n_ssml_stack, espe
 	voice_select.identifier = NULL;
 
 	for (ix = 0; ix < n_ssml_stack; ix++) {
+		espeak_VOICE *v;
 		sp = &ssml_stack[ix];
 		int voice_name_specified = 0;
 
-		if ((sp->voice_name[0] != 0) && (SelectVoiceByName(NULL, sp->voice_name) != NULL)) {
+		if ((sp->voice_name[0] != 0) && ((v = SelectVoiceByName(NULL, sp->voice_name)) != NULL)) {
 			voice_name_specified = 1;
 			strcpy(voice_name, sp->voice_name);
+			strcpy(identifier, v->identifier);
 			language[0] = 0;
 			voice_select.gender = ENGENDER_UNKNOWN;
 			voice_select.age = 0;
@@ -254,7 +259,10 @@ static const char *VoiceFromStack(SSML_STACK *ssml_stack, int n_ssml_stack, espe
 			}
 
 			if (voice_name_specified == 0)
+			{
 				voice_name[0] = 0; // forget a previous voice name if a language is specified
+				identifier[0] = 0;
+			}
 		}
 		if (sp->voice_gender != ENGENDER_UNKNOWN)
 			voice_select.gender = sp->voice_gender;
@@ -266,7 +274,9 @@ static const char *VoiceFromStack(SSML_STACK *ssml_stack, int n_ssml_stack, espe
 	}
 
 	voice_select.name = voice_name;
+	voice_select.identifier = identifier;
 	voice_select.languages = language;
+
 	v_id = SelectVoice(&voice_select, &voice_found);
 	if (v_id == NULL)
 		return "default";
@@ -868,6 +878,7 @@ int ProcessSsmlTag(wchar_t *xml_buf, char *outbuf, int *outix, int n_outbuf, con
 		if ((attr1 = GetSsmlAttribute(px, "strength")) != NULL) {
 			static const int break_value[6] = { 0, 7, 14, 21, 40, 80 }; // *10mS
 			value = attrlookup(attr1, mnem_break);
+			if (value < 0) value = 2;
 			if (value < 3) {
 				// adjust prepause on the following word
 				sprintf(&outbuf[*outix], "%c%dB", CTRL_EMBEDDED, value);
@@ -879,10 +890,12 @@ int ProcessSsmlTag(wchar_t *xml_buf, char *outbuf, int *outix, int n_outbuf, con
 		if ((attr2 = GetSsmlAttribute(px, "time")) != NULL) {
 			value2 = attrnumber(attr2, 0, 1);   // pause in mS
 
+			value2 = value2 * speech_parameters[espeakSSML_BREAK_MUL] / 100;
+
 			int wpm = speech_parameters[espeakRATE];
 			espeak_SetParameter(espeakRATE, wpm, 0);
 
-			#if HAVE_SONIC_H
+			#if USE_LIBSONIC
 			if (wpm >= espeakRATE_MAXIMUM) {
 				// Compensate speedup with libsonic, see function SetSpeed()
 				double sonic = ((double)wpm)/espeakRATE_NORMAL;
@@ -972,6 +985,13 @@ int ProcessSsmlTag(wchar_t *xml_buf, char *outbuf, int *outix, int n_outbuf, con
 	}
 	return 0;
 }
+
+#pragma GCC visibility push(default)
+ESPEAK_API void espeak_SetUriCallback(int (*UriCallback)(int, const char *, const char *))
+{
+	uri_callback = UriCallback;
+}
+#pragma GCC visibility pop
 
 static const MNEM_TAB xml_entity_mnemonics[] = {
 	{ "gt",   '>' },

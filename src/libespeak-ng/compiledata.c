@@ -47,6 +47,8 @@
 #include "voice.h"                    // for LoadVoice, voice
 #include "wavegen.h"                  // for WavegenInit, WavegenSetVoice
 
+static int CalculateSample(unsigned char c3, int c1);
+
 #define N_ITEM_STRING 256
 
 typedef struct {
@@ -381,7 +383,6 @@ typedef struct CompileContext {
 	int duplicate_references;
 	int count_frames;
 	int error_count;
-	int resample_count;
 	int then_count;
 	bool after_if;
 
@@ -449,7 +450,6 @@ static espeak_ng_STATUS ReadPhondataManifest(CompileContext *ctx, espeak_ng_ERRO
 	// Read the phondata-manifest file
 	FILE *f;
 	int n_lines = 0;
-	int ix;
 	char *p;
 	unsigned int value;
 	char buf[sizeof(path_home)+40];
@@ -465,7 +465,7 @@ static espeak_ng_STATUS ReadPhondataManifest(CompileContext *ctx, espeak_ng_ERRO
 	rewind(f);
 
 	if (ctx->manifest != NULL) {
-		for (ix = 0; ix < ctx->n_manifest; ix++)
+		for (int ix = 0; ix < ctx->n_manifest; ix++)
 			free(ctx->manifest[ix].name);
 	}
 
@@ -543,13 +543,11 @@ static void ReservePhCodes(CompileContext *ctx)
 {
 	// Reserve phoneme codes which have fixed numbers so that they can be
 	// referred to from the program code.
-	unsigned int word;
 	const MNEM_TAB *p;
 
 	p = reserved_phonemes;
 	while (p->mnem != NULL) {
-		word = StringToWord(p->mnem);
-		ctx->phoneme_tab2[p->value].mnemonic = word;
+		ctx->phoneme_tab2[p->value].mnemonic = StringToWord(p->mnem);
 		ctx->phoneme_tab2[p->value].code = p->value;
 		if (ctx->n_phcodes <= p->value)
 			ctx->n_phcodes = p->value+1;
@@ -636,12 +634,9 @@ static int CheckNextChar(CompileContext *ctx)
 
 static int NextItem(CompileContext *ctx, int type)
 {
-	int acc;
 	unsigned char c = 0;
 	unsigned char c2;
 	int ix;
-	int sign;
-	char *p;
 	const keywtab_t *pk;
 
 	ctx->item_type = -1;
@@ -691,18 +686,17 @@ static int NextItem(CompileContext *ctx, int type)
 	if ((c == ')') || (c == '(') || (c == ','))
 		ctx->item_terminator = c;
 
-	if ((c == ')') || (c == ','))
-		c = ' ';
-	else if (!feof(ctx->f_in))
+	if (!feof(ctx->f_in) && !(c == ')' || c == ','))
 		unget_char(ctx, c);
 
 	if (type == tSTRING)
 		return 0;
 
 	if ((type == tNUMBER) || (type == tSIGNEDNUMBER)) {
-		acc = 0;
-		sign = 1;
-		p = ctx->item_string;
+		int acc = 0;
+		int sign = 1;
+		char *p;
+		 p = ctx->item_string;
 
 		if ((*p == '-') && (type == tSIGNEDNUMBER)) {
 			sign = -1;
@@ -798,7 +792,6 @@ static int Range(int value, int divide, int min, int max)
 static int CompileVowelTransition(CompileContext *ctx, int which)
 {
 	// Compile a vowel transition
-	int key;
 	int len = 0;
 	int rms = 0;
 	int f1 = 0;
@@ -829,7 +822,7 @@ static int CompileVowelTransition(CompileContext *ctx, int which)
 	}
 
 	for (;;) {
-		key = NextItem(ctx, tKEYWORD);
+		int key = NextItem(ctx, tKEYWORD);
 		if (ctx->item_type != tTRANSITION) {
 			UngetItem(ctx);
 			break;
@@ -1089,8 +1082,6 @@ static int LoadWavefile(CompileContext *ctx, FILE *f, const char *fname)
 {
 	int displ;
 	unsigned char c1;
-	unsigned char c3;
-	int c2;
 	int sample;
 	int sample2;
 	float x;
@@ -1104,9 +1095,9 @@ static int LoadWavefile(CompileContext *ctx, FILE *f, const char *fname)
 	sr2 = Read4Bytes(f);
 	fseek(f, 40, SEEK_SET);
 
-	if ((sr1 != samplerate_native) || (sr2 != sr1*2)) {
-		if (sr1 != samplerate_native)
-			error(ctx, "Can't resample (%d to %d): %s", sr1, samplerate_native, fname);
+	if ((sr1 != samplerate) || (sr2 != sr1*2)) {
+		if (sr1 != samplerate)
+			error(ctx, "Can't resample (%d to %d): %s", sr1, samplerate, fname);
 		else
 			error(ctx, "WAV file is not mono: %s", fname);
 		return 0;
@@ -1126,12 +1117,8 @@ static int LoadWavefile(CompileContext *ctx, FILE *f, const char *fname)
 
 		if ((c = fgetc(f)) == EOF)
 			break;
-		c3 = (unsigned char)c;
 
-		c2 = c3 << 24;
-		c2 = c2 >> 16; // sign extend
-
-		sample = (c1 & 0xff) + c2;
+		sample = CalculateSample((unsigned char) c, c1);
 
 		if (sample > max)
 			max = sample;
@@ -1151,11 +1138,9 @@ static int LoadWavefile(CompileContext *ctx, FILE *f, const char *fname)
 
 	while (!feof(f)) {
 		c1 = fgetc(f);
-		c3 = fgetc(f);
-		c2 = c3 << 24;
-		c2 = c2 >> 16; // sign extend
+		unsigned char c3 = fgetc(f);
 
-		sample = (c1 & 0xff) + c2;
+		sample = CalculateSample(c3, c1);
 
 		if (feof(f)) break;
 
@@ -1219,9 +1204,6 @@ static int Hash8(const char *string)
 
 static int LoadEnvelope2(CompileContext *ctx, FILE *f)
 {
-	int ix, ix2;
-	int n;
-	int x, y;
 	int displ;
 	int n_points;
 	char line_buf[128];
@@ -1237,26 +1219,27 @@ static int LoadEnvelope2(CompileContext *ctx, FILE *f)
 				break;
 
 			env_lin[n_points] = 0;
-			n = sscanf(line_buf, "%f %f %d", &env_x[n_points], &env_y[n_points], &env_lin[n_points]);
+			int n = sscanf(line_buf, "%f %f %d", &env_x[n_points], &env_y[n_points], &env_lin[n_points]);
 			if (n >= 2) {
 				env_x[n_points] *= (float)1.28; // convert range 0-100 to 0-128
 				n_points++;
 			}
 		}
 	}
+
 	if (n_points > 0) {
 		env_x[n_points] = env_x[n_points-1];
-		env_y[n_points] = env_y[n_points-1];
-	}
+    	env_y[n_points] = env_y[n_points-1];
 
-	ix = 0;
-	ix2 = 0;
-	if (n_points > 0) for (x = 0; x < ENV_LEN; x++) {
+		int ix = 0;
+    	int ix2 = 0;
+		for (int x = 0; x < ENV_LEN; x++) {
 		if (n_points > 3 && x > env_x[ix+3])
 			ix++;
 		if (n_points > 2 && x >= env_x[ix2+1])
 			ix2++;
 
+		int y;
 		if (env_lin[ix2] > 0) {
 			y = (env_y[ix2] + (env_y[ix2+1] - env_y[ix2]) * ((float)x - env_x[ix2]) / (env_x[ix2+1] - env_x[ix2])) * 2.55;
 		} else if (n_points > 3)
@@ -1266,6 +1249,7 @@ static int LoadEnvelope2(CompileContext *ctx, FILE *f)
 		if (y < 0) y = 0;
 		if (y > 255) y = 255;
 		env[x] = y;
+	}
 	}
 
 	displ = ftell(ctx->f_phdata);
@@ -1279,12 +1263,8 @@ static espeak_ng_STATUS LoadDataFile(CompileContext *ctx, const char *path, int 
 	// load spectrum sequence or sample data from a file.
 	// return index into spect or sample data area. bit 23=1 if a sample
 
-	FILE *f;
-	int id;
 	int hash;
-	int type_code = ' ';
 	REF_HASH_TAB *p, *p2;
-	char buf[sizeof(path_home)+150];
 
 	if (strcmp(path, "NULL") == 0)
 		return ENS_OK;
@@ -1307,8 +1287,10 @@ static espeak_ng_STATUS LoadDataFile(CompileContext *ctx, const char *path, int 
 	}
 
 	if (*addr == 0) {
+		char buf[sizeof(path_home)+150];
 		sprintf(buf, "%s/%s", ctx->phsrc, path);
 
+		FILE *f;
 		if ((f = fopen(buf, "rb")) == NULL) {
 			sprintf(buf, "%s/%s.wav", ctx->phsrc, path);
 			if ((f = fopen(buf, "rb")) == NULL) {
@@ -1317,10 +1299,11 @@ static espeak_ng_STATUS LoadDataFile(CompileContext *ctx, const char *path, int 
 			}
 		}
 
-		id = Read4Bytes(f);
+		int id = Read4Bytes(f);
 		rewind(f);
 
 		espeak_ng_STATUS status = ENS_OK;
+		int type_code = ' ';
 		if (id == 0x43455053) {
 			status = LoadSpect(ctx, path, control, addr);
 			type_code = 'S';
@@ -1452,27 +1435,25 @@ static void CompileSound(CompileContext *ctx, int keyword, int isvowel)
  */
 static int CompileIf(CompileContext *ctx, int elif)
 {
-	int key;
 	bool finish = false;
 	int word = 0;
-	int word2;
 	int data;
 	int bitmap;
 	int brackets;
-	bool not_flag;
 	unsigned short *prog_last_if = NULL;
 
 	ctx->then_count = 2;
 	ctx->after_if = true;
 
 	while (!finish) {
-		not_flag = false;
-		word2 = 0;
+		bool not_flag = false;
+		int word2 = 0;
 		if (ctx->prog_out >= ctx->prog_out_max) {
 			error(ctx, "Phoneme program too large");
 			return 0;
 		}
 
+		int key;
 		if ((key = NextItem(ctx, tCONDITION)) < 0)
 			error(ctx, "Expected a condition, not '%s'", ctx->item_string);
 
@@ -1562,11 +1543,10 @@ static int CompileIf(CompileContext *ctx, int elif)
 static void FillThen(CompileContext *ctx, int add)
 {
 	unsigned short *p;
-	int offset;
 
 	p = ctx->if_stack[ctx->if_level].p_then;
 	if (p != NULL) {
-		offset = ctx->prog_out - p + add;
+		int offset = ctx->prog_out - p + add;
 
 		if ((ctx->then_count == 1) && (ctx->if_level == 1)) {
 			// The THEN part only contains one statement, we can remove the THEN jump
@@ -1590,7 +1570,6 @@ static void FillThen(CompileContext *ctx, int add)
 static int CompileElse(CompileContext *ctx)
 {
 	unsigned short *ref;
-	unsigned short *p;
 
 	if (ctx->if_level < 1) {
 		error(ctx, "ELSE not expected");
@@ -1606,6 +1585,7 @@ static int CompileElse(CompileContext *ctx)
 		ref = ctx->prog_out;
 		*ctx->prog_out++ = 0;
 
+		unsigned short *p;
 		if ((p = ctx->if_stack[ctx->if_level].p_else) != NULL)
 			*ref = ref - p; // backwards offset to the previous else
 		ctx->if_stack[ctx->if_level].p_else = ref;
@@ -1629,8 +1609,6 @@ static int CompileElif(CompileContext *ctx)
 static int CompileEndif(CompileContext *ctx)
 {
 	unsigned short *p;
-	int chain;
-	int offset;
 
 	if (ctx->if_level < 1) {
 		error(ctx, "ENDIF not expected");
@@ -1640,10 +1618,11 @@ static int CompileEndif(CompileContext *ctx)
 	FillThen(ctx, 0);
 
 	if ((p = ctx->if_stack[ctx->if_level].p_else) != NULL) {
+		int chain;
 		do {
 			chain = *p; // a chain of previous else links
 
-			offset = ctx->prog_out - p;
+			int offset = ctx->prog_out - p;
 			if (offset > MAX_JUMP)
 				error(ctx, "IF block is too long");
 			*p = i_JUMP + offset;
@@ -1794,7 +1773,6 @@ static void DecThenCount(CompileContext *ctx)
 static int CompilePhoneme(CompileContext *ctx, int compile_phoneme)
 {
 	int endphoneme = 0;
-	int keyword;
 	int value;
 	int phcode = 0;
 	int flags;
@@ -1843,6 +1821,7 @@ static int CompilePhoneme(CompileContext *ctx, int compile_phoneme)
 	ctx->phoneme_out->phflags = 0;
 
 	while (!endphoneme && !feof(ctx->f_in)) {
+		int keyword;
 		if ((keyword = NextItem(ctx, tKEYWORD)) < 0) {
 			if (keyword == -2) {
 				error(ctx, "Missing 'endphoneme' before end-of-file"); // end of file
@@ -2147,9 +2126,7 @@ static void WritePhonemeTables(CompileContext *ctx)
 {
 	int ix;
 	int j;
-	int n;
 	int value;
-	int count;
 	PHONEME_TAB *p;
 
 	value = ctx->n_phoneme_tabs;
@@ -2160,12 +2137,12 @@ static void WritePhonemeTables(CompileContext *ctx)
 
 	for (ix = 0; ix < ctx->n_phoneme_tabs; ix++) {
 		p = ctx->phoneme_tab_list2[ix].phoneme_tab_ptr;
-		n = ctx->n_phcodes_list[ix];
+		int n = ctx->n_phcodes_list[ix];
 		memset(&p[n], 0, sizeof(p[n]));
 		p[n].mnemonic = 0; // terminate the phoneme table
 
 		// count number of locally declared phonemes
-		count = 0;
+		int count = 0;
 		for (j = 0; j < n; j++) {
 			if (ix == 0)
 				p[j].phflags |= phLOCAL; // write all phonemes in the base phoneme table
@@ -2198,6 +2175,7 @@ static void WritePhonemeTables(CompileContext *ctx)
 static void EndPhonemeTable(CompileContext *ctx)
 {
 	int ix;
+	char buf[5];
 
 	if (ctx->n_phoneme_tabs == 0)
 		return;
@@ -2206,7 +2184,7 @@ static void EndPhonemeTable(CompileContext *ctx)
 	for (ix = 0; ix < ctx->n_phcodes; ix++) {
 		if (ctx->phoneme_tab2[ix].type == phINVALID) {
 			error(ctx, "Phoneme [%s] not declared, referenced at line %d",
-			      WordToString(ctx->phoneme_tab2[ix].mnemonic), (int)(ctx->phoneme_tab2[ix].program));
+			      WordToString(buf, ctx->phoneme_tab2[ix].mnemonic), (int)(ctx->phoneme_tab2[ix].program));
 			ctx->error_count++;
 			ctx->phoneme_tab2[ix].type = 0; // prevent the error message repeating
 		}
@@ -2217,8 +2195,6 @@ static void EndPhonemeTable(CompileContext *ctx)
 
 static void StartPhonemeTable(CompileContext *ctx, const char *name)
 {
-	int ix;
-	int j;
 	PHONEME_TAB *p;
 
 	if (ctx->n_phoneme_tabs >= N_PHONEME_TABS-1) {
@@ -2241,6 +2217,7 @@ static void StartPhonemeTable(CompileContext *ctx, const char *name)
 
 	if (ctx->n_phoneme_tabs > 0) {
 		NextItem(ctx, tSTRING); // name of base phoneme table
+		int ix;
 		for (ix = 0; ix < ctx->n_phoneme_tabs; ix++) {
 			if (strcmp(ctx->item_string, ctx->phoneme_tab_list2[ix].name) == 0) {
 				ctx->phoneme_tab_list2[ctx->n_phoneme_tabs].includes = ix+1;
@@ -2250,6 +2227,7 @@ static void StartPhonemeTable(CompileContext *ctx, const char *name)
 				ctx->n_phcodes = ctx->n_phcodes_list[ix];
 
 				// clear "local phoneme" bit"
+				int j;
 				for (j = 0; j < ctx->n_phcodes; j++)
 					ctx->phoneme_tab2[j].phflags &= ~phLOCAL;
 				break;
@@ -2265,7 +2243,6 @@ static void StartPhonemeTable(CompileContext *ctx, const char *name)
 
 static void CompilePhonemeFiles(CompileContext *ctx)
 {
-	int item;
 	FILE *f;
 	char buf[sizeof(path_home)+120];
 
@@ -2288,7 +2265,7 @@ static void CompilePhonemeFiles(CompileContext *ctx)
 			ctx->linenum = ctx->stack[ctx->stack_ix].linenum;
 		}
 
-		item = NextItem(ctx, tKEYWORD);
+		int item = NextItem(ctx, tKEYWORD);
 
 		switch (item)
 		{
@@ -2371,7 +2348,7 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 		sprintf(phdst, "%s", path_home);
 	}
 
-	samplerate_native = samplerate = rate;
+	samplerate = rate;
 	LoadPhData(NULL, NULL);
 	if (LoadVoice("", 8/*compiling phonemes*/) == NULL) {
 		clean_context(ctx);
@@ -2382,7 +2359,6 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 	WavegenSetVoice(voice);
 
 	ctx->error_count = 0;
-	ctx->resample_count = 0;
 	ctx->f_errors = log;
 
 	strncpy0(ctx->current_fname, "phonemes", sizeof(ctx->current_fname));
@@ -2451,7 +2427,7 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 
 	// write a word so that further data doesn't start at displ=0
 	Write4Bytes(ctx->f_phdata, version_phdata);
-	Write4Bytes(ctx->f_phdata, samplerate_native);
+	Write4Bytes(ctx->f_phdata, samplerate);
 	Write4Bytes(ctx->f_phindex, version_phdata);
 
 	memset(ctx->ref_hash_tab, 0, sizeof(ctx->ref_hash_tab));
@@ -2483,11 +2459,7 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 
 	WavegenFini();
 
-	if (ctx->resample_count > 0) {
-		fprintf(ctx->f_errors, "\n%d WAV files resampled to %d Hz\n", ctx->resample_count, samplerate_native);
-		fprintf(log, "Compiled phonemes: %d errors, %d files resampled to %d Hz.\n", ctx->error_count, ctx->resample_count, samplerate_native);
-	} else
-		fprintf(log, "Compiled phonemes: %d errors.\n", ctx->error_count);
+	fprintf(log, "Compiled phonemes: %d errors.\n", ctx->error_count);
 
 	if (ctx->f_errors != stderr && ctx->f_errors != stdout)
 		fclose(ctx->f_errors);
@@ -2560,7 +2532,6 @@ espeak_ng_CompileIntonationPath(const char *source_path,
 	int ix;
 	char *p;
 	char c;
-	int keyword;
 	int n_tune_names = 0;
 	bool done_split = false;
 	bool done_onset = false;
@@ -2651,7 +2622,7 @@ espeak_ng_CompileIntonationPath(const char *source_path,
 	}
 
 	while (!feof(ctx->f_in)) {
-		keyword = NextItem(ctx, tINTONATION);
+		int keyword = NextItem(ctx, tINTONATION);
 
 		switch (keyword)
 		{
@@ -2812,3 +2783,10 @@ espeak_ng_CompileIntonationPath(const char *source_path,
 }
 
 #pragma GCC visibility pop
+
+static int CalculateSample(unsigned char c3, int c1) {
+	int c2 = c3 << 24;
+	c2 = c2 >> 16; // sign extend
+
+	return (c1 & 0xff) + c2;
+}

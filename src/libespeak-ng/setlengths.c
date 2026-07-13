@@ -38,7 +38,7 @@
 #include "synthesize.h"
 #include "translate.h"
 
-static void SetSpeedFactors(voice_t *voice, int x, int *speed1, int *speed2, int *speed3);
+static void SetSpeedFactors(voice_t *voice, int x, int speeds[3]);
 static void SetSpeedMods(SPEED_FACTORS *speed, int voiceSpeedF1, int wpm, int x);
 static void SetSpeedMultiplier(int *x, int *wpm);
 
@@ -46,7 +46,7 @@ extern int saved_parameters[];
 
 // convert from words-per-minute to internal speed factor
 // Use this to calibrate speed for wpm 80-450 (espeakRATE_MINIMUM - espeakRATE_MAXIMUM)
-static unsigned char speed_lookup[] = {
+static const unsigned char speed_lookup[] = {
 	255, 255, 255, 255, 255, //  80
 	253, 249, 245, 242, 238, //  85
 	235, 232, 228, 225, 222, //  90
@@ -106,7 +106,7 @@ static unsigned char speed_lookup[] = {
 };
 
 // speed_factor1 adjustments for speeds 350 to 374: pauses
-static unsigned char pause_factor_350[] = {
+static const unsigned char pause_factor_350[] = {
 	22, 22, 22, 22, 22, 22, 22, 21, 21, 21, // 350
 	21, 20, 20, 19, 19, 18, 17, 16, 15, 15, // 360
 	15, 15, 15, 15, 15                      // 370
@@ -114,7 +114,7 @@ static unsigned char pause_factor_350[] = {
 
 // wav_factor adjustments for speeds 350 to 450
 // Use this to calibrate speed for wpm 350-450
-static unsigned char wav_factor_350[] = {
+static const unsigned char wav_factor_350[] = {
 	120, 121, 120, 119, 119, // 350
 	118, 118, 117, 116, 116, // 355
 	115, 114, 113, 112, 112, // 360
@@ -138,9 +138,7 @@ static unsigned char wav_factor_350[] = {
 	 45                      // 450
 };
 
-static int speed1 = 130;
-static int speed2 = 121;
-static int speed3 = 118;
+static int len_speeds[3] = { 130, 121, 118 };
 
 void SetSpeed(int control)
 {
@@ -157,7 +155,7 @@ void SetSpeed(int control)
 
 	speed.min_pause = 5;
 
-	#if HAVE_SONIC_H
+	#if USE_LIBSONIC
 	int wpm_value = wpm;
 
 	if (voice->speed_percent > 0)
@@ -174,9 +172,9 @@ void SetSpeed(int control)
 		// The eSpeak output will be speeded up by at least x2
 		x = 73;
 		if (control & 1) {
-			speed1 = (x * voice->speedf1)/256;
-			speed2 = (x * voice->speedf2)/256;
-			speed3 = (x * voice->speedf3)/256;
+			len_speeds[0] = (x * voice->speedf1)/256;
+			len_speeds[1] = (x * voice->speedf2)/256;
+			len_speeds[2] = (x * voice->speedf3)/256;
 		}
 		if (control & 2) {
 			double sonic;
@@ -201,7 +199,7 @@ void SetSpeed(int control)
 	SetSpeedMultiplier(&x, &wpm);
 
 	if (control & 1) {
-		SetSpeedFactors(voice, x, &speed1, &speed2, &speed3);
+		SetSpeedFactors(voice, x, len_speeds);
 	}
 
 	if (control & 2) {
@@ -229,16 +227,16 @@ static void SetSpeedMultiplier(int *x, int *wpm) {
 		*x = 6;
 }
 
-static void SetSpeedFactors(voice_t *voice, int x, int *speed1, int *speed2, int *speed3) {
+static void SetSpeedFactors(voice_t *voice, int x, int speeds[3]) {
 	// set speed factors for different syllable positions within a word
 	// these are used in CalcLengths()
-	*speed1 = (x * voice->speedf1)/256;
-	*speed2 = (x * voice->speedf2)/256;
-	*speed3 = (x * voice->speedf3)/256;
+	speeds[0] = (x * voice->speedf1)/256;
+	speeds[1] = (x * voice->speedf2)/256;
+	speeds[2] = (x * voice->speedf3)/256;
 
 	if (x <= 7) {
-		*speed1 = x;
-		*speed2 = *speed3 = x - 1;
+		speeds[0] = x;
+		speeds[1] = speeds[2] = x - 1;
 	}
 }
 
@@ -338,6 +336,8 @@ espeak_ng_STATUS SetParameter(int parameter, int value, int relative)
 			translator->langopts.intonation_group = new_value & 0xff;
 		option_tone_flags = new_value;
 		break;
+  case espeakSSML_BREAK_MUL:
+    break;
 	default:
 		return EINVAL;
 	}
@@ -388,7 +388,7 @@ void CalcLengths(Translator *tr)
 	int pitch1;
 
 	int tone_mod;
-	unsigned char *pitch_env = NULL;
+	const unsigned char *pitch_env = NULL;
 	PHONEME_DATA phdata_tone;
 
 
@@ -523,7 +523,7 @@ void CalcLengths(Translator *tr)
 					p->length = prev->length;
 
 					if (p->type == phLIQUID)
-						p->length = speed1;
+						p->length = len_speeds[0];
 
 					if (next->type == phVSTOP)
 						p->length = (p->length * 160)/100;
@@ -615,11 +615,11 @@ void CalcLengths(Translator *tr)
 			}
 
 			if (more_syllables == 0)
-				length_mod *= speed1;
+				length_mod *= len_speeds[0];
 			else if (more_syllables == 1)
-				length_mod *= speed2;
+				length_mod *= len_speeds[1];
 			else
-				length_mod *= speed3;
+				length_mod *= len_speeds[2];
 
 			length_mod = length_mod / 128;
 
@@ -654,9 +654,9 @@ void CalcLengths(Translator *tr)
 				length_mod = length_mod * (256 + (280 - len)/3)/256;
 			}
 
-			if (length_mod > tr->langopts.max_lengthmod*speed1) {
+			if (length_mod > tr->langopts.max_lengthmod*len_speeds[0]) {
 				// limit the vowel length adjustment for some languages
-				length_mod = (tr->langopts.max_lengthmod*speed1);
+				length_mod = (tr->langopts.max_lengthmod*len_speeds[0]);
 			}
 
 			length_mod = length_mod / 128;
@@ -743,7 +743,7 @@ void CalcLengths(Translator *tr)
 // indexes are the "length_mod" value for the following phonemes
 
 // use this table if vowel is not the last in the word
-static unsigned char length_mods_en[100] = {
+static const unsigned char length_mods_en[100] = {
 //	a    ,    t    s    n    d    z    r    N    <- next
 	100, 120, 100, 105, 100, 110, 110, 100,  95, 100, // a  <- next2
 	105, 120, 105, 110, 125, 130, 135, 115, 125, 100, // ,
@@ -758,7 +758,7 @@ static unsigned char length_mods_en[100] = {
 };
 
 // as above, but for the last syllable in a word
-static unsigned char length_mods_en0[100] = {
+static const unsigned char length_mods_en0[100] = {
 //	a    ,    t    s    n    d    z    r    N    <- next
 	100, 150, 100, 105, 110, 115, 110, 110, 110, 100, // a  <- next2
 	105, 150, 105, 110, 125, 135, 140, 115, 135, 100, // ,
@@ -773,7 +773,7 @@ static unsigned char length_mods_en0[100] = {
 };
 
 
-static unsigned char length_mods_equal[100] = {
+static const unsigned char length_mods_equal[100] = {
 //	a    ,    t    s    n    d    z    r    N    <- next
 	110, 120, 100, 110, 110, 110, 110, 110, 110, 110, // a  <- next2
 	110, 120, 100, 110, 110, 110, 110, 110, 110, 110, // ,
@@ -787,7 +787,7 @@ static unsigned char length_mods_equal[100] = {
 	110, 120, 100, 110, 110, 110, 110, 110, 110, 110
 };
 
-static unsigned char *length_mod_tabs[6] = {
+static const unsigned char *const length_mod_tabs[6] = {
 	length_mods_en,
 	length_mods_en,    // 1
 	length_mods_en0,   // 2

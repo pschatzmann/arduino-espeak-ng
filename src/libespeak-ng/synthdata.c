@@ -49,7 +49,7 @@ const int version_phdata  = 0x014801;
 
 // copy the current phoneme table into here
 int n_phoneme_tab;
-int current_phoneme_table;
+static int current_phoneme_table;
 PHONEME_TAB *phoneme_tab[N_PHONEME_TAB];
 
 static unsigned short *phoneme_index = NULL;
@@ -57,18 +57,13 @@ static char *phondata_ptr = NULL;
 unsigned char *wavefile_data = NULL;
 static unsigned char *phoneme_tab_data = NULL;
 
-static bool phoneme_tab_data_is_mapped = false;
-static bool phoneme_index_is_mapped = false;
-static bool phondata_ptr_is_mapped = false;
-static bool tunes_is_mapped = false;
-
 static int n_phoneme_tables;
 PHONEME_TAB_LIST phoneme_tab_list[N_PHONEME_TABS];
 int phoneme_tab_number = 0;
 
 int seq_len_adjust;
 
-static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, bool *is_mapped, espeak_ng_ERROR_CONTEXT *context)
+static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, espeak_ng_ERROR_CONTEXT *context)
 {
 	if (!ptr) return EINVAL;
 
@@ -80,21 +75,30 @@ static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, boo
 
 	// Arduino memory hack using mem_map from https://github.com/pschatzmann/arduino-posix-fs
 	void* ptmp = espeak_mem_map(buf, &length);
-	if (ptmp!=NULL){
-		if (*ptr != NULL && is_mapped != NULL && !*is_mapped)
+	if (ptmp != NULL) {
+		if (*ptr != NULL)
 			free(*ptr);
 		*ptr = ptmp;
-		if (is_mapped != NULL) *is_mapped = true;
 	} else {
 		length = GetFileLength(buf);
 		if (length < 0) // length == -errno
 			return create_file_error_context(context, -length, buf);
+
 		if ((f_in = fopen(buf, "rb")) == NULL)
 			return create_file_error_context(context, errno, buf);
 
-		if (*ptr != NULL && (is_mapped == NULL || !*is_mapped))
+		if (*ptr != NULL) {
 			free(*ptr);
-		if (is_mapped != NULL) *is_mapped = false;
+			*ptr = NULL;
+		}
+
+		if (length == 0) {
+			*ptr = NULL;
+			fclose(f_in);
+			if (size != NULL)
+				*size = length;
+			return 0;
+		}
 
 		if ((*ptr = malloc(length)) == NULL) {
 			fclose(f_in);
@@ -104,6 +108,7 @@ static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, boo
 			int error = errno;
 			fclose(f_in);
 			free(*ptr);
+			*ptr = NULL;
 			return create_file_error_context(context, error, buf);
 		}
 
@@ -123,13 +128,13 @@ espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context)
 	unsigned char *p;
 
 	espeak_ng_STATUS status;
-	if ((status = ReadPhFile((void **)&phoneme_tab_data, "phontab", NULL, &phoneme_tab_data_is_mapped, context)) != ENS_OK)
+	if ((status = ReadPhFile((void **)&phoneme_tab_data, "phontab", NULL, context)) != ENS_OK)
 		return status;
-	if ((status = ReadPhFile((void **)&phoneme_index, "phonindex", NULL, &phoneme_index_is_mapped, context)) != ENS_OK)
+	if ((status = ReadPhFile((void **)&phoneme_index, "phonindex", NULL, context)) != ENS_OK)
 		return status;
-	if ((status = ReadPhFile((void **)&phondata_ptr, "phondata", NULL, &phondata_ptr_is_mapped, context)) != ENS_OK)
+	if ((status = ReadPhFile((void **)&phondata_ptr, "phondata", NULL, context)) != ENS_OK)
 		return status;
-	if ((status = ReadPhFile((void **)&tunes, "intonations", &length, &tunes_is_mapped, context)) != ENS_OK)
+	if ((status = ReadPhFile((void **)&tunes, "intonations", &length, context)) != ENS_OK)
 		return status;
 	wavefile_data = (unsigned char *)phondata_ptr;
 	n_tunes = length / sizeof(TUNE);
@@ -137,9 +142,11 @@ espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context)
 	// read the version number and sample rate from the first 8 bytes of phondata
 	version = 0; // bytes 0-3, version number
 	rate = 0;    // bytes 4-7, sample rate
-	for (ix = 0; ix < 4; ix++) {
-		version += (wavefile_data[ix] << (ix*8));
-		rate += (wavefile_data[ix+4] << (ix*8));
+	if (wavefile_data) {
+		for (ix = 0; ix < 4; ix++) {
+			version += (wavefile_data[ix] << (ix*8));
+			rate += (wavefile_data[ix+4] << (ix*8));
+		}
 	}
 
 	if (version != version_phdata)
@@ -171,22 +178,15 @@ espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context)
 
 void FreePhData(void)
 {
-	if (!phoneme_tab_data_is_mapped)
-		free(phoneme_tab_data);
-	if (!phoneme_index_is_mapped)
-		free(phoneme_index);
-	if (!phondata_ptr_is_mapped)
-		free(phondata_ptr);
-	if (!tunes_is_mapped)
-		free(tunes);
+	free(phoneme_tab_data);
+	free(phoneme_index);
+	free(phondata_ptr);
+	free(tunes);
 	phoneme_tab_data = NULL;
 	phoneme_index = NULL;
 	phondata_ptr = NULL;
 	tunes = NULL;
-	phoneme_tab_data_is_mapped = false;
-	phoneme_index_is_mapped = false;
-	phondata_ptr_is_mapped = false;
-	tunes_is_mapped = false;
+	current_phoneme_table = -1;
 }
 
 int PhonemeCode(unsigned int mnem)
@@ -342,7 +342,7 @@ frameref_t *LookupSpect(PHONEME_TAB *this_ph, int which, FMT_PARAMS *fmt_params,
 	return frames;
 }
 
-unsigned char *GetEnvelope(int index)
+const unsigned char *GetEnvelope(int index)
 {
 	if (index == 0) {
 		fprintf(stderr, "espeak: No envelope\n");
@@ -376,6 +376,7 @@ static void SetUpPhonemeTable(int number)
 
 void SelectPhonemeTable(int number)
 {
+	if (current_phoneme_table == number) return;
 	n_phoneme_tab = 0;
 	MAKE_MEM_UNDEFINED(&phoneme_tab, sizeof(phoneme_tab));
 	SetUpPhonemeTable(number); // recursively for included phoneme tables
@@ -414,7 +415,8 @@ int SelectPhonemeTableName(const char *name)
 
 static void InvalidInstn(PHONEME_TAB *ph, int instn)
 {
-	fprintf(stderr, "Invalid instruction %.4x for phoneme '%s'\n", instn, WordToString(ph->mnemonic));
+	char buf[5];
+	fprintf(stderr, "Invalid instruction %.4x for phoneme '%s'\n", instn, WordToString(buf, ph->mnemonic));
 }
 
 static bool StressCondition(Translator *tr, PHONEME_LIST *plist, int condition, int control)
@@ -659,10 +661,14 @@ static bool InterpretCondition(Translator *tr, int control, PHONEME_LIST *plist,
 		{
 		case 1: // PreVoicing
 			return control & 1;
+#if USE_KLATT
 		case 2: // KlattSynth
 			return voice->klattv[0] != 0;
+#endif
+#if USE_MBROLA
 		case 3: // MbrolaSynth
 			return mbrola_name[0] != 0;
+#endif
 		}
 	}
 	return false;

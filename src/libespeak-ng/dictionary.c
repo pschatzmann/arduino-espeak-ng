@@ -43,7 +43,8 @@
 #include "synthesize.h"                    // for STRESS_IS_PRIMARY, phoneme...
 #include "translate.h"                     // for Translator, utf8_in, LANGU...
 
-static int LookupFlags(Translator *tr, const char *word, unsigned int **flags_out);
+static int LookupFlags(Translator *tr, const char *word, unsigned int flags_out[2]);
+static void DollarRule(char *word[], char *word_start, int consumed, int group_length, char *word_buf, Translator *tr, int command, int *failed, int *add_points);
 
 typedef struct {
 	int points;
@@ -62,7 +63,7 @@ static const unsigned short diereses_list[7] = { 0xe4, 0xeb, 0xef, 0xf6, 0xfc, 0
 // convert characters to an approximate 7 bit ascii equivalent
 // used for checking for vowels (up to 0x259=schwa)
 #define N_REMOVE_ACCENT  0x25e
-static unsigned char remove_accent[N_REMOVE_ACCENT] = {
+static const unsigned char remove_accent[N_REMOVE_ACCENT] = {
 	'a', 'a', 'a', 'a', 'a', 'a', 'a', 'c', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i',  // 0c0
 	'd', 'n', 'o', 'o', 'o', 'o', 'o',   0, 'o', 'u', 'u', 'u', 'u', 'y', 't', 's',  // 0d0
 	'a', 'a', 'a', 'a', 'a', 'a', 'a', 'c', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i',  // 0e0
@@ -215,18 +216,14 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 	// Arduino memory hack using mem_map from https://github.com/pschatzmann/arduino-posix-fs
 	void* ptr = espeak_mem_map(fname, &size);
 	if (ptr!=NULL){
-		if (tr->data_dictlist != NULL && !tr->data_dictlist_is_mapped)
-			free(tr->data_dictlist);
 		tr->data_dictlist = ptr;
-		tr->data_dictlist_is_mapped = true;
 	} else {
 		size = GetFileLength(fname);
 
-		if (tr->data_dictlist != NULL && !tr->data_dictlist_is_mapped) {
+		if (tr->data_dictlist != NULL) {
 			free(tr->data_dictlist);
 			tr->data_dictlist = NULL;
 		}
-		tr->data_dictlist_is_mapped = false;
 
 		f = fopen(fname, "rb");
 		if ((f == NULL) || (size <= 0)) {
@@ -406,7 +403,7 @@ void DecodePhonemes(const char *inptr, char *outptr)
 	unsigned char c;
 	unsigned int mnem;
 	PHONEME_TAB *ph;
-	static const char *stress_chars = "==,,'*  ";
+	static const char stress_chars[] = "==,,'*  ";
 
 	sprintf(outptr, "* ");
 	while ((phcode = *inptr++) > 0) {
@@ -435,7 +432,7 @@ void DecodePhonemes(const char *inptr, char *outptr)
 }
 
 // using Kirschenbaum to IPA translation, ascii 0x20 to 0x7f
-unsigned short ipa1[96] = {
+static const unsigned short ipa1[96] = {
 	0x20,  0x21,  0x22,  0x2b0, 0x24,  0x25,  0x0e6, 0x2c8, 0x28,  0x29,  0x27e, 0x2b,  0x2cc, 0x2d,  0x2e,  0x2f,
 	0x252, 0x31,  0x32,  0x25c, 0x34,  0x35,  0x36,  0x37,  0x275, 0x39,  0x2d0, 0x2b2, 0x3c,  0x3d,  0x3e,  0x294,
 	0x259, 0x251, 0x3b2, 0xe7,  0xf0,  0x25b, 0x46,  0x262, 0x127, 0x26a, 0x25f, 0x4b,  0x26b, 0x271, 0x14b, 0x254,
@@ -533,6 +530,40 @@ char *WritePhMnemonic(char *phon_out, PHONEME_TAB *ph, PHONEME_LIST *plist, int 
 	return phon_out;
 }
 
+//// Extension: write phone mnemonic with stress
+char *WritePhMnemonicWithStress(char *phon_out, PHONEME_TAB *ph, PHONEME_LIST *plist, int use_ipa, int *flags) {
+	if (plist->synthflags & SFLAG_SYLLABLE) {
+		unsigned char stress = plist->stresslevel;
+
+		if (stress > 1) {
+			int c = 0;
+
+			if (stress > STRESS_IS_PRIORITY) {
+				stress = STRESS_IS_PRIORITY;
+			}
+
+			if (use_ipa) {
+				c = 0x2cc; // ipa, secondary stress
+
+				if (stress > STRESS_IS_SECONDARY) {
+					c = 0x02c8; // ipa, primary stress
+				}
+			} else {
+				const char stress_chars[] = "==,,''";
+
+				c = stress_chars[stress];
+			}
+
+			if (c != 0) {
+				phon_out += utf8_out(c, phon_out);
+			}
+		}
+	}
+
+	return WritePhMnemonic(phon_out, ph, plist, use_ipa, flags);
+}
+////
+
 const char *GetTranslatedPhonemeString(int phoneme_mode)
 {
 	/* Called after a clause has been translated into phonemes, in order
@@ -561,7 +592,7 @@ const char *GetTranslatedPhonemeString(int phoneme_mode)
 	char phon_buf2[30];
 	PHONEME_LIST *plist;
 
-	static const char *stress_chars = "==,,''";
+	static const char stress_chars[] = "==,,''";
 
 	if (phon_out_buf == NULL) {
 		phon_out_size = N_PHON_OUT;
@@ -797,7 +828,7 @@ int GetVowelStress(Translator *tr, unsigned char *phonemes, signed char *vowel_s
 			// stress marker, use this for the following vowel
 
 			if (phcode == phonSTRESS_PREV) {
-				// primary stress on preceeding vowel
+				// primary stress on preceding vowel
 				j = count - 1;
 				while ((j > 0) && (*stressed_syllable == 0) && (vowel_stress[j] < STRESS_IS_PRIMARY)) {
 					if ((vowel_stress[j] != STRESS_IS_DIMINISHED) && (vowel_stress[j] != STRESS_IS_UNSTRESSED)) {
@@ -892,17 +923,6 @@ const char stress_phonemes[] = {
 	phonSTRESS_P, phonSTRESS_P2, phonSTRESS_TONIC
 };
 
-/// Microcontroller have limited stack: so we move it to the heap
-#if ESPEAK_STACK_HACK
-typedef struct  {
-	signed char vowel_stress[N_WORD_PHONEMES/2];
-	char syllable_weight[N_WORD_PHONEMES/2];
-	char vowel_length[N_WORD_PHONEMES/2];
-	unsigned char phonetic[N_WORD_PHONEMES];
-} SetWordStressData;
-#endif
-
-
 void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags, int tonic, int control)
 {
 	/* Guess stress pattern of word.  This is language specific
@@ -940,20 +960,16 @@ void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags,
 	int dflags = 0;
 	int first_primary;
 	int long_vowel;
-#if ESPEAK_STACK_HACK
-	SetWordStressData *p_data = malloc(sizeof(SetWordStressData));
-	assert(p_data!=NULL);
-	signed char *vowel_stress = p_data->vowel_stress;
-	char *syllable_weight = p_data->syllable_weight;
-	char *vowel_length = p_data->vowel_length;
-	unsigned char *phonetic = p_data->phonetic;
-#else
+//  TODO pschatzmann: Memory Hack ?
 	signed char vowel_stress[N_WORD_PHONEMES/2];
 	char syllable_weight[N_WORD_PHONEMES/2];
 	char vowel_length[N_WORD_PHONEMES/2];
 	unsigned char phonetic[N_WORD_PHONEMES];
-#endif
+
 	static const char consonant_types[16] = { 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0 };
+
+	memset(syllable_weight, 0, sizeof(syllable_weight));
+	memset(vowel_length, 0, sizeof(vowel_length));
 
 	stressflags = tr->langopts.stress_flags;
 
@@ -969,12 +985,7 @@ void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags,
 		if (phonetic[ix] == 0)
 			break;
 	}
-	if (ix == 0) {
-#if ESPEAK_STACK_HACK
-		free(p_data);
-#endif
-		return;
-	}
+	if (ix == 0) return;
 	final_ph = phonetic[ix-1];
 	final_ph2 = phonetic[(ix > 1) ? ix-2 : ix-1];
 
@@ -1053,7 +1064,7 @@ void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags,
 					if (phoneme_tab[final_ph]->type != phVOWEL) {
 						mnem = phoneme_tab[final_ph]->mnemonic;
 
-						if (tr->translator_name == L('a', 'n')) {
+						if ((tr->translator_name == L('a', 'n')) || (tr->translator_name == L('c', 'a'))) {
 							if (((mnem != 's') && (mnem != 'n')) || phoneme_tab[final_ph2]->type != phVOWEL)
 								stressed_syllable = vowel_count - 1; // stress on last syllable
 						} else if (tr->translator_name == L('i', 'a')) {
@@ -1225,7 +1236,7 @@ void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags,
 		}
 		break;
 
-	case STRESSPOSN_EU: // LANG=eu. If more than 2 syllables: primary stress in second syllable and secondary on last. 
+	case STRESSPOSN_EU: // LANG=eu. If more than 2 syllables: primary stress in second syllable and secondary on last.
 		if ((stressed_syllable == 0) && (vowel_count > 2)) {
 			for (ix = 1; ix < vowel_count; ix++) {
 				vowel_stress[ix] = STRESS_IS_DIMINISHED;
@@ -1434,9 +1445,6 @@ void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags,
 	}
 	*output++ = 0;
 
-#if ESPEAK_STACK_HACK
-		free(p_data);
-#endif
 	return;
 }
 
@@ -1508,8 +1516,6 @@ static void MatchRule(Translator *tr, char *word[], char *word_start, int group_
 
 	char *rule_start;     // start of current match template
 	char *p;
-	int ix;
-
 	int match_type;       // left, right, or consume
 	int syllable_count;
 	int vowel;
@@ -1518,10 +1524,9 @@ static void MatchRule(Translator *tr, char *word[], char *word_start, int group_
 	int n_bytes;
 	int add_points;
 	int command;
-	unsigned int *flags;
 
 	MatchRecord match;
-	static MatchRecord best;
+	MatchRecord best;
 
 	int total_consumed; // letters consumed for best match
 
@@ -1737,21 +1742,9 @@ static void MatchRule(Translator *tr, char *word[], char *word_start, int group_
 						else
 							failed = 1;
 					} else if (((command & 0xf0) == 0x20) || (command == DOLLAR_LIST)) {
-						// $list or $p_alt
-						// make a copy of the word up to the post-match characters
-						ix = *word - word_start + consumed + group_length + 1;
-						memcpy(word_buf, word_start-1, ix);
-						word_buf[ix] = ' ';
-						word_buf[ix+1] = 0;
-						LookupFlags(tr, &word_buf[1], &flags);
-
-						if ((command == DOLLAR_LIST) && (flags[0] & FLAG_FOUND) && !(flags[1] & FLAG_ONLY))
-							add_points = 23;
-						else if (flags[0] & (1 << (BITNUM_FLAG_ALT + (command & 0xf))))
-							add_points = 23;
-						else
-							failed = 1;
+						DollarRule(word, word_start, consumed, group_length, word_buf, tr, command, &failed, &add_points);
 					}
+
 					break;
 				case '-':
 					if ((letter == '-') || ((letter == ' ') && (word_flags & FLAG_HYPHEN_AFTER)))
@@ -1938,20 +1931,7 @@ static void MatchRule(Translator *tr, char *word[], char *word_start, int group_
 					pre_ptr++;
 					command = *rule++;
 					if ((command == DOLLAR_LIST) || ((command & 0xf0) == 0x20)) {
-						// $list or $p_alt
-						// make a copy of the word up to the current character
-						ix = *word - word_start + 1;
-						memcpy(word_buf, word_start-1, ix);
-						word_buf[ix] = ' ';
-						word_buf[ix+1] = 0;
-						LookupFlags(tr, &word_buf[1], &flags);
-
-						if ((command == DOLLAR_LIST) && (flags[0] & FLAG_FOUND) && !(flags[1] & FLAG_ONLY))
-							add_points = 23;
-						else if (flags[0] & (1 << (BITNUM_FLAG_ALT + (command & 0xf))))
-							add_points = 23;
-						else
-							failed = 1;
+						DollarRule(word, word_start, consumed, group_length, word_buf, tr, command, &failed, &add_points);
 					}
 					break;
 				case RULE_SYLLABLE:
@@ -2121,6 +2101,7 @@ int TranslateRules(Translator *tr, char *p_start, char *phonemes, int ph_size, c
 	int ix;
 	unsigned int digit_count = 0;
 	char *p;
+	char word_buf[5];
 	const ALPHABET *alphabet;
 	int dict_flags0 = 0;
 	MatchRecord match1 = { 0 };
@@ -2277,12 +2258,12 @@ int TranslateRules(Translator *tr, char *p_start, char *phonemes, int ph_size, c
 
 						if (((alphabet = AlphabetFromChar(letter)) != NULL)  && (alphabet->offset != tr->letter_bits_offset)) {
 							if (tr->langopts.alt_alphabet == alphabet->offset) {
-								sprintf(phonemes, "%c%s", phonSWITCH, WordToString2(tr->langopts.alt_alphabet_lang));
+								sprintf(phonemes, "%c%s", phonSWITCH, WordToString2(word_buf, tr->langopts.alt_alphabet_lang));
 								return 0;
 							}
 							if (alphabet->flags & AL_WORDS) {
 								// switch to the nominated language for this alphabet
-								sprintf(phonemes, "%c%s", phonSWITCH, WordToString2(alphabet->language));
+								sprintf(phonemes, "%c%s", phonSWITCH, WordToString2(word_buf, alphabet->language));
 								return 0;
 							}
 						}
@@ -2763,6 +2744,11 @@ int LookupDictList(Translator *tr, char **wordptr, char *ph_out, unsigned int *f
 	while ((word2[nbytes = utf8_nbytes(word2)] == ' ') && (word2[nbytes+1] == '.')) {
 		// look for an abbreviation of the form a.b.c
 		// try removing the spaces between the dots and looking for a match
+		if (length + 1 > sizeof(word)) {
+			/* Too long abbreviation, leave as it is */
+			length = 0;
+			break;
+		}
 		memcpy(&word[length], word2, nbytes);
 		length += nbytes;
 		word[length++] = '.';
@@ -2773,14 +2759,16 @@ int LookupDictList(Translator *tr, char **wordptr, char *ph_out, unsigned int *f
 		nbytes = 0;
 		while (((c = word2[nbytes]) != 0) && (c != ' '))
 			nbytes++;
-		memcpy(&word[length], word2, nbytes);
-		word[length+nbytes] = 0;
-		found =  LookupDict2(tr, word, word2, ph_out, flags, end_flags, wtab);
-		if (found) {
-			// set the skip words flag
-			flags[0] |= FLAG_SKIPWORDS;
-			dictionary_skipwords = length;
-			return 1;
+		if (length + nbytes + 1 <= sizeof(word)) {
+			memcpy(&word[length], word2, nbytes);
+			word[length+nbytes] = 0;
+			found =  LookupDict2(tr, word, word2, ph_out, flags, end_flags, wtab);
+			if (found) {
+				// set the skip words flag
+				flags[0] |= FLAG_SKIPWORDS;
+				dictionary_skipwords = length;
+				return 1;
+			}
 		}
 	}
 
@@ -2904,7 +2892,7 @@ int Lookup(Translator *tr, const char *word, char *ph_out)
 	return flags0;
 }
 
-static int LookupFlags(Translator *tr, const char *word, unsigned int **flags_out)
+static int LookupFlags(Translator *tr, const char *word, unsigned int flags_out[2])
 {
 	char buf[100];
 	static unsigned int flags[2];
@@ -2912,7 +2900,8 @@ static int LookupFlags(Translator *tr, const char *word, unsigned int **flags_ou
 
 	flags[0] = flags[1] = 0;
 	LookupDictList(tr, &word1, buf, flags, 0, NULL);
-	*flags_out = flags;
+	flags_out[0] = flags[0];
+	flags_out[1] = flags[1];
 	return flags[0];
 }
 
@@ -2952,6 +2941,7 @@ int RemoveEnding(Translator *tr, char *word, int end_type, char *word_copy)
 			*word_end = 'e';
 	}
 	i = word_end - word;
+	if (i >= N_WORD_BYTES) i = N_WORD_BYTES-1;
 
 	if (word_copy != NULL) {
 		memcpy(word_copy, word, i);
@@ -3039,4 +3029,22 @@ int RemoveEnding(Translator *tr, char *word, int end_type, char *word_copy)
 		end_flags &= ~FLAG_SUFX; // don't consider 's as an added suffix
 
 	return end_flags;
+}
+
+static void DollarRule(char *word[], char *word_start, int consumed, int group_length, char *word_buf, Translator *tr, int command, int *failed, int *add_points) {
+	// $list or $p_alt
+	// make a copy of the word up to the post-match characters
+	int ix = *word - word_start + consumed + group_length + 1;
+	memcpy(word_buf, word_start-1, ix);
+	word_buf[ix] = ' ';
+	word_buf[ix+1] = 0;
+	unsigned int flags[2];
+	LookupFlags(tr, &word_buf[1], flags);
+
+	if ((command == DOLLAR_LIST) && (flags[0] & FLAG_FOUND) && !(flags[1] & FLAG_ONLY))
+		*add_points = 23;
+	else if (flags[0] & (1 << (BITNUM_FLAG_ALT + (command & 0xf))))
+		*add_points = 23;
+	else
+		*failed = 1;
 }

@@ -116,7 +116,7 @@ void DeleteTranslator(Translator *tr)
 {
 	if (!tr) return;
 
-	if (tr->data_dictlist != NULL && !tr->data_dictlist_is_mapped)
+	if (tr->data_dictlist != NULL)
 		free(tr->data_dictlist);
 	free(tr);
 }
@@ -231,7 +231,7 @@ static int CountSyllables(unsigned char *phonemes)
 	return count;
 }
 
-static void Word_EmbeddedCmd()
+static void Word_EmbeddedCmd(void)
 {
 	// Process embedded commands for emphasis, sayas, and break
 	int embedded_cmd;
@@ -902,7 +902,7 @@ static int TranslateChar(Translator *tr, char *ptr, int prev_in, unsigned int c,
 	return SubstituteChar(tr, c, next_in, ptr, insert, wordflags);
 }
 
-static const char *UCase_ga[] = { "bp", "bhf", "dt", "gc", "hA", "mb", "nd", "ng", "ts", "tA", "nA", NULL };
+static const char *const UCase_ga[] = { "bp", "bhf", "dt", "gc", "hA", "mb", "nd", "ng", "ts", "tA", "nA", NULL };
 
 static int UpperCaseInWord(Translator *tr, char *word, int c)
 {
@@ -925,10 +925,13 @@ static int UpperCaseInWord(Translator *tr, char *word, int c)
 	return 0;
 }
 
-void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
+// Same as TranslateClause except we also get the clause terminator used (full stop, comma, etc.).
+// Used by espeak_TextToPhonemesWithTerminator.
+void TranslateClauseWithTerminator(Translator *tr, int *tone_out, char **voice_change, int *terminator_out)
 {
 	if (tr == NULL)
 		return;
+	ESPK_LOG("-> TranslateClause\n");
 
 	int ix;
 	int c;
@@ -999,6 +1002,10 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 		charix[ix] = 0;
 	MAKE_MEM_UNDEFINED(&source, sizeof(source));
 	terminator = ReadClause(tr, source, charix, &charix_top, N_TR_SOURCE, &tone, voice_change_name);
+
+	if (terminator_out != NULL) {
+		*terminator_out = terminator;
+	}
 
 	if (tone_out != NULL) {
 		if (tone == 0)
@@ -1282,7 +1289,8 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 					} else {
 						if (iswlower(prev_in)) {
 							// lower case followed by upper case, possibly CamelCase
-							if (UpperCaseInWord(tr, &sbuf[ix], c) == 0) { // start a new word
+							if ((prev_out != ' ') && UpperCaseInWord(tr, &sbuf[ix], c) == 0)
+							{ // start a new word
 								c = ' ';
 								space_inserted = true;
 								prev_in_save = c;
@@ -1293,7 +1301,7 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 
 							if ((tr->translator_name == L('n', 'l')) && (letter_count == 2) && (c == 'j') && (prev_in == 'I')) {
 								// Dutch words may capitalise initial IJ, don't split
-							} else if (IsAlpha(next2_in)) {
+							} else if ((prev_out != ' ') && IsAlpha(next2_in)) {
 								// changing from upper to lower case, start new word at the last uppercase, if 3 or more letters
 								c = ' ';
 								space_inserted = true;
@@ -1619,6 +1627,7 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 			if (dict_flags & FLAG_SPELLWORD) {
 				// redo the word, speaking single letters
 				for (pw = word; *pw != ' ';) {
+					memset(number_buf, 0, sizeof(number_buf));
 					memset(number_buf, ' ', 9);
 					nx = utf8_in(&c_temp, pw);
 					memcpy(&number_buf[2], pw, nx);
@@ -1691,6 +1700,12 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 	if (num_wtab)
 		free(num_wtab);
 #endif
+	ESPK_LOG("<- TranslateClause\n");
+}
+
+void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
+{
+	TranslateClauseWithTerminator(tr, tone_out, voice_change, NULL);
 }
 
 static int CalcWordLength(int source_index, int charix_top, short int *charix, WORD_TAB *words, int word_count) {
