@@ -249,6 +249,14 @@
 #  define ESPEAK_LOGGING 1
 #endif
 
+// Enable the audio_object_*() calls in speech.c: our arduino/audio_object.h
+// and arduino/audio_audiotools_i2s.cpp provide an Arduino-specific
+// implementation of these functions (not the real libpcaudio), but upstream
+// only calls them when USE_LIBPCAUDIO is set.
+#ifndef USE_LIBPCAUDIO
+#  define USE_LIBPCAUDIO 1
+#endif
+
 #if ESPEAK_STACK_HACK
 #  define STACK_T static
 #  include <assert.h>
