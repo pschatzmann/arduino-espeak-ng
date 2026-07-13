@@ -50,7 +50,7 @@
 int mbrola_delay;
 char mbrola_name[20];
 
-#ifdef INCLUDE_MBROLA
+#if USE_MBROLA
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
@@ -61,6 +61,16 @@ char mbrola_name[20];
 static MBROLA_TAB *mbrola_tab = NULL;
 static int mbrola_control = 0;
 static int mbr_name_prefix = 0;
+
+static const char *system_data_dirs(void)
+{
+	// XDG Base Directory Specification
+	// https://specifications.freedesktop.org/basedir-spec/basedir-spec-0.6.html#variables
+	const char *dirs = getenv("XDG_DATA_DIRS");
+	if (dirs)
+		return dirs;
+	return "/usr/local/share:/usr/share";
+}
 
 espeak_ng_STATUS LoadMbrolaTable(const char *mbrola_voice, const char *phtrans, int *srate)
 {
@@ -77,7 +87,7 @@ espeak_ng_STATUS LoadMbrolaTable(const char *mbrola_voice, const char *phtrans, 
 	mbr_name_prefix = 0;
 
 	if (mbrola_voice == NULL) {
-		samplerate = samplerate_native;
+		samplerate = samplerate;
 		SetParameter(espeakVOICETYPE, 0, 0);
 		return ENS_OK;
 	}
@@ -86,31 +96,50 @@ espeak_ng_STATUS LoadMbrolaTable(const char *mbrola_voice, const char *phtrans, 
 		return ENS_MBROLA_NOT_FOUND;
 
 	sprintf(path, "%s/mbrola/%s", path_home, mbrola_voice);
-#ifdef PLATFORM_POSIX
+#if PLATFORM_POSIX
 	// if not found, then also look in
-	//   usr/share/mbrola/xx, /usr/share/mbrola/xx/xx, /usr/share/mbrola/voices/xx
+	//   $data_dir/mbrola/xx, $data_dir/mbrola/xx/xx, $data_dir/mbrola/voices/xx
+	char *data_dirs = strdup(system_data_dirs());
+	char *data_dir = strtok(data_dirs, ":");
+	bool found = false;
 	if (GetFileLength(path) <= 0) {
-		sprintf(path, "/usr/share/mbrola/%s", mbrola_voice);
-
-		if (GetFileLength(path) <= 0) {
-			sprintf(path, "/usr/share/mbrola/%s/%s", mbrola_voice, mbrola_voice);
-
-			if (GetFileLength(path) <= 0)
-				sprintf(path, "/usr/share/mbrola/voices/%s", mbrola_voice);
-
-			// Show error message
-			if (GetFileLength(path) <= 0) {
-				fprintf(stderr, "Cannot find MBROLA voice file '%s' in neither of paths:\n"
-						" - /usr/share/mbrola/%s\n"
-						" - /usr/share/mbrola/%s/%s\n"
-						" - /usr/share/mbrola/voices/%s\n"
-						"Please install necessary MBROLA voice!\n",
-						mbrola_voice, mbrola_voice, mbrola_voice, mbrola_voice, mbrola_voice);
-				// Set path back to simple name, otherwise it shows misleading error only for
-				// last unsuccessfully searched path
-				sprintf(path, "%s", mbrola_voice);
+		while(data_dir) {
+			sprintf(path, "%s/mbrola/%s", data_dir, mbrola_voice);
+			if (GetFileLength(path) > 0) {
+				found = true;
+				break;
 			}
+
+			sprintf(path, "%s/mbrola/%s/%s", data_dir, mbrola_voice, mbrola_voice);
+			if (GetFileLength(path) > 0) {
+				found = true;
+				break;
+			}
+
+			sprintf(path, "%s/mbrola/voices/%s", data_dir, mbrola_voice);
+			if (GetFileLength(path) > 0) {
+				found = true;
+				break;
+			}
+
+			data_dir = strtok(NULL, ":");
 		}
+	} else {
+		found = true;
+	}
+	// Show error message
+	if (!found) {
+		fprintf(stderr, "Cannot find MBROLA voice file '%s' in neither of paths:\n"
+				" - $data_dir/mbrola/%s\n"
+				" - $data_dir/mbrola/%s/%s\n"
+				" - $data_dir/mbrola/voices/%s\n"
+				"for any data_dir in XDG_DATA_DIRS=%s\n"
+				"Please install necessary MBROLA voice!\n",
+				mbrola_voice, mbrola_voice, mbrola_voice, mbrola_voice, mbrola_voice,
+				system_data_dirs());
+		// Set path back to simple name, otherwise it shows misleading error only for
+		// last unsuccessfully searched path
+		sprintf(path, "%s", mbrola_voice);
 	}
 	close_MBR();
 #endif
@@ -164,7 +193,7 @@ static int GetMbrName(PHONEME_LIST *plist, PHONEME_TAB *ph, PHONEME_TAB *ph_prev
 	MBROLA_TAB *pr;
 	PHONEME_TAB *other_ph;
 	bool found = false;
-	static int mnem;
+	int mnem;
 
 	// control
 	// bit 0  skip the next phoneme
@@ -241,7 +270,7 @@ static char *WritePitch(int env, int pitch1, int pitch2, int split, int final)
 	int pitch_base;
 	int pitch_range;
 	int p1, p2, p_end;
-	unsigned char *pitch_env;
+	const unsigned char *pitch_env;
 	int max = -1;
 	int min = 999;
 	int y_max = 0;
@@ -350,6 +379,7 @@ int MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume, FILE *f_mb
 	const char *final_pitch;
 	char *ptr;
 	char mbr_buf[120];
+	char phbuf[5];
 
 	static int phix;
 	static int embedded_ix;
@@ -405,7 +435,7 @@ int MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume, FILE *f_mb
 			DoPhonemeMarker(espeakEVENT_PHONEME, (p->sourceix & 0x7ff) + clause_start_char, 0, phoneme_name);
 		}
 
-		ptr += sprintf(ptr, "%s\t", WordToString(name));
+		ptr += sprintf(ptr, "%s\t", WordToString(phbuf, name));
 
 		if (name2 == '_') {
 			// add a pause after this phoneme
@@ -438,7 +468,7 @@ int MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume, FILE *f_mb
 				ptr += sprintf(ptr, "%d\t%s", len1, pitch);
 
 				pitch = WritePitch(p->env, p->pitch1, p->pitch2, -len_percent, 0);
-				ptr += sprintf(ptr, "%s\t%d\t%s", WordToString(name2), len-len1, pitch);
+				ptr += sprintf(ptr, "%s\t%d\t%s", WordToString(phbuf, name2), len-len1, pitch);
 			}
 			done = true;
 			break;
@@ -490,7 +520,7 @@ int MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume, FILE *f_mb
 		if (!done) {
 			if (name2 != 0) {
 				len1 = (len * len_percent)/100;
-				ptr += sprintf(ptr, "%d\n%s\t", len1, WordToString(name2));
+				ptr += sprintf(ptr, "%d\n%s\t", len1, WordToString(phbuf, name2));
 				len -= len1;
 			}
 			ptr += sprintf(ptr, "%d%s\n", len, final_pitch);

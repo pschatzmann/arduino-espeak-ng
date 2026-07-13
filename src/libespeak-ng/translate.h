@@ -271,7 +271,7 @@ typedef struct {
 typedef struct {
 	const char *name;
 	int offset;
-	unsigned short range_min, range_max;
+	unsigned int range_min, range_max;
 	int language;
 	int flags;
 } ALPHABET;
@@ -431,8 +431,8 @@ typedef struct {
 	int unstressed_wd1; // stress for $u word of 1 syllable
 	int unstressed_wd2; // stress for $u word of >1 syllable
 	int param[N_LOPTS];
-	unsigned char *length_mods;
-	unsigned char *length_mods0;
+	const unsigned char *length_mods;
+	const unsigned char *length_mods0;
 
 #define NUM_DEFAULT           0x00000001 // enable number processing; use if no other NUM_ option is specified
 #define NUM_THOUS_SPACE       0x00000004 // thousands separator must be space
@@ -574,7 +574,6 @@ typedef struct {
 
 	char *data_dictrules;     // language_1   translation rules file
 	char *data_dictlist;      // language_2   dictionary lookup file
-	bool data_dictlist_is_mapped;
 	char *dict_hashtab[N_HASH_DICT];   // hash table to index dictionary lookup file
 	char *letterGroups[N_LETTER_GROUPS];
 
@@ -650,9 +649,6 @@ extern char dictionary_name[40];
 extern espeak_ng_TEXT_DECODER *p_decoder;
 extern int dictionary_skipwords;
 
-extern int (*uri_callback)(int, const char *, const char *);
-extern int (*phoneme_callback)(const char *);
-
 #define LEADING_2_BITS 0xC0 // 0b11000000
 #define UTF8_TAIL_BITS 0x80 // 0b10000000
 
@@ -673,6 +669,7 @@ void print_dictionary_flags(unsigned int *flags, char *buf, int buf_len);
 
 int TranslateWord(Translator *tr, char *word1, WORD_TAB *wtab, char *word_out);
 void TranslateClause(Translator *tr, int *tone, char **voice_change);
+void TranslateClauseWithTerminator(Translator *tr, int *tone_out, char **voice_change, int *terminator_out);
 
 void SetVoiceStack(espeak_VOICE *v, const char *variant_name);
 

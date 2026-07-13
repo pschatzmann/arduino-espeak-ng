@@ -59,9 +59,10 @@
 #define OFFSET_GEORGIAN 0x10a0
 #define OFFSET_KOREAN   0x1100
 #define OFFSET_ETHIOPIC 0x1200
+#define OFFSET_SHAVIAN  0x10450
 
 // character ranges must be listed in ascending unicode order
-const ALPHABET alphabets[] = {
+static const ALPHABET alphabets[] = {
 	{ "_el",    OFFSET_GREEK,    0x380, 0x3ff,  L('e', 'l'), AL_DONT_NAME | AL_NOT_LETTERS | AL_WORDS },
 	{ "_cyr",   OFFSET_CYRILLIC, 0x400, 0x52f,  0, 0 },
 	{ "_hy",    OFFSET_ARMENIAN, 0x530, 0x58f,  L('h', 'y'), AL_WORDS },
@@ -89,6 +90,7 @@ const ALPHABET alphabets[] = {
 	{ "_ja",    0x3040,          0x3040, 0x30ff, 0, AL_NOT_CODE },
 	{ "_zh",    0x3100,          0x3100, 0x9fff, 0, AL_NOT_CODE },
 	{ "_ko",    0xa700,          0xa700, 0xd7ff, L('k', 'o'), AL_NOT_CODE | AL_WORDS },
+	{ "_shaw",  OFFSET_SHAVIAN,  0x10450, 0x1047F, L('e', 'n'), 0 },
 	{ NULL, 0, 0, 0, 0, 0 }
 };
 
@@ -203,8 +205,8 @@ static const unsigned short chars_ignore_zwnj_hyphen[] = {
 	0,      0
 };
 
-const unsigned char utf8_ordinal[] = { 0xc2, 0xba, 0 }; // masculine ordinal character, UTF-8
-const unsigned char utf8_null[] = { 0 }; // null string, UTF-8
+static const unsigned char utf8_ordinal[] = { 0xc2, 0xba, 0 }; // masculine ordinal character, UTF-8
+static const unsigned char utf8_null[] = { 0 }; // null string, UTF-8
 
 static Translator *NewTranslator(void)
 {
@@ -251,7 +253,6 @@ static Translator *NewTranslator(void)
 	tr->dict_min_size = 0;
 	tr->data_dictrules = NULL; // language_1   translation rules file
 	tr->data_dictlist = NULL;  // language_2   dictionary lookup file
-	tr->data_dictlist_is_mapped = false;
 
 	tr->transpose_min = 0x60;
 	tr->transpose_max = 0x17f;
@@ -543,7 +544,7 @@ Translator *SelectTranslator(const char *name)
 	{
 		static const unsigned char stress_amps_be[8] = { 12, 10, 8, 8, 0, 0, 16, 17 };
 		static const short stress_lengths_be[8] = { 160, 140, 200, 140, 0, 0, 240, 160 };
-		static wchar_t vowels_be[] = { // offset by 0x420 -- а е ё о у ы э ю я і
+		static const wchar_t vowels_be[] = { // offset by 0x420 -- а е ё о у ы э ю я і
 			0x10, 0x15, 0x31, 0x1e, 0x23, 0x2b, 0x2d, 0x2e, 0x2f, 0x36, 0
 		};
 		static const unsigned char consonants_be[] = { // б в г д ж з й к л м н п р с т ф х ц ч ш ў
@@ -769,7 +770,7 @@ Translator *SelectTranslator(const char *name)
 		if (name2 == L('c', 'a')) {
 			// stress last syllable unless word ends with a vowel
 			tr->punct_within_word = ca_punct_within_word;
-			tr->langopts.stress_flags = S_FINAL_SPANISH | S_FINAL_DIM_ONLY | S_FINAL_NO_2 | S_NO_AUTO_2;
+			tr->langopts.stress_flags = S_FINAL_SPANISH | S_FINAL_DIM_ONLY | S_FINAL_NO_2 | S_NO_AUTO_2 | S_FIRST_PRIMARY;
 		} else if (name2 == L('i', 'a')) {
 			tr->langopts.stress_flags = S_FINAL_SPANISH | S_FINAL_DIM_ONLY | S_FINAL_NO_2;
 			tr->langopts.numbers = NUM_DECIMAL_COMMA | NUM_OMIT_1_HUNDRED | NUM_OMIT_1_THOUSAND | NUM_ROMAN | NUM_ROMAN_AFTER;
@@ -833,6 +834,17 @@ Translator *SelectTranslator(const char *name)
 
 		tr->langopts.numbers = NUM_DECIMAL_COMMA | NUM_ALLOW_SPACE | NUM_DFRACTION_2 | NUM_ORDINAL_DOT;
 		SetLetterVowel(tr, 'y');
+	}
+		break;
+	case L('f', 'o'): // Faroese
+	{
+		//static const short stress_lengths_da[8] = { 160, 140, 200, 200, 0, 0, 220, 230 };
+		//SetupTranslator(tr, stress_lengths_da, NULL);
+
+		//tr->langopts.stress_rule = STRESSPOSN_1L;
+		//tr->langopts.param[LOPT_PREFIXES] = 1;
+		//SetLetterVowel(tr, 'y');
+		tr->langopts.numbers = NUM_DECIMAL_COMMA | NUM_SWAP_TENS | NUM_HUNDRED_AND | NUM_OMIT_1_HUNDRED | NUM_ORDINAL_DOT | NUM_1900 | NUM_ROMAN | NUM_ROMAN_CAPITALS | NUM_ROMAN_ORDINAL;
 	}
 		break;
 	case L('f', 'r'): // french
@@ -1343,7 +1355,7 @@ Translator *SelectTranslator(const char *name)
 	case L('s', 'k'): // Slovak
 	case L('c', 's'): // Czech
 	{
-		static const char *sk_voiced = "bdgjlmnrvwzaeiouy";
+		static const char sk_voiced[] = "bdgjlmnrvwzaeiouy";
 
 		SetupTranslator(tr, stress_lengths_sk, stress_amps_sk);
 		tr->encoding = ESPEAKNG_ENCODING_ISO_8859_2;
@@ -1583,6 +1595,15 @@ Translator *SelectTranslator(const char *name)
 		tr->langopts.numbers = NUM_DECIMAL_COMMA | NUM_HUNDRED_AND_DIGIT | NUM_DFRACTION_4 | NUM_ZERO_HUNDRED;
 
 	}
+		
+		break;
+	case L3('x', 'e', 'x'): // Xextan
+	{
+		static const wchar_t xex_punct_within_word[] = { '\'' };
+		tr->langopts.numbers = 0; 
+		tr->langopts.lowercase_sentence = true;
+		tr->punct_within_word = xex_punct_within_word;
+}	
 		break;
 	case L3('s', 'h', 'n'):
 		tr->langopts.tone_language = 1; // Tone language, use  CalcPitches_Tone() rather than CalcPitches()
@@ -1659,4 +1680,4 @@ static void Translator_Russian(Translator *tr)
 	tr->langopts.numbers2 = NUM2_THOUSANDPLEX_VAR_THOUSANDS | NUM2_THOUSANDS_VAR1; // variant numbers before thousands
 	tr->langopts.max_digits = 32;
 	tr->langopts.max_initial_consonants = 5;
-}
+}		

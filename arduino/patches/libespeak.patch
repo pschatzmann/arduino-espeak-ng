@@ -1,9 +1,6 @@
-Only in original/src/libespeak-ng: .deps
-Only in original/src/libespeak-ng: .dirstamp
-Common subdirectories: original/src/libespeak-ng/.libs and src/libespeak-ng/.libs
 diff -c original/src/libespeak-ng/common.c src/libespeak-ng/common.c
-*** original/src/libespeak-ng/common.c	2022-11-17 19:38:04.000000000 +0100
---- src/libespeak-ng/common.c	2022-11-17 19:39:46.000000000 +0100
+*** original/src/libespeak-ng/common.c	2026-07-13 18:16:29.951400328 +0200
+--- src/libespeak-ng/common.c	2026-07-13 18:14:55.457091609 +0200
 ***************
 *** 17,23 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -22,8 +19,8 @@ diff -c original/src/libespeak-ng/common.c src/libespeak-ng/common.c
   #include <ctype.h>
   #include <errno.h>
 diff -c original/src/libespeak-ng/compiledata.c src/libespeak-ng/compiledata.c
-*** original/src/libespeak-ng/compiledata.c	2022-11-17 19:38:04.000000000 +0100
---- src/libespeak-ng/compiledata.c	2022-11-17 20:31:04.000000000 +0100
+*** original/src/libespeak-ng/compiledata.c	2026-07-13 18:16:29.951499497 +0200
+--- src/libespeak-ng/compiledata.c	2026-07-13 18:14:55.457959664 +0200
 ***************
 *** 17,23 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -59,8 +56,8 @@ diff -c original/src/libespeak-ng/compiledata.c src/libespeak-ng/compiledata.c
   #include <espeak-ng/espeak_ng.h>
   #include <espeak-ng/speak_lib.h>
 diff -c original/src/libespeak-ng/compiledict.c src/libespeak-ng/compiledict.c
-*** original/src/libespeak-ng/compiledict.c	2022-11-17 19:38:04.000000000 +0100
---- src/libespeak-ng/compiledict.c	2022-11-17 21:12:47.000000000 +0100
+*** original/src/libespeak-ng/compiledict.c	2026-07-13 18:16:29.951607860 +0200
+--- src/libespeak-ng/compiledict.c	2026-07-13 18:14:55.458703083 +0200
 ***************
 *** 18,24 ****
    *             <http://www.gnu.org/licenses/>.
@@ -78,10 +75,9 @@ diff -c original/src/libespeak-ng/compiledict.c src/libespeak-ng/compiledict.c
   
   #include <ctype.h>
   #include <errno.h>
-Only in original/src/libespeak-ng: compilembrola.c
 diff -c original/src/libespeak-ng/dictionary.c src/libespeak-ng/dictionary.c
-*** original/src/libespeak-ng/dictionary.c	2022-11-17 19:38:04.000000000 +0100
---- src/libespeak-ng/dictionary.c	2022-11-17 21:10:23.000000000 +0100
+*** original/src/libespeak-ng/dictionary.c	2026-07-13 18:16:29.951872272 +0200
+--- src/libespeak-ng/dictionary.c	2026-07-13 18:14:55.459253262 +0200
 ***************
 *** 17,23 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -100,7 +96,7 @@ diff -c original/src/libespeak-ng/dictionary.c src/libespeak-ng/dictionary.c
   #include <ctype.h>
   #include <stdint.h>
 ***************
-*** 211,238 ****
+*** 212,239 ****
   	// bytes 0-3:  offset to rules data
   	// bytes 4-7:  number of hash table entries
   	sprintf(fname, "%s%c%s_dict", path_home, PATHSEP, name);
@@ -129,7 +125,7 @@ diff -c original/src/libespeak-ng/dictionary.c src/libespeak-ng/dictionary.c
   
   	pw = (int *)(tr->data_dictlist);
   	length = Reverse4Bytes(pw[1]);
---- 211,245 ----
+--- 212,246 ----
   	// bytes 0-3:  offset to rules data
   	// bytes 4-7:  number of hash table entries
   	sprintf(fname, "%s%c%s_dict", path_home, PATHSEP, name);
@@ -166,7 +162,7 @@ diff -c original/src/libespeak-ng/dictionary.c src/libespeak-ng/dictionary.c
   	pw = (int *)(tr->data_dictlist);
   	length = Reverse4Bytes(pw[1]);
 ***************
-*** 918,924 ****
+*** 953,959 ****
   	int dflags = 0;
   	int first_primary;
   	int long_vowel;
@@ -174,7 +170,7 @@ diff -c original/src/libespeak-ng/dictionary.c src/libespeak-ng/dictionary.c
   	signed char vowel_stress[N_WORD_PHONEMES/2];
   	char syllable_weight[N_WORD_PHONEMES/2];
   	char vowel_length[N_WORD_PHONEMES/2];
---- 925,931 ----
+--- 960,966 ----
   	int dflags = 0;
   	int first_primary;
   	int long_vowel;
@@ -183,8 +179,8 @@ diff -c original/src/libespeak-ng/dictionary.c src/libespeak-ng/dictionary.c
   	char syllable_weight[N_WORD_PHONEMES/2];
   	char vowel_length[N_WORD_PHONEMES/2];
 diff -c original/src/libespeak-ng/encoding.c src/libespeak-ng/encoding.c
-*** original/src/libespeak-ng/encoding.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/encoding.c	2022-11-17 19:39:45.000000000 +0100
+*** original/src/libespeak-ng/encoding.c	2026-07-13 18:16:29.952052725 +0200
+--- src/libespeak-ng/encoding.c	2026-07-13 18:14:55.460089598 +0200
 ***************
 *** 15,21 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -203,8 +199,8 @@ diff -c original/src/libespeak-ng/encoding.c src/libespeak-ng/encoding.c
   #include <string.h>
   #include <stdint.h>
 diff -c original/src/libespeak-ng/error.c src/libespeak-ng/error.c
-*** original/src/libespeak-ng/error.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/error.c	2022-11-17 19:39:46.000000000 +0100
+*** original/src/libespeak-ng/error.c	2026-07-13 18:16:29.952149994 +0200
+--- src/libespeak-ng/error.c	2026-07-13 18:14:55.460615627 +0200
 ***************
 *** 16,22 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -223,8 +219,8 @@ diff -c original/src/libespeak-ng/error.c src/libespeak-ng/error.c
   #include <errno.h>
   #include <stdint.h>
 diff -c original/src/libespeak-ng/espeak_api.c src/libespeak-ng/espeak_api.c
-*** original/src/libespeak-ng/espeak_api.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/espeak_api.c	2022-11-17 19:39:45.000000000 +0100
+*** original/src/libespeak-ng/espeak_api.c	2026-07-13 18:16:29.952269058 +0200
+--- src/libespeak-ng/espeak_api.c	2026-07-13 18:14:55.461145854 +0200
 ***************
 *** 18,24 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -243,8 +239,8 @@ diff -c original/src/libespeak-ng/espeak_api.c src/libespeak-ng/espeak_api.c
   #include <stdint.h>
   #include <stdlib.h>
 diff -c original/src/libespeak-ng/espeak_command.c src/libespeak-ng/espeak_command.c
-*** original/src/libespeak-ng/espeak_command.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/espeak_command.c	2022-11-17 19:39:46.000000000 +0100
+*** original/src/libespeak-ng/espeak_command.c	2026-07-13 18:16:29.952332592 +0200
+--- src/libespeak-ng/espeak_command.c	2026-07-13 18:14:55.461538997 +0200
 ***************
 *** 16,22 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -263,8 +259,8 @@ diff -c original/src/libespeak-ng/espeak_command.c src/libespeak-ng/espeak_comma
   #include <assert.h>
   #include <stdlib.h>
 diff -c original/src/libespeak-ng/event.c src/libespeak-ng/event.c
-*** original/src/libespeak-ng/event.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/event.c	2022-11-17 20:31:09.000000000 +0100
+*** original/src/libespeak-ng/event.c	2026-07-13 18:16:29.952438184 +0200
+--- src/libespeak-ng/event.c	2026-07-13 18:14:55.462076061 +0200
 ***************
 *** 18,24 ****
   
@@ -300,8 +296,8 @@ diff -c original/src/libespeak-ng/event.c src/libespeak-ng/event.c
   #include <espeak-ng/espeak_ng.h>
   #include <espeak-ng/speak_lib.h>
 diff -c original/src/libespeak-ng/fifo.c src/libespeak-ng/fifo.c
-*** original/src/libespeak-ng/fifo.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/fifo.c	2022-11-17 20:31:15.000000000 +0100
+*** original/src/libespeak-ng/fifo.c	2026-07-13 18:16:29.952537425 +0200
+--- src/libespeak-ng/fifo.c	2026-07-13 18:14:55.463093741 +0200
 ***************
 *** 18,24 ****
   
@@ -337,8 +333,8 @@ diff -c original/src/libespeak-ng/fifo.c src/libespeak-ng/fifo.c
   #include <espeak-ng/espeak_ng.h>
   
 diff -c original/src/libespeak-ng/intonation.c src/libespeak-ng/intonation.c
-*** original/src/libespeak-ng/intonation.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/intonation.c	2022-11-17 21:06:12.000000000 +0100
+*** original/src/libespeak-ng/intonation.c	2026-07-13 18:16:29.952730693 +0200
+--- src/libespeak-ng/intonation.c	2026-07-13 18:14:55.464201116 +0200
 ***************
 *** 17,23 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -357,8 +353,8 @@ diff -c original/src/libespeak-ng/intonation.c src/libespeak-ng/intonation.c
   #include <stdint.h>
   #include <stdio.h>
 ***************
-*** 937,943 ****
---- 937,948 ----
+*** 933,939 ****
+--- 933,944 ----
   	PHONEME_TAB *ph;
   	int ph_end = n_phoneme_list;
   
@@ -372,7 +368,7 @@ diff -c original/src/libespeak-ng/intonation.c src/libespeak-ng/intonation.c
   	n_primary = 0;
   	for (ix = 0; ix < (n_phoneme_list-1); ix++) {
 ***************
-*** 956,966 ****
+*** 952,962 ****
   	syllable_tab[n_st].stress = 0; // extra 0 entry at the end
   
   	if (n_st == 0)
@@ -384,7 +380,7 @@ diff -c original/src/libespeak-ng/intonation.c src/libespeak-ng/intonation.c
   	}
   
   	option = tr->langopts.intonation_group;
---- 961,973 ----
+--- 957,969 ----
   	syllable_tab[n_st].stress = 0; // extra 0 entry at the end
   
   	if (n_st == 0)
@@ -399,8 +395,8 @@ diff -c original/src/libespeak-ng/intonation.c src/libespeak-ng/intonation.c
   
   	option = tr->langopts.intonation_group;
 ***************
-*** 1095,1098 ****
---- 1102,1110 ----
+*** 1091,1094 ****
+--- 1098,1106 ----
   			st_ix++;
   		}
   	}
@@ -411,8 +407,8 @@ diff -c original/src/libespeak-ng/intonation.c src/libespeak-ng/intonation.c
 + 	return;
   }
 diff -c original/src/libespeak-ng/klatt.c src/libespeak-ng/klatt.c
-*** original/src/libespeak-ng/klatt.c	2022-11-17 19:38:04.000000000 +0100
---- src/libespeak-ng/klatt.c	2022-11-17 19:39:46.000000000 +0100
+*** original/src/libespeak-ng/klatt.c	2026-07-13 18:16:29.952870667 +0200
+--- src/libespeak-ng/klatt.c	2026-07-13 18:14:55.465723057 +0200
 ***************
 *** 23,29 ****
   
@@ -431,8 +427,8 @@ diff -c original/src/libespeak-ng/klatt.c src/libespeak-ng/klatt.c
   #include <math.h>
   #include <stdint.h>
 diff -c original/src/libespeak-ng/langopts.c src/libespeak-ng/langopts.c
-*** original/src/libespeak-ng/langopts.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/langopts.c	2022-11-17 19:39:46.000000000 +0100
+*** original/src/libespeak-ng/langopts.c	2026-07-13 18:16:29.953003498 +0200
+--- src/libespeak-ng/langopts.c	2026-07-13 18:14:55.466333520 +0200
 ***************
 *** 18,24 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -450,11 +446,9 @@ diff -c original/src/libespeak-ng/langopts.c src/libespeak-ng/langopts.c
   
   #include <ctype.h>
   #include <errno.h>
-Only in original/src/libespeak-ng: mbrowrap.c
-Only in original/src/libespeak-ng: mbrowrap.h
 diff -c original/src/libespeak-ng/mnemonics.c src/libespeak-ng/mnemonics.c
-*** original/src/libespeak-ng/mnemonics.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/mnemonics.c	2022-11-17 19:39:46.000000000 +0100
+*** original/src/libespeak-ng/mnemonics.c	2026-07-13 18:16:29.953282905 +0200
+--- src/libespeak-ng/mnemonics.c	2026-07-13 18:14:55.467057890 +0200
 ***************
 *** 17,23 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -473,8 +467,8 @@ diff -c original/src/libespeak-ng/mnemonics.c src/libespeak-ng/mnemonics.c
   #include <string.h>
   
 diff -c original/src/libespeak-ng/numbers.c src/libespeak-ng/numbers.c
-*** original/src/libespeak-ng/numbers.c	2022-11-01 10:06:27.000000000 +0100
---- src/libespeak-ng/numbers.c	2022-11-17 19:39:46.000000000 +0100
+*** original/src/libespeak-ng/numbers.c	2026-07-13 18:16:29.953390295 +0200
+--- src/libespeak-ng/numbers.c	2026-07-13 18:14:55.468051143 +0200
 ***************
 *** 17,23 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -493,8 +487,8 @@ diff -c original/src/libespeak-ng/numbers.c src/libespeak-ng/numbers.c
   #include <ctype.h>
   #include <stdbool.h>
 diff -c original/src/libespeak-ng/phoneme.c src/libespeak-ng/phoneme.c
-*** original/src/libespeak-ng/phoneme.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/phoneme.c	2022-11-17 19:39:45.000000000 +0100
+*** original/src/libespeak-ng/phoneme.c	2026-07-13 18:16:29.953540515 +0200
+--- src/libespeak-ng/phoneme.c	2026-07-13 18:14:55.468802159 +0200
 ***************
 *** 15,21 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -513,10 +507,10 @@ diff -c original/src/libespeak-ng/phoneme.c src/libespeak-ng/phoneme.c
   #include <errno.h>
   #include <stdint.h>
 diff -c original/src/libespeak-ng/phonemelist.c src/libespeak-ng/phonemelist.c
-*** original/src/libespeak-ng/phonemelist.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/phonemelist.c	2022-11-17 21:04:05.000000000 +0100
+*** original/src/libespeak-ng/phonemelist.c	2026-07-13 18:16:29.953646709 +0200
+--- src/libespeak-ng/phonemelist.c	2026-07-13 18:15:32.962314771 +0200
 ***************
-*** 17,23 ****
+*** 17,24 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
    */
   
@@ -524,19 +518,22 @@ diff -c original/src/libespeak-ng/phonemelist.c src/libespeak-ng/phonemelist.c
   
   #include <stdbool.h>
   #include <stdint.h>
---- 17,23 ----
+  #include <stdio.h>
+--- 17,25 ----
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
    */
   
 ! #include "config-espk.h"
   
++ #include <assert.h>
   #include <stdbool.h>
   #include <stdint.h>
+  #include <stdio.h>
 ***************
-*** 136,153 ****
+*** 135,152 ****
+  	int alternative;
+  	int delete_count;
   	int word_start;
-  	bool inserted;
-  	bool deleted;
 - 	PHONEME_DATA phdata;
   	bool start_of_clause = true;
   
@@ -553,9 +550,9 @@ diff -c original/src/libespeak-ng/phonemelist.c src/libespeak-ng/phonemelist.c
   	phlist = phoneme_list;
   	end_sourceix = plist2[n_ph_list2-1].sourceix;
 --- 136,159 ----
+  	int alternative;
+  	int delete_count;
   	int word_start;
-  	bool inserted;
-  	bool deleted;
   	bool start_of_clause = true;
   
   	int n_ph_list3;
@@ -573,13 +570,13 @@ diff -c original/src/libespeak-ng/phonemelist.c src/libespeak-ng/phonemelist.c
 ! 	STACK_T PHONEME_DATA phdata;
 ! 	STACK_T WORD_PH_DATA worddata;
 ! 	memset(&worddata, 0, sizeof(WORD_PH_DATA));
-! 	
+! 
   	plist2 = ph_list2;
   	phlist = phoneme_list;
   	end_sourceix = plist2[n_ph_list2-1].sourceix;
 ***************
-*** 593,596 ****
---- 599,607 ----
+*** 498,503 ****
+--- 505,515 ----
   	n_phoneme_list = ix;
   
   	SelectPhonemeTable(tr->phoneme_tab_ix);
@@ -589,9 +586,11 @@ diff -c original/src/libespeak-ng/phonemelist.c src/libespeak-ng/phonemelist.c
 + 		free(ph_list3);
 + #endif
   }
+  
+  static void SetRegressiveVoicing(int regression, PHONEME_LIST2 *plist2, PHONEME_TAB *ph, Translator *tr) {
 diff -c original/src/libespeak-ng/readclause.c src/libespeak-ng/readclause.c
-*** original/src/libespeak-ng/readclause.c	2022-11-13 17:02:43.000000000 +0100
---- src/libespeak-ng/readclause.c	2022-11-17 20:31:21.000000000 +0100
+*** original/src/libespeak-ng/readclause.c	2026-07-13 18:16:29.953775370 +0200
+--- src/libespeak-ng/readclause.c	2026-07-13 18:14:55.470723828 +0200
 ***************
 *** 17,23 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -626,28 +625,9 @@ diff -c original/src/libespeak-ng/readclause.c src/libespeak-ng/readclause.c
   #include <wchar.h>
   #include <wctype.h>
   
-***************
-*** 38,44 ****
-  
-  #include "readclause.h"
-  #include "common.h"               // for GetFileLength, strncpy0
-! #include "config.h"               // for HAVE_MKSTEMP
-  #include "dictionary.h"           // for LookupDictList, DecodePhonemes, Set...
-  #include "error.h"                // for create_file_error_context
-  #include "phoneme.h"              // for phonSWITCH
---- 38,44 ----
-  
-  #include "readclause.h"
-  #include "common.h"               // for GetFileLength, strncpy0
-! #include "config-espk.h"               // for HAVE_MKSTEMP
-  #include "dictionary.h"           // for LookupDictList, DecodePhonemes, Set...
-  #include "error.h"                // for create_file_error_context
-  #include "phoneme.h"              // for phonSWITCH
-Only in original/src/libespeak-ng: sPlayer.c
-Only in original/src/libespeak-ng: sPlayer.h
 diff -c original/src/libespeak-ng/setlengths.c src/libespeak-ng/setlengths.c
-*** original/src/libespeak-ng/setlengths.c	2022-11-17 19:38:04.000000000 +0100
---- src/libespeak-ng/setlengths.c	2022-11-17 19:39:45.000000000 +0100
+*** original/src/libespeak-ng/setlengths.c	2026-07-13 18:16:29.955017909 +0200
+--- src/libespeak-ng/setlengths.c	2026-07-13 18:14:55.472218227 +0200
 ***************
 *** 17,23 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -666,8 +646,8 @@ diff -c original/src/libespeak-ng/setlengths.c src/libespeak-ng/setlengths.c
   #include <errno.h>
   #include <stdint.h>
 diff -c original/src/libespeak-ng/soundicon.c src/libespeak-ng/soundicon.c
-*** original/src/libespeak-ng/soundicon.c	2022-11-01 10:06:27.000000000 +0100
---- src/libespeak-ng/soundicon.c	2022-11-17 20:31:27.000000000 +0100
+*** original/src/libespeak-ng/soundicon.c	2026-07-13 18:16:29.955197890 +0200
+--- src/libespeak-ng/soundicon.c	2026-07-13 18:14:55.472831176 +0200
 ***************
 *** 18,24 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -703,8 +683,8 @@ diff -c original/src/libespeak-ng/soundicon.c src/libespeak-ng/soundicon.c
   #include <espeak-ng/espeak_ng.h>
   #include <espeak-ng/speak_lib.h>
 diff -c original/src/libespeak-ng/spect.c src/libespeak-ng/spect.c
-*** original/src/libespeak-ng/spect.c	2022-11-04 19:17:03.000000000 +0100
---- src/libespeak-ng/spect.c	2022-11-17 20:59:41.000000000 +0100
+*** original/src/libespeak-ng/spect.c	2026-07-13 18:16:29.955298462 +0200
+--- src/libespeak-ng/spect.c	2026-07-13 18:15:52.819180367 +0200
 ***************
 *** 17,23 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -723,21 +703,25 @@ diff -c original/src/libespeak-ng/spect.c src/libespeak-ng/spect.c
   #include <errno.h>
   #include <math.h>
 ***************
-*** 25,31 ****
---- 25,35 ----
-  #include <stdio.h>
-  #include <stdlib.h>
-  #include <string.h>
-+ // for BYTE_ORDER, BIG_ENDIAN
-+ #if HAVE_ENDIAN_H
-  #include <endian.h>
-+ #endif
-+ 
+*** 28,34 ****
   
-  #include <espeak-ng/espeak_ng.h>
-  #include <espeak-ng/speak_lib.h>
+  #ifdef HAVE_SYS_ENDIAN_H
+  #include <sys/endian.h>
+! #else
+  #include <endian.h>
+  #endif
+  
+--- 28,35 ----
+  
+  #ifdef HAVE_SYS_ENDIAN_H
+  #include <sys/endian.h>
+! #elif HAVE_ENDIAN_H
+! // for BYTE_ORDER, BIG_ENDIAN
+  #include <endian.h>
+  #endif
+  
 ***************
-*** 210,218 ****
+*** 213,221 ****
   	float total = 0;
   	int maxh;
   	int height;
@@ -764,7 +748,7 @@ diff -c original/src/libespeak-ng/spect.c src/libespeak-ng/spect.c
   		height = (frame->peaks[h].pkheight * seq_amplitude * frame->amp_adjust)/10000;
   		wpeaks[h].height = height << 8;
 ***************
-*** 226,231 ****
+*** 229,234 ****
 --- 236,246 ----
   	for (h = 1; h < maxh; h++)
   		total += ((htab[h] * htab[h]) >> 10);
@@ -778,8 +762,8 @@ diff -c original/src/libespeak-ng/spect.c src/libespeak-ng/spect.c
   }
   
 diff -c original/src/libespeak-ng/speech.c src/libespeak-ng/speech.c
-*** original/src/libespeak-ng/speech.c	2022-11-17 19:38:04.000000000 +0100
---- src/libespeak-ng/speech.c	2022-11-17 20:58:26.000000000 +0100
+*** original/src/libespeak-ng/speech.c	2026-07-13 18:16:29.955408208 +0200
+--- src/libespeak-ng/speech.c	2026-07-13 18:14:55.474607190 +0200
 ***************
 *** 17,23 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -805,7 +789,7 @@ diff -c original/src/libespeak-ng/speech.c src/libespeak-ng/speech.c
 ! #include <unistd.h>
   #include <wchar.h>
   
-  #ifdef HAVE_PCAUDIOLIB_AUDIO_H
+  #if USE_LIBPCAUDIO
 --- 30,36 ----
   #include <string.h>
   #include <sys/stat.h>
@@ -813,9 +797,9 @@ diff -c original/src/libespeak-ng/speech.c src/libespeak-ng/speech.c
 ! //#include <unistd.h>
   #include <wchar.h>
   
-  #ifdef HAVE_PCAUDIOLIB_AUDIO_H
+  #if USE_LIBPCAUDIO
 ***************
-*** 337,343 ****
+*** 335,341 ****
   		return;
   #endif
   
@@ -823,7 +807,7 @@ diff -c original/src/libespeak-ng/speech.c src/libespeak-ng/speech.c
   }
   
   const int param_defaults[N_SPEECH_PARAM] = {
---- 337,343 ----
+--- 335,341 ----
   		return;
   #endif
   
@@ -832,8 +816,8 @@ diff -c original/src/libespeak-ng/speech.c src/libespeak-ng/speech.c
   
   const int param_defaults[N_SPEECH_PARAM] = {
 diff -c original/src/libespeak-ng/speech.h src/libespeak-ng/speech.h
-*** original/src/libespeak-ng/speech.h	2022-10-28 18:10:33.000000000 +0200
---- src/libespeak-ng/speech.h	2022-11-17 20:57:29.000000000 +0100
+*** original/src/libespeak-ng/speech.h	2026-07-13 18:16:29.955478238 +0200
+--- src/libespeak-ng/speech.h	2026-07-13 18:14:55.475402201 +0200
 ***************
 *** 20,26 ****
   #ifndef ESPEAK_NG_SPEECH_H
@@ -856,8 +840,8 @@ diff -c original/src/libespeak-ng/speech.h src/libespeak-ng/speech.h
   
   #if defined(__has_feature)
 diff -c original/src/libespeak-ng/ssml.c src/libespeak-ng/ssml.c
-*** original/src/libespeak-ng/ssml.c	2022-11-13 17:02:43.000000000 +0100
---- src/libespeak-ng/ssml.c	2022-11-17 20:31:40.000000000 +0100
+*** original/src/libespeak-ng/ssml.c	2026-07-13 18:16:29.955528043 +0200
+--- src/libespeak-ng/ssml.c	2026-07-13 18:14:55.475888264 +0200
 ***************
 *** 19,25 ****
    */
@@ -892,29 +876,9 @@ diff -c original/src/libespeak-ng/ssml.c src/libespeak-ng/ssml.c
   #include <wchar.h>
   #include <wctype.h>
   
-diff -c original/src/libespeak-ng/synth_mbrola.c src/libespeak-ng/synth_mbrola.c
-*** original/src/libespeak-ng/synth_mbrola.c	2022-10-27 18:30:17.000000000 +0200
---- src/libespeak-ng/synth_mbrola.c	2022-11-17 19:39:46.000000000 +0100
-***************
-*** 17,23 ****
-   * along with this program; if not, see: <http://www.gnu.org/licenses/>.
-   */
-  
-! #include "config.h"
-  
-  #include <ctype.h>
-  #include <errno.h>
---- 17,23 ----
-   * along with this program; if not, see: <http://www.gnu.org/licenses/>.
-   */
-  
-! #include "config-espk.h"
-  
-  #include <ctype.h>
-  #include <errno.h>
 diff -c original/src/libespeak-ng/synthdata.c src/libespeak-ng/synthdata.c
-*** original/src/libespeak-ng/synthdata.c	2022-11-17 19:38:04.000000000 +0100
---- src/libespeak-ng/synthdata.c	2022-11-17 20:55:49.000000000 +0100
+*** original/src/libespeak-ng/synthdata.c	2026-07-13 18:16:29.955713040 +0200
+--- src/libespeak-ng/synthdata.c	2026-07-13 18:16:07.624358012 +0200
 ***************
 *** 17,23 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -933,43 +897,51 @@ diff -c original/src/libespeak-ng/synthdata.c src/libespeak-ng/synthdata.c
   #include <ctype.h>
   #include <errno.h>
 ***************
-*** 72,99 ****
+*** 72,107 ****
   	char buf[sizeof(path_home)+40];
   
   	sprintf(buf, "%s%c%s", path_home, PATHSEP, fname);
 - 	length = GetFileLength(buf);
 - 	if (length < 0) // length == -errno
 - 		return create_file_error_context(context, -length, buf);
-  
-! 	if ((f_in = fopen(buf, "rb")) == NULL)
-! 		return create_file_error_context(context, errno, buf);
-! 
-! 	if (*ptr != NULL)
-! 		free(*ptr);
-  
-- 	if ((*ptr = malloc(length)) == NULL) {
-  		fclose(f_in);
-- 		return ENOMEM;
-  	}
-- 	if (fread(*ptr, 1, length, f_in) != length) {
-- 		int error = errno;
-- 		fclose(f_in);
+- 
+- 	if ((f_in = fopen(buf, "rb")) == NULL)
+- 		return create_file_error_context(context, errno, buf);
+- 
+- 	if (*ptr != NULL) {
 - 		free(*ptr);
-- 		return create_file_error_context(context, error, buf);
+- 		*ptr = NULL;
 - 	}
+- 	
+- 	if (length == 0) {
+- 		*ptr = NULL;
+- 		return 0;
+- 	}
+  
+! 	if ((*ptr = malloc(length)) == NULL) {
+! 		fclose(f_in);
+! 		return ENOMEM;
+! 	}
+! 	if (fread(*ptr, 1, length, f_in) != length) {
+! 		int error = errno;
+  		fclose(f_in);
+- 		free(*ptr);
+- 		*ptr = NULL;
+- 		return create_file_error_context(context, error, buf);
+  	}
 - 
 - 	fclose(f_in);
   	if (size != NULL)
   		*size = length;
   	return ENS_OK;
---- 72,107 ----
+--- 72,119 ----
   	char buf[sizeof(path_home)+40];
   
   	sprintf(buf, "%s%c%s", path_home, PATHSEP, fname);
   
 ! 	// Arduino memory hack using mem_map from https://github.com/pschatzmann/arduino-posix-fs
 ! 	void* ptmp = espeak_mem_map(buf, &length);
-! 	if (ptmp!=NULL){
+! 	if (ptmp != NULL) {
 ! 		if (*ptr != NULL)
 ! 			free(*ptr);
 ! 		*ptr = ptmp;
@@ -977,11 +949,22 @@ diff -c original/src/libespeak-ng/synthdata.c src/libespeak-ng/synthdata.c
 ! 		length = GetFileLength(buf);
 ! 		if (length < 0) // length == -errno
 ! 			return create_file_error_context(context, -length, buf);
+! 
 ! 		if ((f_in = fopen(buf, "rb")) == NULL)
 ! 			return create_file_error_context(context, errno, buf);
 ! 
-! 		if (*ptr != NULL)
+! 		if (*ptr != NULL) {
 ! 			free(*ptr);
+! 			*ptr = NULL;
+! 		}
+! 
+! 		if (length == 0) {
+! 			*ptr = NULL;
+! 			fclose(f_in);
+! 			if (size != NULL)
+! 				*size = length;
+! 			return 0;
+! 		}
 ! 
 ! 		if ((*ptr = malloc(length)) == NULL) {
 ! 			fclose(f_in);
@@ -991,17 +974,18 @@ diff -c original/src/libespeak-ng/synthdata.c src/libespeak-ng/synthdata.c
 ! 			int error = errno;
 ! 			fclose(f_in);
 ! 			free(*ptr);
+! 			*ptr = NULL;
 ! 			return create_file_error_context(context, error, buf);
 ! 		}
-  
+! 
   		fclose(f_in);
   	}
   	if (size != NULL)
   		*size = length;
   	return ENS_OK;
 diff -c original/src/libespeak-ng/synthesize.c src/libespeak-ng/synthesize.c
-*** original/src/libespeak-ng/synthesize.c	2022-11-01 10:06:27.000000000 +0100
---- src/libespeak-ng/synthesize.c	2022-11-17 19:39:45.000000000 +0100
+*** original/src/libespeak-ng/synthesize.c	2026-07-13 18:16:29.955848737 +0200
+--- src/libespeak-ng/synthesize.c	2026-07-13 18:14:55.479496596 +0200
 ***************
 *** 17,23 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -1019,29 +1003,29 @@ diff -c original/src/libespeak-ng/synthesize.c src/libespeak-ng/synthesize.c
   
   #include <ctype.h>
   #include <errno.h>
-diff -c original/src/libespeak-ng/tr_languages.c src/libespeak-ng/tr_languages.c
-*** original/src/libespeak-ng/tr_languages.c	2022-11-17 19:38:04.000000000 +0100
---- src/libespeak-ng/tr_languages.c	2022-11-17 19:39:45.000000000 +0100
+diff -c original/src/libespeak-ng/synth_mbrola.c src/libespeak-ng/synth_mbrola.c
+*** original/src/libespeak-ng/synth_mbrola.c	2026-07-13 18:16:29.955650106 +0200
+--- src/libespeak-ng/synth_mbrola.c	2026-07-13 18:14:55.477494837 +0200
 ***************
-*** 18,24 ****
+*** 17,23 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
    */
   
 ! #include "config.h"
   
   #include <ctype.h>
-  #include <locale.h>
---- 18,24 ----
+  #include <errno.h>
+--- 17,23 ----
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
    */
   
 ! #include "config-espk.h"
   
   #include <ctype.h>
-  #include <locale.h>
+  #include <errno.h>
 diff -c original/src/libespeak-ng/translate.c src/libespeak-ng/translate.c
-*** original/src/libespeak-ng/translate.c	2022-11-17 19:38:04.000000000 +0100
---- src/libespeak-ng/translate.c	2022-11-17 21:38:00.000000000 +0100
+*** original/src/libespeak-ng/translate.c	2026-07-13 18:16:29.956108845 +0200
+--- src/libespeak-ng/translate.c	2026-07-13 18:14:55.482147646 +0200
 ***************
 *** 17,23 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -1075,10 +1059,10 @@ diff -c original/src/libespeak-ng/translate.c src/libespeak-ng/translate.c
   
   		// replacement 'to' string
 ***************
-*** 921,926 ****
---- 927,936 ----
-  
-  void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
+*** 923,928 ****
+--- 929,938 ----
+  // Used by espeak_TextToPhonemesWithTerminator.
+  void TranslateClauseWithTerminator(Translator *tr, int *tone_out, char **voice_change, int *terminator_out)
   {
 + 	if (tr == NULL)
 + 		return;
@@ -1088,8 +1072,8 @@ diff -c original/src/libespeak-ng/translate.c src/libespeak-ng/translate.c
   	int c;
   	int cc = 0;
 ***************
-*** 955,961 ****
---- 965,979 ----
+*** 957,963 ****
+--- 967,981 ----
   	int charix_top = 0;
   
   	short charix[N_TR_SOURCE+4];
@@ -1106,7 +1090,7 @@ diff -c original/src/libespeak-ng/translate.c src/libespeak-ng/translate.c
   	int word_count = 0; // index into words
   
 ***************
-*** 1490,1497 ****
+*** 1497,1504 ****
   		char *pn;
   		char *pw;
   		char number_buf[150];
@@ -1115,7 +1099,7 @@ diff -c original/src/libespeak-ng/translate.c src/libespeak-ng/translate.c
   		// start speaking at a specified word position in the text?
   		count_words++;
   		if (skip_words > 0) {
---- 1508,1516 ----
+--- 1515,1523 ----
   		char *pn;
   		char *pw;
   		char number_buf[150];
@@ -1126,8 +1110,8 @@ diff -c original/src/libespeak-ng/translate.c src/libespeak-ng/translate.c
   		count_words++;
   		if (skip_words > 0) {
 ***************
-*** 1666,1671 ****
---- 1685,1698 ----
+*** 1674,1679 ****
+--- 1693,1706 ----
   		else
   			*voice_change = NULL;
   	}
@@ -1141,10 +1125,10 @@ diff -c original/src/libespeak-ng/translate.c src/libespeak-ng/translate.c
 + 	ESPK_LOG("<- TranslateClause\n");
   }
   
-  static int CalcWordLength(int source_index, int charix_top, short int *charix, WORD_TAB *words, int word_count) {
+  void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 diff -c original/src/libespeak-ng/translateword.c src/libespeak-ng/translateword.c
-*** original/src/libespeak-ng/translateword.c	2022-11-17 19:38:04.000000000 +0100
---- src/libespeak-ng/translateword.c	2022-11-17 20:51:22.000000000 +0100
+*** original/src/libespeak-ng/translateword.c	2026-07-13 18:16:29.956325489 +0200
+--- src/libespeak-ng/translateword.c	2026-07-13 18:14:55.482887808 +0200
 ***************
 *** 18,24 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -1518,9 +1502,29 @@ diff -c original/src/libespeak-ng/translateword.c src/libespeak-ng/translateword
   	return dictionary_flags[0];
   }
   
+diff -c original/src/libespeak-ng/tr_languages.c src/libespeak-ng/tr_languages.c
+*** original/src/libespeak-ng/tr_languages.c	2026-07-13 18:16:29.955992580 +0200
+--- src/libespeak-ng/tr_languages.c	2026-07-13 18:14:55.481149760 +0200
+***************
+*** 18,24 ****
+   * along with this program; if not, see: <http://www.gnu.org/licenses/>.
+   */
+  
+! #include "config.h"
+  
+  #include <ctype.h>
+  #include <locale.h>
+--- 18,24 ----
+   * along with this program; if not, see: <http://www.gnu.org/licenses/>.
+   */
+  
+! #include "config-espk.h"
+  
+  #include <ctype.h>
+  #include <locale.h>
 diff -c original/src/libespeak-ng/voices.c src/libespeak-ng/voices.c
-*** original/src/libespeak-ng/voices.c	2022-11-17 17:22:11.000000000 +0100
---- src/libespeak-ng/voices.c	2022-11-17 21:41:04.000000000 +0100
+*** original/src/libespeak-ng/voices.c	2026-07-13 18:16:29.956517186 +0200
+--- src/libespeak-ng/voices.c	2026-07-13 18:14:55.485008976 +0200
 ***************
 *** 18,24 ****
    * along with this program; if not, see: <http://www.gnu.org/licenses/>.
@@ -1713,8 +1717,8 @@ diff -c original/src/libespeak-ng/voices.c src/libespeak-ng/voices.c
   }
   
 diff -c original/src/libespeak-ng/wavegen.c src/libespeak-ng/wavegen.c
-*** original/src/libespeak-ng/wavegen.c	2022-11-17 19:38:04.000000000 +0100
---- src/libespeak-ng/wavegen.c	2022-11-17 19:39:46.000000000 +0100
+*** original/src/libespeak-ng/wavegen.c	2026-07-13 18:16:29.956598660 +0200
+--- src/libespeak-ng/wavegen.c	2026-07-13 18:14:55.485688037 +0200
 ***************
 *** 20,26 ****
   // this version keeps wavemult window as a constant fraction

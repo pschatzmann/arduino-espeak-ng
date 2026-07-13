@@ -49,11 +49,7 @@ static void SmoothSpect(void);
 
 // list of phonemes in a clause
 int n_phoneme_list = 0;
-#ifdef ESPEAK_HEAP_HACK
-PHONEME_LIST *phoneme_list=NULL;
-#else
 PHONEME_LIST phoneme_list[N_PHONEME_LIST+1];
-#endif
 
 SPEED_FACTORS speed;
 
@@ -72,17 +68,16 @@ static int syllable_centre;
 
 static voice_t *new_voice = NULL;
 
+static int (*phoneme_callback)(const char *) = NULL;
+
 #define RMS_GLOTTAL1 35   // vowel before glottal stop
 #define RMS_START 28  // 28
 #define VOWEL_FRONT_LENGTH  50
 
-const char *WordToString(unsigned int word)
+const char *WordToString(char buf[5], unsigned int word)
 {
 	// Convert a phoneme mnemonic word into a string
 	int ix;
-	static char buf[5];
-
-	MAKE_MEM_UNDEFINED(&buf, sizeof(buf));
 
 	for (ix = 0; ix < 4; ix++)
 		buf[ix] = word >> (ix*8);
@@ -90,13 +85,8 @@ const char *WordToString(unsigned int word)
 	return buf;
 }
 
-void SynthesizeInit()
+void SynthesizeInit(void)
 {
-#ifdef ESPEAK_HEAP_HACK
-    if (phoneme_list==NULL)
-		phoneme_list = malloc(sizeof(PHONEME_LIST)*(N_PHONEME_LIST+1));
-#endif
-
 	last_pitch_cmd = 0;
 	last_amp_cmd = 0;
 	last_frame = NULL;
@@ -130,7 +120,7 @@ static void EndPitch(int voice_break)
 	}
 }
 
-static void DoAmplitude(int amp, unsigned char *amp_env)
+static void DoAmplitude(int amp, const unsigned char *amp_env)
 {
 	intptr_t *q;
 
@@ -153,7 +143,7 @@ static void DoPhonemeAlignment(char* pho, int type)
 	WcmdqInc();
 }
 
-static void DoPitch(unsigned char *env, int pitch1, int pitch2)
+static void DoPitch(const unsigned char *env, int pitch1, int pitch2)
 {
 	intptr_t *q;
 
@@ -386,7 +376,7 @@ int DoSample3(PHONEME_DATA *phdata, int length_mod, int amp)
 	return len;
 }
 
-static frame_t *AllocFrame()
+static frame_t *AllocFrame(void)
 {
 	// Allocate a temporary spectrum frame for the wavegen queue. Use a pool which is big
 	// enough to use a round-robin without checks.
@@ -971,7 +961,7 @@ int DoSpect2(PHONEME_TAB *this_ph, int which, FMT_PARAMS *fmt_params,  PHONEME_L
 		if ((fmt_params->wav_addr != 0) && ((frame1->frflags & FRFLAG_DEFER_WAV) == 0)) {
 			// there is a wave file to play along with this synthesis
 			seq_len_adjust = 0;
-	
+
 			int wavefile_amp;
 			if (fmt_params->wav_amp == 0)
 				wavefile_amp = 32;
@@ -1050,7 +1040,7 @@ void DoPhonemeMarker(int type, int char_posn, int length, char *name)
 	}
 }
 
-#if HAVE_SONIC_H
+#if USE_LIBSONIC
 void DoSonicSpeed(int value)
 {
 	// value, multiplier * 1024
@@ -1140,8 +1130,8 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 	bool  pre_voiced;
 	int free_min;
 	int value;
-	unsigned char *pitch_env = NULL;
-	unsigned char *amp_env;
+	const unsigned char *pitch_env = NULL;
+	const unsigned char *amp_env;
 	PHONEME_TAB *ph;
 	int use_ipa = 0;
 	int vowelstart_prev;
@@ -1158,8 +1148,10 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 	if (option_phoneme_events & espeakINITIALIZE_PHONEME_IPA)
 		use_ipa = 1;
 
+#if USE_MBROLA
 	if (mbrola_name[0] != 0)
 		return MbrolaGenerate(phoneme_list, n_ph, resume);
+#endif
 
 	if (resume == false) {
 		ix = 1;
@@ -1179,12 +1171,14 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 
 	while ((ix < (*n_ph)) && (ix < N_PHONEME_LIST-2)) {
 		p = &phoneme_list[ix];
-		
+
 		if(output_hooks && output_hooks->outputPhoSymbol)
 		{
 			char buf[30];
 			int dummy=0;
-			WritePhMnemonic(buf, p->ph, p, 0, &dummy);
+			//WritePhMnemonic(buf, p->ph, p, 0, &dummy);
+			WritePhMnemonicWithStress(buf, p->ph, p, 0, &dummy);
+
 			DoPhonemeAlignment(strdup(buf),p->type);
 		}
 
@@ -1198,9 +1192,9 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 		if (WcmdqFree() <= free_min)
 			return 1; // wait
 
-			PHONEME_LIST *prev;
-			PHONEME_LIST *next;
-        	PHONEME_LIST *next2;
+		PHONEME_LIST *prev;
+		PHONEME_LIST *next;
+		PHONEME_LIST *next2;
 
 		prev = &phoneme_list[ix-1];
 		next = &phoneme_list[ix+1];
@@ -1234,7 +1228,9 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 			if ((p->type == phVOWEL) && (prev->type == phLIQUID || prev->type == phNASAL)) {
 				// For vowels following a liquid or nasal, do the phoneme event after the vowel-start
 			} else {
-				WritePhMnemonic(phoneme_name, p->ph, p, use_ipa, NULL);
+				//WritePhMnemonic(phoneme_name, p->ph, p, use_ipa, NULL);
+				WritePhMnemonicWithStress(phoneme_name, p->ph, p, use_ipa, NULL);
+
 				DoPhonemeMarker(espeakEVENT_PHONEME, sourceix, 0, phoneme_name);
 				done_phoneme_marker = true;
 			}
@@ -1498,7 +1494,9 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 			}
 
 			if ((option_phoneme_events) && (done_phoneme_marker == false)) {
-				WritePhMnemonic(phoneme_name, p->ph, p, use_ipa, NULL);
+				//WritePhMnemonic(phoneme_name, p->ph, p, use_ipa, NULL);
+				WritePhMnemonicWithStress(phoneme_name, p->ph, p, use_ipa, NULL);
+
 				DoPhonemeMarker(espeakEVENT_PHONEME, sourceix, 0, phoneme_name);
 			}
 
@@ -1561,8 +1559,7 @@ int SpeakNextClause(int control)
 		return 0;
 	}
 
-	if (current_phoneme_table != voice->phoneme_tab_ix)
-		SelectPhonemeTable(voice->phoneme_tab_ix);
+	SelectPhonemeTable(voice->phoneme_tab_ix);
 
 	// read the next clause from the input text file, translate it, and generate
 	// entries in the wavegen command queue
@@ -1601,3 +1598,10 @@ int SpeakNextClause(int control)
 
 	return 1;
 }
+
+#pragma GCC visibility push(default)
+ESPEAK_API void espeak_SetPhonemeCallback(int (*PhonemeCallback)(const char *))
+{
+	phoneme_callback = PhonemeCallback;
+}
+#pragma GCC visibility pop

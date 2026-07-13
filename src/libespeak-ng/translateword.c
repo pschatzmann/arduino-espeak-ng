@@ -149,6 +149,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 		free(tables);
 #endif
+		ESPK_LOG("-> TranslateWord3\n");
 		return 0;
 	}
 
@@ -208,6 +209,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 			free(tables);
 #endif
+			ESPK_LOG("-> TranslateWord3\n");
 			return dictionary_flags[0];
 		} else if ((found == false) && (dictionary_flags[0] & FLAG_SKIPWORDS) && !(dictionary_flags[0] & FLAG_ABBREV)) {
 			// grouped words, but no translation.  Join the words with hyphens.
@@ -239,6 +241,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 			free(tables);
 #endif
+			ESPK_LOG("-> TranslateWord3\n");
 			return 0;
 		}
 
@@ -253,6 +256,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 				free(tables);
 #endif
+				ESPK_LOG("-> TranslateWord3\n");
 				return 0;
 			}	
 
@@ -262,6 +266,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 				free(tables);
 #endif
+				ESPK_LOG("-> TranslateWord3\n");
 				return 0;
 			}
 
@@ -300,6 +305,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 			free(tables);
 #endif
+			ESPK_LOG("-> TranslateWord3\n");
 			if (word_length > 1){
 				return FLAG_SPELLWORD; // a mixture of languages, retranslate as individual letters, separated by spaces
 			}
@@ -309,6 +315,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 		free(tables);
 #endif
+		ESPK_LOG("-> TranslateWord3\n");
 		if (wflags & FLAG_TRANSLATOR2){
 			return 0;
 		}
@@ -348,11 +355,13 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 					free(tables);
 #endif
+					ESPK_LOG("-> TranslateWord3\n");
 					return FLAG_SPELLWORD; // _^_en must have been set in TranslateLetter(), not *_rules which uses only _^_
 				}
 #if ESPEAK_STACK_HACK
 				free(tables);
 #endif
+				ESPK_LOG("-> TranslateWord3\n");
 				return 0;
 			}
 
@@ -377,6 +386,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 				free(tables);
 #endif
+				ESPK_LOG("-> TranslateWord3\n");
 				return 0;
 			}
 
@@ -390,12 +400,14 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 						free(tables);
 #endif
+						ESPK_LOG("-> TranslateWord3\n");
 						return 0;
 					}	
 					strcpy(word_phonemes, phonemes);
 #if ESPEAK_STACK_HACK
 					free(tables);
 #endif
+					ESPK_LOG("-> TranslateWord3\n");
 					return 0;
 				}
 			}
@@ -504,6 +516,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 						free(tables);
 #endif
+						ESPK_LOG("-> TranslateWord3\n");
 						return 0;
 					}
 				}
@@ -533,6 +546,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 							free(tables);
 #endif
+							ESPK_LOG("-> TranslateWord3\n");
 							return 0;
 						}
 						if (dictionary_flags[0] == 0) {
@@ -554,6 +568,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 							free(tables);
 #endif
+							ESPK_LOG("-> TranslateWord3\n");
 							return 0;
 						}
 
@@ -597,6 +612,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 								free(tables);
 #endif
+								ESPK_LOG("-> TranslateWord3\n");
 								return 0;
 							}
 						}
@@ -752,6 +768,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 #if ESPEAK_STACK_HACK
 	free(tables);
 #endif
+	ESPK_LOG("-> TranslateWord3\n");
 	return dictionary_flags[0];
 }
 
@@ -857,8 +874,8 @@ static char *SpeakIndividualLetters(Translator *tr, char *word, char *phonemes, 
 }
 
 
-static const char *hex_letters[] = {"'e:j",	"b'i:",	"s'i:",	"d'i:",	"'i:",	"'ef"};
-static const char *modifiers[] = { NULL, "_sub", "_sup", NULL };
+static const char *const hex_letters[] = {"'e:j",	"b'i:",	"s'i:",	"d'i:",	"'i:",	"'ef"};
+static const char *const modifiers[] = { NULL, "_sub", "_sup", NULL };
 // unicode ranges for non-ascii digits 0-9 (these must be in ascending order)
 static const int number_ranges[] = {
 	0x660, 0x6f0, // arabic
@@ -1003,7 +1020,8 @@ static int TranslateLetter(Translator *tr, char *word, char *phonemes, int contr
 			char hangul_buf[12];
 
 			// speak in the language for this alphabet (or English)
-			ph_buf[2] = SetTranslator3(WordToString2(language));
+			char word_buf[5];
+			ph_buf[2] = SetTranslator3(WordToString2(word_buf, language));
 
 			if (translator3 != NULL) {
 				int code;

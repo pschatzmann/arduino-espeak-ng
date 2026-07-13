@@ -38,7 +38,6 @@
 
 #include "readclause.h"
 #include "common.h"               // for GetFileLength, strncpy0
-#include "config-espk.h"               // for HAVE_MKSTEMP
 #include "dictionary.h"           // for LookupDictList, DecodePhonemes, Set...
 #include "error.h"                // for create_file_error_context
 #include "phoneme.h"              // for phonSWITCH
@@ -47,7 +46,7 @@
 #include "ssml.h"                 // for SSML_STACK, ProcessSsmlTag, N_PARAM...
 #include "synthdata.h"            // for SelectPhonemeTable
 #include "translate.h"            // for Translator, utf8_out, CLAUSE_OPTION...
-#include "voice.h"                // for voice, voice_t, current_voice_selected
+#include "voice.h"                // for voice, voice_t, espeak_GetCurrentVoice
 
 #define N_XML_BUF   500
 
@@ -167,14 +166,11 @@ static void UngetC(int c)
 	ungot_char = c;
 }
 
-const char *WordToString2(unsigned int word)
+const char *WordToString2(char buf[5], unsigned int word)
 {
 	// Convert a language mnemonic word into a string
 	int ix;
-	static char buf[5];
 	char *p;
-
-	MAKE_MEM_UNDEFINED(&buf, sizeof(buf));
 
 	p = buf;
 	for (ix = 3; ix >= 0; ix--) {
@@ -199,7 +195,7 @@ static const char *LookupSpecial(Translator *tr, const char *string, char *text_
 	return NULL;
 }
 
-static const char *LookupCharName(Translator *tr, int c, bool only)
+static const char *LookupCharName(char buf[60], Translator *tr, int c, bool only)
 {
 	// Find the phoneme string (in ascii) to speak the name of character c
 	// Used for punctuation characters and symbols
@@ -210,9 +206,6 @@ static const char *LookupCharName(Translator *tr, int c, bool only)
 	char phonemes[60];
 	const char *lang_name = NULL;
 	char *string;
-	static char buf[60];
-
-	MAKE_MEM_UNDEFINED(&buf, sizeof(buf));
 
 	buf[0] = 0;
 	flags[0] = 0;
@@ -284,6 +277,7 @@ static int AnnouncePunctuation(Translator *tr, int c1, int *c2_ptr, char *output
 	int bufix1;
 	char buf[200];
 	char ph_buf[30];
+	char cn_buf[60];
 
 	c2 = *c2_ptr;
 	buf[0] = 0;
@@ -298,7 +292,7 @@ static int AnnouncePunctuation(Translator *tr, int c1, int *c2_ptr, char *output
 				punctname = ph_buf; // use word for 'period' instead of 'dot'
 		}
 		if (punctname == NULL)
-			punctname = LookupCharName(tr, c1, false);
+			punctname = LookupCharName(cn_buf, tr, c1, false);
 
 		if (punctname == NULL)
 			return -1;
@@ -419,7 +413,7 @@ void SetVoiceStack(espeak_VOICE *v, const char *variant_name)
 	if (variant_name[0] == '!' && variant_name[1] == 'v' && variant_name[2] == PATHSEP)
 		variant_name += 3; // strip variant directory name, !v plus PATHSEP
 	strncpy0(base_voice_variant_name, variant_name, sizeof(base_voice_variant_name));
-	memcpy(&base_voice, &current_voice_selected, sizeof(base_voice));
+	memcpy(&base_voice, espeak_GetCurrentVoice(), sizeof(base_voice));
 }
 
 static void RemoveChar(char *p)
@@ -486,7 +480,7 @@ int ReadClause(Translator *tr, char *buf, short *charix, int *charix_top, int n_
 	int c1 = ' '; // current character
 	int c2; // next character
 	int cprev = ' '; // previous character
-	int c_next;
+	int c_next = 0;
 	int parag;
 	int ix = 0;
 	int j;
@@ -615,6 +609,8 @@ int ReadClause(Translator *tr, char *buf, short *charix, int *charix_top, int n_
 					xml_buf[n_xml_buf] = 0;
 					c2 = ' ';
 
+					if (base_voice.identifier)
+						strcpy(current_voice_id, base_voice.identifier);
 					terminator = ProcessSsmlTag(xml_buf, buf, &ix, n_buf, xmlbase, &audio_text, current_voice_id, &base_voice, base_voice_variant_name, &ignore_text, &clear_skipping_text, &sayas_mode, &sayas_start, ssml_stack, &n_ssml_stack, &n_param_stack, (int *)speech_parameters);
 
 					if (terminator != 0) {
@@ -670,7 +666,7 @@ int ReadClause(Translator *tr, char *buf, short *charix, int *charix_top, int n_
 					if (c2 != '1') {
 						// a list of punctuation characters to be spoken, terminated by space
 						j = 0;
-						while (!Eof() && !iswspace(c2)) {
+						while (!Eof() && !iswspace(c2) && (j < N_PUNCTLIST-1)) {
 							option_punctlist[j++] = c2;
 							c2 = GetC();
 							buf[ix++] = ' ';
@@ -833,7 +829,8 @@ int ReadClause(Translator *tr, char *buf, short *charix, int *charix_top, int n_
 				char *p2;
 
 				p2 = &buf[ix];
-				sprintf(p2, "%s", LookupCharName(tr, c1, true));
+				char cn_buf[60];
+				sprintf(p2, "%s", LookupCharName(cn_buf, tr, c1, true));
 				if (p2[0] != 0) {
 					ix += strlen(p2);
 					announced_punctuation = c1;
@@ -1020,6 +1017,7 @@ static void DecodeWithPhonemeMode(char *buf, char *phonemes, Translator *tr, Tra
 	} else {
 		SetWordStress(tr2, phonemes, flags, -1, 0);
 	    DecodePhonemes(phonemes, phonemes2);
-	    sprintf(buf, "[\002_^_%s %s _^_%s]]", ESPEAKNG_DEFAULT_VOICE, phonemes2, WordToString2(tr->translator_name));
+			char wbuf[5];
+	    sprintf(buf, "[\002_^_%s %s _^_%s]]", ESPEAKNG_DEFAULT_VOICE, phonemes2, WordToString2(wbuf, tr->translator_name));
     }
 }

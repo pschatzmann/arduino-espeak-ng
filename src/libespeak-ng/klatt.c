@@ -38,7 +38,7 @@
 #include "common.h"      // for espeak_rand
 #include "synthesize.h"  // for frame_t, WGEN_DATA, STEPSIZE, N_KLATTP, echo...
 #include "voice.h"       // for voice_t, N_PEAKS
-#ifdef INCLUDE_SPEECHPLAYER
+#if USE_SPEECHPLAYER
 #include "sPlayer.h"
 #endif
 
@@ -68,10 +68,10 @@ static klatt_global_t kt_globals;
 
 #define NUMBER_OF_SAMPLES 100
 
-static int scale_wav_tab[] = { 45, 38, 45, 45, 55, 45 }; // scale output from different voicing sources
+static const int scale_wav_tab[] = { 45, 38, 45, 45, 55, 45 }; // scale output from different voicing sources
 
 // For testing, this can be overwritten in KlattInit()
-static short natural_samples2[256] = {
+static const short natural_samples2[256] = {
 	 2583,  2516,  2450,  2384,  2319,  2254,  2191,  2127,
 	 2067,  2005,  1946,  1890,  1832,  1779,  1726,  1675,
 	 1626,  1579,  1533,  1491,  1449,  1409,  1372,  1336,
@@ -105,7 +105,7 @@ static short natural_samples2[256] = {
 	-1680, -1732, -1783, -1839, -1894, -1952, -2010, -2072,
 	-2133, -2196, -2260, -2325, -2390, -2456, -2522, -2589,
 };
-static short natural_samples[100] = {
+static const short natural_samples[100] = {
 	 -310,  -400,   530,   356,   224,    89,   23,  -10, -58, -16, 461,  599,  536,   701,   770,
 	  605,   497,   461,   560,   404,   110,  224,  131, 104, -97, 155,  278, -154, -1165,
 	 -598,   737,   125,  -592,    41,    11, -247,  -10,  65,  92,  80, -304,   71,   167,    -1, 122,
@@ -194,7 +194,7 @@ static double sampled_source(int source_num)
 	int current_value;
 	int next_value;
 	double temp_diff;
-	short *samples;
+	const short *samples;
 
 	if (source_num == 0) {
 		samples = natural_samples;
@@ -433,7 +433,7 @@ void KlattReset(int control)
 {
 	int r_ix;
 
-#ifdef INCLUDE_SPEECHPLAYER
+#if USE_SPEECHPLAYER
 	KlattResetSP();
 #endif
 
@@ -466,7 +466,7 @@ void KlattReset(int control)
 
 void KlattFini(void)
 {
-#ifdef INCLUDE_SPEECHPLAYER
+#if USE_SPEECHPLAYER
 	KlattFiniSP();
 #endif
 }
@@ -547,7 +547,7 @@ static void frame_init(klatt_frame_ptr frame)
    to Kopen.
  */
 
-static double impulsive_source()
+static double impulsive_source(void)
 {
 	static const double doublet[] = { 0.0, 13000000.0, -13000000.0 };
 	static double vwave;
@@ -567,7 +567,7 @@ static double impulsive_source()
    spectral zero around 800 Hz, magic constants a,b reset pitch synchronously.
  */
 
-static double natural_source()
+static double natural_source(void)
 {
 	double lgtemp;
 	static double vwave;
@@ -859,7 +859,7 @@ static double klattp_inc[N_KLATTP];
 
 int Wavegen_Klatt(int length, int resume, frame_t *fr1, frame_t *fr2, WGEN_DATA *wdata, voice_t *wvoice)
 {
-#ifdef INCLUDE_SPEECHPLAYER
+#if USE_SPEECHPLAYER
 	if(wvoice->klattv[0] == 6)
 	return Wavegen_KlattSP(wdata, wvoice, length, resume, fr1, fr2);
 #endif
@@ -1068,7 +1068,7 @@ static void SetSynth_Klatt(int length, frame_t *fr1, frame_t *fr2, voice_t *wvoi
 	}
 }
 
-void KlattInit()
+void KlattInit(void)
 {
 
 	static const short formant_hz[10] = { 280, 688, 1064, 2806, 3260, 3700, 6500, 7000, 8000, 280 };
@@ -1078,7 +1078,7 @@ void KlattInit()
 
 	int ix;
 
-#ifdef INCLUDE_SPEECHPLAYER
+#if USE_SPEECHPLAYER
 	KlattInitSP();
 #endif
 
