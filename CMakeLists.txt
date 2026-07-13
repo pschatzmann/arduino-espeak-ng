@@ -36,6 +36,11 @@ add_library (arduino-espeak-ng STATIC ${SRC_LIST_CPP} ${SRC_LIST_C})
 
 target_compile_definitions(arduino-espeak-ng PUBLIC -DIS_DESKTOP )
 #target_compile_options(arduino-espeak-ng PUBLIC -Wframe-larger-than=1000)
+# Upstream espeak-ng uses fixed-size buffers that GCC's format-overflow/
+# truncation analysis flags as worst-case unsafe, even though the actual
+# call sites are bounded correctly in practice. Silencing these here avoids
+# carrying a source patch against upstream just to satisfy the analyzer.
+target_compile_options(arduino-espeak-ng PRIVATE -Wno-format-overflow -Wno-format-truncation)
 target_compile_definitions(arduino-posix-fs PUBLIC -DIS_DESKTOP )
 
 
