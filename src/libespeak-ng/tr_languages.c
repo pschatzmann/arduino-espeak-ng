@@ -34,6 +34,7 @@
 #include "common.h"
 #include "setlengths.h"          // for SetLengthMods
 #include "translate.h"           // for Translator, LANGUAGE_OPTIONS, L, NUM...
+#include "mem_alloc.h"
 
 // start of unicode pages for character sets
 #define OFFSET_GREEK    0x380
@@ -242,7 +243,7 @@ static Translator *NewTranslator(void)
 		 0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 55,  0, 56,  0, 57,  0, // 0x170
 	};
 
-	if ((tr = (Translator *)malloc(sizeof(Translator))) == NULL)
+	if ((tr = (Translator *)espeak_malloc(sizeof(Translator))) == NULL)
 		return NULL;
 
 	tr->encoding = ESPEAKNG_ENCODING_ISO_8859_1;

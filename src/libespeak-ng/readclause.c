@@ -47,6 +47,7 @@
 #include "synthdata.h"            // for SelectPhonemeTable
 #include "translate.h"            // for Translator, utf8_out, CLAUSE_OPTION...
 #include "voice.h"                // for voice, voice_t, espeak_GetCurrentVoice
+#include "mem_alloc.h"
 
 #define N_XML_BUF   500
 
@@ -381,7 +382,7 @@ int AddNameData(const char *name, int wide)
 	if (namedata_ix+len >= n_namedata) {
 		// allocate more space for marker names
 		void *vp;
-		if ((vp = realloc(namedata, namedata_ix+len + 1000)) == NULL)
+		if ((vp = espeak_realloc(namedata, namedata_ix+len + 1000)) == NULL)
 			return -1;  // failed to allocate, original data is unchanged but ignore this new name
 		// !!! Bug?? If the allocated data shifts position, then pointers given to user application will be invalid
 
@@ -963,7 +964,7 @@ void InitNamedata(void)
 {
 	namedata_ix = 0;
 	if (namedata != NULL) {
-		free(namedata);
+		espeak_free(namedata);
 		namedata = NULL;
 		n_namedata = 0;
 	}

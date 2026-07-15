@@ -34,6 +34,7 @@
 #include <espeak-ng/speak_lib.h>
 
 #include "event.h"
+#include "mem_alloc.h"
 
 // my_mutex: protects my_thread_is_talking,
 static pthread_mutex_t my_mutex;
@@ -111,7 +112,7 @@ static espeak_EVENT *event_copy(espeak_EVENT *event)
 	if (event == NULL)
 		return NULL;
 
-	espeak_EVENT *a_event = (espeak_EVENT *)malloc(sizeof(espeak_EVENT));
+	espeak_EVENT *a_event = (espeak_EVENT *)espeak_malloc(sizeof(espeak_EVENT));
 	if (a_event) {
 		memcpy(a_event, event, sizeof(espeak_EVENT));
 
@@ -193,13 +194,13 @@ static int event_delete(espeak_EVENT *event)
 	case espeakEVENT_MARK:
 	case espeakEVENT_PLAY:
 		if (event->id.name)
-			free((void *)(event->id.name));
+			espeak_free((void *)(event->id.name));
 		break;
 	default:
 		break;
 	}
 
-	free(event);
+	espeak_free(event);
 	return 1;
 }
 
@@ -338,7 +339,7 @@ static espeak_ng_STATUS push(void *the_data)
 	if (node_counter >= MAX_NODE_COUNTER)
 		return ENS_EVENT_BUFFER_FULL;
 
-	node *n = (node *)malloc(sizeof(node));
+	node *n = (node *)espeak_malloc(sizeof(node));
 	if (n == NULL)
 		return ENOMEM;
 
@@ -368,7 +369,7 @@ static void *pop(void)
 		node *n = head;
 		the_data = n->data;
 		head = n->next;
-		free(n);
+		espeak_free(n);
 		node_counter--;
 	}
 

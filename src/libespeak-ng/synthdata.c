@@ -41,6 +41,7 @@
 #include "synthesize.h"               // for PHONEME_LIST, frameref_t, PHONE...
 #include "translate.h"                // for Translator, LANGUAGE_OPTIONS
 #include "voice.h"                    // for ReadTonePoints, tone_points, voice
+#include "mem_alloc.h"
 
 int n_tunes = 0;
 TUNE *tunes = NULL;
@@ -77,7 +78,7 @@ static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, esp
 	void* ptmp = espeak_mem_map(buf, &length);
 	if (ptmp != NULL) {
 		if (*ptr != NULL)
-			free(*ptr);
+			espeak_free(*ptr);
 		*ptr = ptmp;
 	} else {
 		length = GetFileLength(buf);
@@ -88,7 +89,7 @@ static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, esp
 			return create_file_error_context(context, errno, buf);
 
 		if (*ptr != NULL) {
-			free(*ptr);
+			espeak_free(*ptr);
 			*ptr = NULL;
 		}
 
@@ -100,14 +101,14 @@ static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, esp
 			return 0;
 		}
 
-		if ((*ptr = malloc(length)) == NULL) {
+		if ((*ptr = espeak_malloc(length)) == NULL) {
 			fclose(f_in);
 			return ENOMEM;
 		}
 		if (fread(*ptr, 1, length, f_in) != length) {
 			int error = errno;
 			fclose(f_in);
-			free(*ptr);
+			espeak_free(*ptr);
 			*ptr = NULL;
 			return create_file_error_context(context, error, buf);
 		}
@@ -154,7 +155,7 @@ espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context)
 
 	// set up phoneme tables
 	if (phoneme_tab_list == NULL)
-		phoneme_tab_list = (PHONEME_TAB_LIST *)calloc(N_PHONEME_TABS, sizeof(PHONEME_TAB_LIST));
+		phoneme_tab_list = (PHONEME_TAB_LIST *)espeak_calloc(N_PHONEME_TABS, sizeof(PHONEME_TAB_LIST));
 	p = phoneme_tab_data;
 	n_phoneme_tables = p[0];
 	p += 4;
@@ -180,10 +181,10 @@ espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context)
 
 void FreePhData(void)
 {
-	free(phoneme_tab_data);
-	free(phoneme_index);
-	free(phondata_ptr);
-	free(tunes);
+	espeak_free(phoneme_tab_data);
+	espeak_free(phoneme_index);
+	espeak_free(phondata_ptr);
+	espeak_free(tunes);
 	phoneme_tab_data = NULL;
 	phoneme_index = NULL;
 	phondata_ptr = NULL;

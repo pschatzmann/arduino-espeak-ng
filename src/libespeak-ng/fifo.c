@@ -37,6 +37,7 @@
 #include "espeak_command.h"
 #include "fifo.h"
 #include "event.h"
+#include "mem_alloc.h"
 
 #if USE_ASYNC
 
@@ -403,7 +404,7 @@ static espeak_ng_STATUS push(t_espeak_command *the_command)
 	if (node_counter >= MAX_NODE_COUNTER)
 		return ENS_FIFO_BUFFER_FULL;
 
-	node *n = (node *)malloc(sizeof(node));
+	node *n = (node *)espeak_malloc(sizeof(node));
 	if (n == NULL)
 		return ENOMEM;
 
@@ -435,7 +436,7 @@ static t_espeak_command *pop(void)
 		node *n = head;
 		the_command = n->data;
 		head = n->next;
-		free(n);
+		espeak_free(n);
 		node_counter--;
 	}
 

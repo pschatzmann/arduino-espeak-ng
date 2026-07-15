@@ -28,6 +28,26 @@ With the miminum configuration we get the following on an ESP32:
 
 If you use an ESP32, don't forget to select the partition scheme Huge APP!
 
+Large internal buffers (the phoneme list, wavegen queue, phoneme tables, etc.) are
+allocated on the heap rather than as fixed global arrays, which keeps the static
+RAM/DRAM footprint small and avoids linker overflows on constrained targets.
+
+### PSRAM Support
+
+All heap allocations in the library are routed through a central allocation API
+(`src/libespeak-ng/mem_alloc.h`). On boards with PSRAM, it is used automatically,
+with no setup required:
+
+- **ESP32**: via `heap_caps_malloc()`, once PSRAM is fitted and enabled for the board.
+- **RP2350** (e.g. Pico 2 and compatible boards): via the arduino-pico core's
+  `pmalloc()`/`pcalloc()`, on board variants where `RP2350_PSRAM_CS` is configured.
+  The original RP2040 chip has no PSRAM controller in silicon and is unaffected.
+
+Allocations fall back to internal RAM automatically if no PSRAM is fitted. To force
+everything into internal RAM instead (e.g. if PSRAM's extra access latency is
+undesirable for a particular use case), call `setUsePSRAM(false)` on the
+`ESpeakFiles` class before `begin()`.
+
 ## Examples
 
 - [espeak-arduino](examples/espeak-arduino/espeak-arduino.ino): Recommended example

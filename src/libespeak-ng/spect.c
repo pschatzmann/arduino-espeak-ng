@@ -41,6 +41,7 @@
 #include "wavegen.h"                   // for wavegen_peaks_t, PeaksToHarmspect
 #include "synthesize.h"                // for KLATT_AV, KLATT_Kopen, N_KLATTP2
 #include "voice.h"                     // for N_PEAKS
+#include "mem_alloc.h"
 
 static const int default_freq[N_PEAKS] =
 { 200, 500, 1200, 3000, 3500, 4000, 6900, 7800, 9000 };
@@ -96,7 +97,7 @@ static SpectFrame *SpectFrameCreate(void)
 	int ix;
 	SpectFrame *frame;
 
-	frame = malloc(sizeof(SpectFrame));
+	frame = espeak_malloc(sizeof(SpectFrame));
 	if (!frame)
 		return NULL;
 
@@ -131,8 +132,8 @@ static SpectFrame *SpectFrameCreate(void)
 static void SpectFrameDestroy(SpectFrame *frame)
 {
 	if (frame->spect != NULL)
-		free(frame->spect);
-	free(frame);
+		espeak_free(frame->spect);
+	espeak_free(frame);
 }
 
 static espeak_ng_STATUS LoadFrame(SpectFrame *frame, FILE *stream, int file_format_type)
@@ -191,7 +192,7 @@ static espeak_ng_STATUS LoadFrame(SpectFrame *frame, FILE *stream, int file_form
 		}
 	}
 
-	spect_data = malloc(sizeof(unsigned short) * frame->nx);
+	spect_data = espeak_malloc(sizeof(unsigned short) * frame->nx);
 
 	if (spect_data == NULL)
 		return ENOMEM;
@@ -215,9 +216,9 @@ double GetFrameRms(SpectFrame *frame, int seq_amplitude)
 	int maxh;
 	int height;
 #if ESPEAK_STACK_HACK
-	int* htab = calloc(1, sizeof(int)*400);
+	int* htab = espeak_calloc(1, sizeof(int)*400);
 	assert(htab!=NULL);
-	wavegen_peaks_t* wpeaks = calloc(1, sizeof(wavegen_peaks_t)*9);
+	wavegen_peaks_t* wpeaks = espeak_calloc(1, sizeof(wavegen_peaks_t)*9);
 	assert(wpeaks!=NULL);
 #else
 	int htab[400];
@@ -238,8 +239,8 @@ double GetFrameRms(SpectFrame *frame, int seq_amplitude)
 	frame->rms = sqrt(total) / 7.25;
 
 #if ESPEAK_STACK_HACK
-	free(htab);
-	free(wpeaks);
+	espeak_free(htab);
+	espeak_free(wpeaks);
 #endif
 	return frame->rms;
 }
@@ -247,7 +248,7 @@ double GetFrameRms(SpectFrame *frame, int seq_amplitude)
 #pragma GCC visibility push(default)
 SpectSeq *SpectSeqCreate(void)
 {
-	SpectSeq *spect = malloc(sizeof(SpectSeq));
+	SpectSeq *spect = espeak_malloc(sizeof(SpectSeq));
 	if (!spect)
 		return NULL;
 
@@ -276,10 +277,10 @@ void SpectSeqDestroy(SpectSeq *spect)
 			if (spect->frames[ix] != NULL)
 				SpectFrameDestroy(spect->frames[ix]);
 		}
-		free(spect->frames);
+		espeak_free(spect->frames);
 	}
-	free(spect->name);
-	free(spect);
+	espeak_free(spect->name);
+	espeak_free(spect);
 }
 #pragma GCC visibility pop
 
@@ -333,7 +334,7 @@ espeak_ng_STATUS LoadSpectSeq(SpectSeq *spect, const char *filename)
 	fread(&name_len, sizeof(uint32_t), 1, stream);
 	name_len = le32toh(name_len);
 	if (name_len > 0) {
-		if ((spect->name = (char *)malloc(name_len)) == NULL) {
+		if ((spect->name = (char *)espeak_malloc(name_len)) == NULL) {
 			fclose(stream);
 			return ENOMEM;
 		}
@@ -360,9 +361,9 @@ espeak_ng_STATUS LoadSpectSeq(SpectSeq *spect, const char *filename)
 			if (spect->frames[ix] != NULL)
 				SpectFrameDestroy(spect->frames[ix]);
 		}
-		free(spect->frames);
+		espeak_free(spect->frames);
 	}
-	spect->frames = calloc(n, sizeof(SpectFrame *));
+	spect->frames = espeak_calloc(n, sizeof(SpectFrame *));
 
 	spect->numframes = 0;
 	spect->max_x = 3000;
@@ -379,7 +380,7 @@ espeak_ng_STATUS LoadSpectSeq(SpectSeq *spect, const char *filename)
 
 		espeak_ng_STATUS status = LoadFrame(frame, stream, spect->file_format);
 		if (status != ENS_OK) {
-			free(frame);
+			espeak_free(frame);
 			fclose(stream);
 			return status;
 		}

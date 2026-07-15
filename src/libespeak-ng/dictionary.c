@@ -42,6 +42,7 @@
 #include "synthdata.h"                     // for PhonemeCode, InterpretPhoneme
 #include "synthesize.h"                    // for STRESS_IS_PRIMARY, phoneme...
 #include "translate.h"                     // for Translator, utf8_in, LANGU...
+#include "mem_alloc.h"
 
 static int LookupFlags(Translator *tr, const char *word, unsigned int flags_out[2]);
 static void DollarRule(char *word[], char *word_start, int consumed, int group_length, char *word_buf, Translator *tr, int command, int *failed, int *add_points);
@@ -221,7 +222,7 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 		size = GetFileLength(fname);
 
 		if (tr->data_dictlist != NULL) {
-			free(tr->data_dictlist);
+			espeak_free(tr->data_dictlist);
 			tr->data_dictlist = NULL;
 		}
 
@@ -234,7 +235,7 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 			return 1;
 		}
 
-		if ((tr->data_dictlist = malloc(size)) == NULL) {
+		if ((tr->data_dictlist = espeak_malloc(size)) == NULL) {
 			fclose(f);
 			return 3;
 		}
@@ -596,7 +597,7 @@ const char *GetTranslatedPhonemeString(int phoneme_mode)
 
 	if (phon_out_buf == NULL) {
 		phon_out_size = N_PHON_OUT;
-		if ((phon_out_buf = (char *)malloc(phon_out_size)) == NULL) {
+		if ((phon_out_buf = (char *)espeak_malloc(phon_out_size)) == NULL) {
 			phon_out_size = 0;
 			return "";
 		}
@@ -673,7 +674,7 @@ const char *GetTranslatedPhonemeString(int phoneme_mode)
 		if ((phon_out_ix + len) >= phon_out_size) {
 			// enlarge the phoneme buffer
 			phon_out_size = phon_out_ix + len + N_PHON_OUT;
-			char *new_phon_out_buf = (char *)realloc(phon_out_buf, phon_out_size);
+			char *new_phon_out_buf = (char *)espeak_realloc(phon_out_buf, phon_out_size);
 			if (new_phon_out_buf == NULL) {
 				phon_out_size = 0;
 				return "";

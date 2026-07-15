@@ -29,6 +29,7 @@
 #include "espeak-ng/speak_lib.h"  // for espeakCHARS_16BIT, espeakCHARS_8BIT
 #include "mnemonics.h"               // for LookupMnem, MNEM_TAB
 #include "translate.h"            // for LEADING_2_BITS, UTF8_TAIL_BITS
+#include "mem_alloc.h"
 
 // http://www.iana.org/assignments/character-sets/character-sets.xhtml
 static const MNEM_TAB mnem_encoding[] = {
@@ -662,7 +663,7 @@ static const encoding_t string_decoders[] = {
 espeak_ng_TEXT_DECODER *
 create_text_decoder(void)
 {
-	espeak_ng_TEXT_DECODER *decoder = malloc(sizeof(espeak_ng_TEXT_DECODER));
+	espeak_ng_TEXT_DECODER *decoder = espeak_malloc(sizeof(espeak_ng_TEXT_DECODER));
 	if (!decoder) return NULL;
 
 	decoder->current = NULL;
@@ -675,7 +676,7 @@ create_text_decoder(void)
 void
 destroy_text_decoder(espeak_ng_TEXT_DECODER *decoder)
 {
-	if (decoder) free(decoder);
+	if (decoder) espeak_free(decoder);
 }
 
 espeak_ng_STATUS

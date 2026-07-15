@@ -40,6 +40,7 @@
 #include "synthesize.h"
 #include "translate.h"
 #include "speech.h"
+#include "mem_alloc.h"
 
 static void SetRegressiveVoicing(int regression, PHONEME_LIST2 *plist2, PHONEME_TAB *ph, Translator *tr);
 static void ReInterpretPhoneme(PHONEME_TAB *ph, PHONEME_TAB *ph2, PHONEME_LIST *plist3, Translator *tr, PHONEME_DATA *phdata, WORD_PH_DATA *worddata);
@@ -145,7 +146,7 @@ void MakePhonemeList(Translator *tr, int post_pause, bool start_sentence)
 	PHONEME_LIST2 *plist2;
 
 #if ESPEAK_STACK_HACK
-	PHONEME_LIST *ph_list3 = calloc(1, sizeof(PHONEME_LIST)*N_PHONEME_LIST);
+	PHONEME_LIST *ph_list3 = espeak_calloc(1, sizeof(PHONEME_LIST)*N_PHONEME_LIST);
 	assert(ph_list3!=NULL);
 #else
 	PHONEME_LIST ph_list3[N_PHONEME_LIST];
@@ -508,7 +509,7 @@ void MakePhonemeList(Translator *tr, int post_pause, bool start_sentence)
 
 #if ESPEAK_STACK_HACK
 	if(ph_list3)
-		free(ph_list3);
+		espeak_free(ph_list3);
 #endif
 }
 

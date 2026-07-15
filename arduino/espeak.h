@@ -3,6 +3,7 @@
 #include "speak_lib.h"
 #include "pcaudiolib/audio_object.h"
 #include "espeak-ng-data.h"
+#include "libespeak-ng/mem_alloc.h"
 
 #if USE_CPP_API
 #include "FileSystems.h" // https://github.com/pschatzmann/arduino-posix-fs
@@ -36,6 +37,26 @@ public:
     bool begin(int buflength=5) {
         int sample_rate = espeak_Initialize(output, buflength, path, options);
         return sample_rate!=-1;
+    }
+
+    /// PSRAM is used automatically by default for the library's heap allocations
+    /// whenever it is physically present on the board -- no call needed. Use this
+    /// to opt out (false) and force everything into internal RAM, or to opt back in
+    /// (true) after doing so. Call before begin() so it applies to the buffers set
+    /// up during initialization. Has no effect on platforms without PSRAM support
+    /// (e.g. desktop builds).
+    void setUsePSRAM(bool enable) {
+        espeak_SetUsePsram(enable ? 1 : 0);
+    }
+
+    /// Determines if the use of PSRAM is currently active (true by default when supported)
+    bool isUsePSRAM() {
+        return espeak_GetUsePsram() != 0;
+    }
+
+    /// Determines if PSRAM is physically present and usable on this device
+    bool isPSRAMAvailable() {
+        return espeak_PsramAvailable() != 0;
     }
 
     // defines a callback which is executed at the begin of the audio output

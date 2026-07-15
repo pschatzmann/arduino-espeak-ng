@@ -44,6 +44,7 @@
 #include "voice.h"                // for voice, voice_t
 #include "speech.h"               // for MAKE_MEM_UNDEFINED
 #include "translateword.h"
+#include "mem_alloc.h"
 
 static int CalcWordLength(int source_index, int charix_top, short int *charix, WORD_TAB *words, int word_count);
 static void CombineFlag(Translator *tr, WORD_TAB *wtab, char *word, int *flags, unsigned char *p, char *word_phonemes);
@@ -117,8 +118,8 @@ void DeleteTranslator(Translator *tr)
 	if (!tr) return;
 
 	if (tr->data_dictlist != NULL)
-		free(tr->data_dictlist);
-	free(tr);
+		espeak_free(tr->data_dictlist);
+	espeak_free(tr);
 }
 
 int lookupwchar(const unsigned short *list, int c)
@@ -968,10 +969,10 @@ void TranslateClauseWithTerminator(Translator *tr, int *tone_out, char **voice_c
 
 	short charix[N_TR_SOURCE+4];
 #if ESPEAK_STACK_HACK
-	WORD_TAB* words = calloc(1, sizeof(WORD_TAB)*N_CLAUSE_WORDS);
+	WORD_TAB* words = espeak_calloc(1, sizeof(WORD_TAB)*N_CLAUSE_WORDS);
 	assert(words!=NULL);
 
-	WORD_TAB* num_wtab = calloc(1, sizeof(WORD_TAB)*50);
+	WORD_TAB* num_wtab = espeak_calloc(1, sizeof(WORD_TAB)*50);
 	assert(num_wtab!=NULL);
 #else
 	WORD_TAB words[N_CLAUSE_WORDS];
@@ -1053,7 +1054,7 @@ void TranslateClauseWithTerminator(Translator *tr, int *tone_out, char **voice_c
 	}
 
 	if (ph_list2 == NULL)
-		ph_list2 = (PHONEME_LIST2 *)calloc(N_PHONEME_LIST, sizeof(PHONEME_LIST2));
+		ph_list2 = (PHONEME_LIST2 *)espeak_calloc(N_PHONEME_LIST, sizeof(PHONEME_LIST2));
 	MAKE_MEM_UNDEFINED(ph_list2, N_PHONEME_LIST * sizeof(PHONEME_LIST2));
 	memset(&ph_list2[0], 0, sizeof(ph_list2[0]));
 	ph_list2[0].phcode = phonPAUSE_SHORT;
@@ -1698,9 +1699,9 @@ void TranslateClauseWithTerminator(Translator *tr, int *tone_out, char **voice_c
 
 #if ESPEAK_STACK_HACK
 	if(words)
-		free(words);
+		espeak_free(words);
 	if (num_wtab)
-		free(num_wtab);
+		espeak_free(num_wtab);
 #endif
 	ESPK_LOG("<- TranslateClause\n");
 }

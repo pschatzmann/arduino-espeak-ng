@@ -41,6 +41,7 @@
 #include "phoneme.h"              // for PHONEME_TAB_LIST, phonSWITCH, phone...
 #include "speech.h"		// for path_home
 #include "synthesize.h"           // for Write4Bytes
+#include "mem_alloc.h"
 
 static const MNEM_TAB mnem_rules[] = {
 	{ "unpr",     DOLLAR_UNPR },
@@ -196,11 +197,11 @@ static void clean_context(CompileContext *ctx) {
 		char *p;
 		while ((p = ctx->hash_chains[i])) {
 			memcpy(&p, ctx->hash_chains[i], sizeof(char*));
-			free(ctx->hash_chains[i]);
+			espeak_free(ctx->hash_chains[i]);
 			ctx->hash_chains[i] = p;
 		}
 	}
-	free(ctx);
+	espeak_free(ctx);
 }
 
 void print_dictionary_flags(unsigned int *flags, char *buf, int buf_len)
@@ -682,7 +683,7 @@ static void compile_dictlist_start(CompileContext *ctx)
 		p = ctx->hash_chains[ix];
 		while (p != NULL) {
 			memcpy(&p2, p, sizeof(char *));
-			free(p);
+			espeak_free(p);
 			p = p2;
 		}
 		ctx->hash_chains[ix] = NULL;
@@ -740,7 +741,7 @@ static int compile_dictlist_file(CompileContext *ctx, const char *path, const ch
 		length = compile_line(ctx, buf, dict_line, sizeof(dict_line), &hash);
 		if (length == 0)  continue; // blank line
 
-		p = (char *)malloc(length+sizeof(char *));
+		p = (char *)espeak_malloc(length+sizeof(char *));
 		if (p == NULL) {
 			if (ctx->f_log != NULL) {
 				fprintf(ctx->f_log, "Can't allocate memory\n");
@@ -1166,7 +1167,7 @@ static char *compile_rule(CompileContext *ctx, char *input)
 		len += (strlen(ctx->rule_post)+1);
 	}
 	output[len++] = 0;
-	if ((prule = (char *)malloc(len)) != NULL)
+	if ((prule = (char *)espeak_malloc(len)) != NULL)
 		memcpy(prule, output, len);
 	return prule;
 }
@@ -1230,19 +1231,19 @@ static void* output_rule_group(int n_rules, char **rules, char *name, size_t *ou
 		outpos = outlen;
 		if ((common[0] != 0) && (strcmp(p, common) == 0)) {
 			outlen += len2 + 1;
-			outptr = realloc(outptr, outlen);
+			outptr = espeak_realloc(outptr, outlen);
 			memmove(outptr + outpos, p2, len2);
 			outptr[outlen-1] = 0;
 		} else {
 			if ((ix < n_rules-1) && (strcmp(p, rules[ix+1]) == 0)) {
 				outlen ++;
-				outptr = realloc(outptr, outlen);
+				outptr = espeak_realloc(outptr, outlen);
 				common = rules[ix]; // phoneme string is same as next, set as common
 				outptr[outpos++] = RULE_PH_COMMON;
 			}
 
 			outlen += len2 + 1 + len1;
-			outptr = realloc(outptr, outlen);
+			outptr = espeak_realloc(outptr, outlen);
 			memmove(outptr + outpos, p2, len2);
 			outpos += len2;
 			outptr[outpos++] = RULE_PHONEMES;
@@ -1327,7 +1328,7 @@ static int compile_lettergroup(CompileContext *ctx, char *input, FILE *f_out)
 static void free_rules(char **rules, int n_rules)
 {
 	for (int i = 0; i < n_rules; ++i) {
-		free(*rules);
+		espeak_free(*rules);
 		*rules++ = NULL;
 	}
 }
@@ -1514,7 +1515,7 @@ static espeak_ng_STATUS compile_dictrules(CompileContext *ctx, FILE *f_in, FILE 
 	fprintf(ctx->f_log, "\t%d rules, %d groups (%d)\n\n", count, n_rgroups, n_groups3);
 	free_rules(rules, n_rules);
 	for (gp = 0; gp < n_rgroups; gp++) {
-		free(rgroup[gp].start);
+		espeak_free(rgroup[gp].start);
 	}
 	return ENS_OK;
 }
@@ -1536,7 +1537,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_CompileDictionary(const char *dsource, 
 	char fname_out[sizeof(path_home)+15];
 	char path[sizeof(path_home)+40];       // path_dsource+20
 
-	CompileContext *ctx = calloc(1, sizeof(CompileContext));
+	CompileContext *ctx = espeak_calloc(1, sizeof(CompileContext));
 
 	ctx->error_count = 0;
 	ctx->error_need_dictionary = 0;

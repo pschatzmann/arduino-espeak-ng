@@ -62,6 +62,7 @@
 #include "translate.h"            // for p_decoder, InitText, translator
 #include "voice.h"                // for FreeVoiceList, VoiceReset, current_...
 #include "wavegen.h"              // for WavegenFill, WavegenInit, WcmdqUsed
+#include "mem_alloc.h"
 
 static unsigned char *outbuf = NULL;
 static int outbuf_size = 0;
@@ -285,7 +286,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_InitializeOutput(espeak_ng_OUTPUT_MODE 
 	// Always round up to the nearest sample and the nearest byte.
 	int millisamples = buffer_length * samplerate;
 	outbuf_size = (millisamples + 1000 - millisamples % 1000) / 500;
-	out_start = (unsigned char *)realloc(outbuf, outbuf_size);
+	out_start = (unsigned char *)espeak_realloc(outbuf, outbuf_size);
 	if (out_start == NULL)
 		return ENOMEM;
 	else
@@ -294,7 +295,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_InitializeOutput(espeak_ng_OUTPUT_MODE 
 	// allocate space for event list.  Allow 200 events per second.
 	// Add a constant to allow for very small buffer_length
 	n_event_list = (buffer_length*200)/1000 + 20;
-	espeak_EVENT *new_event_list = (espeak_EVENT *)realloc(event_list, sizeof(espeak_EVENT) * n_event_list);
+	espeak_EVENT *new_event_list = (espeak_EVENT *)espeak_realloc(event_list, sizeof(espeak_EVENT) * n_event_list);
 	if (new_event_list == NULL)
 		return ENOMEM;
 	event_list = new_event_list;
@@ -926,10 +927,10 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Terminate(void)
 		out_samplerate = 0;
 	}
 
-	free(event_list);
+	espeak_free(event_list);
 	event_list = NULL;
 
-	free(outbuf);
+	espeak_free(outbuf);
 	outbuf = NULL;
 
 	FreePhData();

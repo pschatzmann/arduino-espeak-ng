@@ -47,6 +47,7 @@
 
 #include "sintab.h"
 #include "speech.h"
+#include "mem_alloc.h"
 
 static void SetSynth(int length, int modn, frame_t *fr1, frame_t *fr2, voice_t *v);
 
@@ -328,11 +329,11 @@ void WavegenInit(int rate, int wavemult_fact)
 	double x;
 
 	if (echo_buf == NULL)
-		echo_buf = (short *)calloc(N_ECHO_BUF, sizeof(short));
+		echo_buf = (short *)espeak_calloc(N_ECHO_BUF, sizeof(short));
 	if (hspect == NULL)
-		hspect = (int (*)[MAX_HARMONIC])calloc(2, sizeof(hspect[0]));
+		hspect = (int (*)[MAX_HARMONIC])espeak_calloc(2, sizeof(hspect[0]));
 	if (wcmdq == NULL)
-		wcmdq = (intptr_t (*)[4])calloc(N_WCMDQ, sizeof(wcmdq[0]));
+		wcmdq = (intptr_t (*)[4])espeak_calloc(N_WCMDQ, sizeof(wcmdq[0]));
 
 	if (wavemult_fact == 0)
 		wavemult_fact = 60; // default
@@ -1299,7 +1300,7 @@ static int WavegenFill2(void)
 		{
 			char* data = (char*)q[1];
 			output_hooks->outputPhoSymbol(data,q[2]);
-			free(data);
+			espeak_free(data);
 		}
 			break;
 		case WCMD_PAUSE:
@@ -1357,7 +1358,7 @@ static int WavegenFill2(void)
 			break;
 		case WCMD_VOICE:
 			WavegenSetVoice((voice_t *)q[2]);
-			free((voice_t *)q[2]);
+			espeak_free((voice_t *)q[2]);
 			break;
 		case WCMD_EMBEDDED:
 			SetEmbedded(q[1], q[2]);

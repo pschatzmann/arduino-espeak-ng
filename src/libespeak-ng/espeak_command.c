@@ -26,6 +26,7 @@
 #include <espeak-ng/espeak_ng.h>
 
 #include "espeak_command.h"
+#include "mem_alloc.h"
 
 #if USE_ASYNC
 
@@ -39,13 +40,13 @@ t_espeak_command *create_espeak_text(const void *text, size_t size, unsigned int
 	void *a_text = NULL;
 	t_espeak_text *data = NULL;
 
-	t_espeak_command *a_command = (t_espeak_command *)malloc(sizeof(t_espeak_command));
+	t_espeak_command *a_command = (t_espeak_command *)espeak_malloc(sizeof(t_espeak_command));
 	if (!a_command)
 		return NULL;
 
-	a_text = malloc(size+1);
+	a_text = espeak_malloc(size+1);
 	if (!a_text) {
-		free(a_command);
+		espeak_free(a_command);
 		return NULL;
 	}
 	memcpy(a_text, text, size);
@@ -67,7 +68,7 @@ t_espeak_command *create_espeak_text(const void *text, size_t size, unsigned int
 t_espeak_command *create_espeak_terminated_msg(unsigned int unique_identifier, void *user_data)
 {
 	t_espeak_terminated_msg *data = NULL;
-	t_espeak_command *a_command = (t_espeak_command *)malloc(sizeof(t_espeak_command));
+	t_espeak_command *a_command = (t_espeak_command *)espeak_malloc(sizeof(t_espeak_command));
 	if (!a_command)
 		return NULL;
 
@@ -89,13 +90,13 @@ t_espeak_command *create_espeak_mark(const void *text, size_t size, const char *
 	char *a_index_mark = NULL;
 	t_espeak_mark *data = NULL;
 
-	t_espeak_command *a_command = (t_espeak_command *)malloc(sizeof(t_espeak_command));
+	t_espeak_command *a_command = (t_espeak_command *)espeak_malloc(sizeof(t_espeak_command));
 	if (!a_command)
 		return NULL;
 
-	a_text = malloc(size);
+	a_text = espeak_malloc(size);
 	if (!a_text) {
-		free(a_command);
+		espeak_free(a_command);
 		return NULL;
 	}
 	memcpy(a_text, text, size);
@@ -120,7 +121,7 @@ t_espeak_command *create_espeak_key(const char *key_name, void *user_data)
 	if (!key_name)
 		return NULL;
 
-	t_espeak_command *a_command = (t_espeak_command *)malloc(sizeof(t_espeak_command));
+	t_espeak_command *a_command = (t_espeak_command *)espeak_malloc(sizeof(t_espeak_command));
 	if (!a_command)
 		return NULL;
 
@@ -135,7 +136,7 @@ t_espeak_command *create_espeak_key(const char *key_name, void *user_data)
 
 t_espeak_command *create_espeak_char(wchar_t character, void *user_data)
 {
-	t_espeak_command *a_command = (t_espeak_command *)malloc(sizeof(t_espeak_command));
+	t_espeak_command *a_command = (t_espeak_command *)espeak_malloc(sizeof(t_espeak_command));
 	if (!a_command)
 		return NULL;
 
@@ -152,7 +153,7 @@ t_espeak_command *create_espeak_parameter(espeak_PARAMETER parameter, int value,
 {
 	t_espeak_parameter *data = NULL;
 
-	t_espeak_command *a_command = (t_espeak_command *)malloc(sizeof(t_espeak_command));
+	t_espeak_command *a_command = (t_espeak_command *)espeak_malloc(sizeof(t_espeak_command));
 	if (!a_command)
 		return NULL;
 
@@ -171,7 +172,7 @@ t_espeak_command *create_espeak_punctuation_list(const wchar_t *punctlist)
 	if (!punctlist)
 		return NULL;
 
-	t_espeak_command *a_command = (t_espeak_command *)malloc(sizeof(t_espeak_command));
+	t_espeak_command *a_command = (t_espeak_command *)espeak_malloc(sizeof(t_espeak_command));
 	if (!a_command)
 		return NULL;
 
@@ -179,9 +180,9 @@ t_espeak_command *create_espeak_punctuation_list(const wchar_t *punctlist)
 	a_command->state = CS_UNDEFINED;
 
 	size_t len = (wcslen(punctlist) + 1)*sizeof(wchar_t);
-	wchar_t *a_list = (wchar_t *)malloc(len);
+	wchar_t *a_list = (wchar_t *)espeak_malloc(len);
 	if (a_list == NULL) {
-		free(a_command);
+		espeak_free(a_command);
 		return NULL;
 	}
 	memcpy(a_list, punctlist, len);
@@ -195,7 +196,7 @@ t_espeak_command *create_espeak_voice_name(const char *name)
 	if (!name)
 		return NULL;
 
-	t_espeak_command *a_command = (t_espeak_command *)malloc(sizeof(t_espeak_command));
+	t_espeak_command *a_command = (t_espeak_command *)espeak_malloc(sizeof(t_espeak_command));
 	if (!a_command)
 		return NULL;
 
@@ -211,7 +212,7 @@ t_espeak_command *create_espeak_voice_spec(espeak_VOICE *voice)
 	if (!voice)
 		return NULL;
 
-	t_espeak_command *a_command = (t_espeak_command *)malloc(sizeof(t_espeak_command));
+	t_espeak_command *a_command = (t_espeak_command *)espeak_malloc(sizeof(t_espeak_command));
 	if (!a_command)
 		return NULL;
 
@@ -241,13 +242,13 @@ int delete_espeak_command(t_espeak_command *the_command)
 		{
 		case ET_TEXT:
 			if (the_command->u.my_text.text)
-				free(the_command->u.my_text.text);
+				espeak_free(the_command->u.my_text.text);
 			break;
 		case ET_MARK:
 			if (the_command->u.my_mark.text)
-				free(the_command->u.my_mark.text);
+				espeak_free(the_command->u.my_mark.text);
 			if (the_command->u.my_mark.index_mark)
-				free((void *)(the_command->u.my_mark.index_mark));
+				espeak_free((void *)(the_command->u.my_mark.index_mark));
 			break;
 		case ET_TERMINATED_MSG:
 		{
@@ -264,7 +265,7 @@ int delete_espeak_command(t_espeak_command *the_command)
 			break;
 		case ET_KEY:
 			if (the_command->u.my_key.key_name)
-				free((void *)(the_command->u.my_key.key_name));
+				espeak_free((void *)(the_command->u.my_key.key_name));
 			break;
 		case ET_CHAR:
 		case ET_PARAMETER:
@@ -272,30 +273,30 @@ int delete_espeak_command(t_espeak_command *the_command)
 			break;
 		case ET_PUNCTUATION_LIST:
 			if (the_command->u.my_punctuation_list)
-				free((void *)(the_command->u.my_punctuation_list));
+				espeak_free((void *)(the_command->u.my_punctuation_list));
 			break;
 		case ET_VOICE_NAME:
 			if (the_command->u.my_voice_name)
-				free((void *)(the_command->u.my_voice_name));
+				espeak_free((void *)(the_command->u.my_voice_name));
 			break;
 		case ET_VOICE_SPEC:
 		{
 			espeak_VOICE *data = &(the_command->u.my_voice_spec);
 
 			if (data->name)
-				free((void *)data->name);
+				espeak_free((void *)data->name);
 
 			if (data->languages)
-				free((void *)data->languages);
+				espeak_free((void *)data->languages);
 
 			if (data->identifier)
-				free((void *)data->identifier);
+				espeak_free((void *)data->identifier);
 		}
 			break;
 		default:
 			assert(0);
 		}
-		free(the_command);
+		espeak_free(the_command);
 		a_status = 1;
 	}
 	return a_status;

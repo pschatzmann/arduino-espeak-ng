@@ -57,6 +57,7 @@ char mbrola_name[20];
 #endif
 
 #include "mbrowrap.h"
+#include "mem_alloc.h"
 
 static MBROLA_TAB *mbrola_tab = NULL;
 static int mbrola_control = 0;
@@ -160,7 +161,7 @@ espeak_ng_STATUS LoadMbrolaTable(const char *mbrola_voice, const char *phtrans, 
 		return error;
 	}
 
-	MBROLA_TAB *new_mbrola_tab = (MBROLA_TAB *)realloc(mbrola_tab, size);
+	MBROLA_TAB *new_mbrola_tab = (MBROLA_TAB *)espeak_realloc(mbrola_tab, size);
 	if (new_mbrola_tab == NULL) {
 		fclose(f_in);
 		close_MBR();

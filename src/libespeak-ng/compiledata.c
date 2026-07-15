@@ -46,6 +46,7 @@
 #include "translate.h"                // for utf8_out, utf8_in
 #include "voice.h"                    // for LoadVoice, voice
 #include "wavegen.h"                  // for WavegenInit, WavegenSetVoice
+#include "mem_alloc.h"
 
 static int CalculateSample(unsigned char c3, int c1);
 
@@ -412,14 +413,14 @@ static void clean_context(CompileContext *ctx) {
 		REF_HASH_TAB *p;
 		while ((p = ctx->ref_hash_tab[i])) {
 			ctx->ref_hash_tab[i] = (REF_HASH_TAB*)p->link;
-			free(p);
+			espeak_free(p);
 		}
 	}
 	for (int i = 0; i < ctx->n_manifest; i++) {
-		free(ctx->manifest[i].name);
+		espeak_free(ctx->manifest[i].name);
 	}
-	free(ctx->manifest);
-	free(ctx);
+	espeak_free(ctx->manifest);
+	espeak_free(ctx);
 }
 
 static void error(CompileContext *ctx, const char *format, ...)
@@ -466,7 +467,7 @@ static espeak_ng_STATUS ReadPhondataManifest(CompileContext *ctx, espeak_ng_ERRO
 
 	if (ctx->manifest != NULL) {
 		for (int ix = 0; ix < ctx->n_manifest; ix++)
-			free(ctx->manifest[ix].name);
+			espeak_free(ctx->manifest[ix].name);
 	}
 
 	if (n_lines == 0) {
@@ -474,10 +475,10 @@ static espeak_ng_STATUS ReadPhondataManifest(CompileContext *ctx, espeak_ng_ERRO
 		return ENS_EMPTY_PHONEME_MANIFEST;
 	}
 
-	NAMETAB *new_manifest = (NAMETAB *)realloc(ctx->manifest, n_lines * sizeof(NAMETAB));
+	NAMETAB *new_manifest = (NAMETAB *)espeak_realloc(ctx->manifest, n_lines * sizeof(NAMETAB));
 	if (new_manifest == NULL) {
 		fclose(f);
-		free(ctx->manifest);
+		espeak_free(ctx->manifest);
 		return ENOMEM;
 	} else
 		ctx->manifest = new_manifest;
@@ -488,7 +489,7 @@ static espeak_ng_STATUS ReadPhondataManifest(CompileContext *ctx, espeak_ng_ERRO
 			continue;
 
 		if (sscanf(&buf[2], "%x %s", &value, name) == 2) {
-			if ((p = (char *)malloc(strlen(name)+1)) != NULL) {
+			if ((p = (char *)espeak_malloc(strlen(name)+1)) != NULL) {
 				strcpy(p, name);
 				ctx->manifest[ctx->n_manifest].value = value;
 				ctx->manifest[ctx->n_manifest].name = p;
@@ -1333,7 +1334,7 @@ static espeak_ng_STATUS LoadDataFile(CompileContext *ctx, const char *path, int 
 	// add this item to the hash table
 	if (*addr > 0) {
 		p = ctx->ref_hash_tab[hash];
-		p2 = (REF_HASH_TAB *)malloc(sizeof(REF_HASH_TAB)+strlen(path)+1);
+		p2 = (REF_HASH_TAB *)espeak_malloc(sizeof(REF_HASH_TAB)+strlen(path)+1);
 		if (p2 == NULL)
 			return ENOMEM;
 		p2->value = *addr;
@@ -2168,7 +2169,7 @@ static void WritePhonemeTables(CompileContext *ctx)
 			}
 		}
 		fwrite(&p[n], sizeof(PHONEME_TAB), 1, ctx->f_phtab); // include the extra list-terminator phoneme entry
-		free(p);
+		espeak_free(p);
 	}
 }
 
@@ -2201,7 +2202,7 @@ static void StartPhonemeTable(CompileContext *ctx, const char *name)
 		error(ctx, "Too many phonemetables");
 		return;
 	}
-	p = (PHONEME_TAB *)calloc(sizeof(PHONEME_TAB), N_PHONEME_TAB);
+	p = (PHONEME_TAB *)espeak_calloc(sizeof(PHONEME_TAB), N_PHONEME_TAB);
 
 	if (p == NULL) {
 		error(ctx, "Out of memory");
@@ -2333,7 +2334,7 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 	char fname[sizeof(path_home)+40];
 	char phdst[sizeof(path_home)+40]; // Destination: path to the phondata/phontab/phonindex output files.
 
-	CompileContext *ctx = calloc(1, sizeof(CompileContext));
+	CompileContext *ctx = espeak_calloc(1, sizeof(CompileContext));
 	if (!ctx) return ENOMEM;
 
 	if (source_path) {
@@ -2547,7 +2548,7 @@ espeak_ng_CompileIntonationPath(const char *source_path,
 	char tune_names[N_TUNE_NAMES][12];
 	char buf[sizeof(path_home)+150];
 
-	CompileContext *ctx = calloc(1, sizeof(CompileContext));
+	CompileContext *ctx = espeak_calloc(1, sizeof(CompileContext));
 	if (!ctx) return ENOMEM;
 
 	ctx->error_count = 0;
@@ -2602,7 +2603,7 @@ espeak_ng_CompileIntonationPath(const char *source_path,
 	rewind(ctx->f_in);
 	ctx->linenum = 1;
 
-	tune_data = (n_tune_names == 0) ? NULL : (TUNE *)calloc(n_tune_names, sizeof(TUNE));
+	tune_data = (n_tune_names == 0) ? NULL : (TUNE *)espeak_calloc(n_tune_names, sizeof(TUNE));
 	if (tune_data == NULL) {
 		fclose(ctx->f_in);
 		fclose(ctx->f_errors);
@@ -2616,7 +2617,7 @@ espeak_ng_CompileIntonationPath(const char *source_path,
 		int error = errno;
 		fclose(ctx->f_in);
 		fclose(ctx->f_errors);
-		free(tune_data);
+		espeak_free(tune_data);
 		clean_context(ctx);
 		return create_file_error_context(context, error, buf);
 	}
@@ -2769,7 +2770,7 @@ espeak_ng_CompileIntonationPath(const char *source_path,
 			error(ctx, "Tune '%s' not defined", preset_tune_names[ix]);
 	}
 	fwrite(tune_data, n_tune_names, sizeof(TUNE), f_out);
-	free(tune_data);
+	espeak_free(tune_data);
 	fclose(ctx->f_in);
 	fclose(f_out);
 

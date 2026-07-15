@@ -33,6 +33,7 @@
 #include "synthdata.h"   // for PhonemeCode
 #include "synthesize.h"  // for PHONEME_LIST, TUNE, phoneme_list, phoneme_tab
 #include "translate.h"   // for Translator, LANGUAGE_OPTIONS, L, OPTION_EMPH...
+#include "mem_alloc.h"
 
 /* Note this module is mostly old code that needs to be rewritten to
    provide a more flexible intonation system.
@@ -934,7 +935,7 @@ void CalcPitches(Translator *tr, int clause_type)
 	int ph_end = n_phoneme_list;
 
 #if ESPEAK_STACK_HACK
-	SYLLABLE *syllable_tab = calloc(1, sizeof(SYLLABLE)*N_PHONEME_LIST);
+	SYLLABLE *syllable_tab = espeak_calloc(1, sizeof(SYLLABLE)*N_PHONEME_LIST);
 	assert(syllable_tab!=NULL);
 #else
 	SYLLABLE syllable_tab[N_PHONEME_LIST];
@@ -1100,7 +1101,7 @@ void CalcPitches(Translator *tr, int clause_type)
 	}
 end_CalcPitches:
 #if ESPEAK_STACK_HACK
-	free(syllable_tab);
+	espeak_free(syllable_tab);
 #endif
 	return;
 }

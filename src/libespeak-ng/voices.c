@@ -51,6 +51,7 @@
 #include "synthesize.h"               // for SetSpeed, SPEED_FACTORS, speed
 #include "translate.h"                // for LANGUAGE_OPTIONS, DeleteTranslator
 #include "wavegen.h"                  // for InitBreath
+#include "mem_alloc.h"
 
 static int AddToVoicesList(const char *fname, int len_path_voices, int is_language_file);
 
@@ -169,7 +170,7 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 	// Read a Voice file, allocate a VOICE_DATA and set data from the
 	// file's  language, gender, name  lines
 #if ESPEAK_STACK_HACK
-	ReadVoiceFileData* data = calloc(1, sizeof(ReadVoiceFileData));
+	ReadVoiceFileData* data = espeak_calloc(1, sizeof(ReadVoiceFileData));
 	assert(data!=NULL);
 	char *linebuf =  data->linebuf;
 	char *vname =  data->vname;
@@ -244,16 +245,16 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 
 	if (n_languages == 0){
 #if ESPEAK_STACK_HACK
-		free(data);
+		espeak_free(data);
 		ESPK_LOG("<- ReadVoiceFile: %s\n", fname);
 #endif
 		return NULL; // no language lines in the voice file
 	}
 
-	p = (char *)calloc(sizeof(espeak_VOICE) + langix + strlen(fname) + strlen(vname) + 3, 1);
+	p = (char *)espeak_calloc(sizeof(espeak_VOICE) + langix + strlen(fname) + strlen(vname) + 3, 1);
 	if (p==NULL) {
 #if ESPEAK_STACK_HACK
-		free(data);
+		espeak_free(data);
 		ESPK_LOG("<- ReadVoiceFile: %s\n", fname);
 #endif
 		return NULL;
@@ -279,7 +280,7 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 	voice_data->variant = 0;
 	voice_data->xx1 = n_variants;
 #if ESPEAK_STACK_HACK
-	free(data);
+	espeak_free(data);
 	ESPK_LOG("<- ReadVoiceFile: %s\n", fname);
 #endif
 	return voice_data;
@@ -1389,7 +1390,7 @@ void FreeVoiceList(void)
 	int ix;
 	for (ix = 0; ix < n_voices_list; ix++) {
 		if (voices_list[ix] != NULL) {
-			free(voices_list[ix]);
+			espeak_free(voices_list[ix]);
 			voices_list[ix] = NULL;
 		}
 	}
@@ -1415,7 +1416,7 @@ ESPEAK_API const espeak_VOICE **espeak_ListVoices(espeak_VOICE *voice_spec)
 	GetVoices(path_voices, strlen(path_voices)+1, 1);
 
 	voices_list[n_voices_list] = NULL; // voices list terminator
-	espeak_VOICE **new_voices = (espeak_VOICE **)realloc(voices, sizeof(espeak_VOICE *)*(n_voices_list+1));
+	espeak_VOICE **new_voices = (espeak_VOICE **)espeak_realloc(voices, sizeof(espeak_VOICE *)*(n_voices_list+1));
 	if (new_voices == NULL)
 		return (const espeak_VOICE **)voices;
 	voices = new_voices;

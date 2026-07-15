@@ -43,6 +43,7 @@
 #include "synthdata.h"            // for SelectPhonemeTable, LookupPhonemeTable
 #include "ucd/ucd.h"              // for ucd_toupper
 #include "voice.h"                // for voice, voice_t
+#include "mem_alloc.h"
 
 
 static void addPluralSuffixes(int flags, Translator *tr, char last_char, char *word_phonemes);
@@ -87,7 +88,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 	int prefix_stress;
 	char *wordx;
 #if ESPEAK_STACK_HACK
-	TranslateWord3Tables *tables = calloc(1, sizeof(TranslateWord3Tables));
+	TranslateWord3Tables *tables = espeak_calloc(1, sizeof(TranslateWord3Tables));
 	assert(tables!=NULL);
 	char *phonemes = tables->phonemes;
 	char *phonemes2 =tables->phonemes2;
@@ -147,7 +148,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 		// dictionary is not loaded
 		word_phonemes[0] = 0;
 #if ESPEAK_STACK_HACK
-		free(tables);
+		espeak_free(tables);
 #endif
 		ESPK_LOG("-> TranslateWord3\n");
 		return 0;
@@ -207,7 +208,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 				strcpy(word_out, word1);
 
 #if ESPEAK_STACK_HACK
-			free(tables);
+			espeak_free(tables);
 #endif
 			ESPK_LOG("-> TranslateWord3\n");
 			return dictionary_flags[0];
@@ -239,7 +240,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 			// change to another language in order to translate this word
 			strcpy(word_phonemes, phonemes);
 #if ESPEAK_STACK_HACK
-			free(tables);
+			espeak_free(tables);
 #endif
 			ESPK_LOG("-> TranslateWord3\n");
 			return 0;
@@ -254,7 +255,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 			Lookup(tr, "_0lang", word_phonemes);
 			if (word_phonemes[0] == phonSWITCH){
 #if ESPEAK_STACK_HACK
-				free(tables);
+				espeak_free(tables);
 #endif
 				ESPK_LOG("-> TranslateWord3\n");
 				return 0;
@@ -264,7 +265,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 				// for this language, speak English numerals (0-9) with the English voice
 				sprintf(word_phonemes, "%c", phonSWITCH);
 #if ESPEAK_STACK_HACK
-				free(tables);
+				espeak_free(tables);
 #endif
 				ESPK_LOG("-> TranslateWord3\n");
 				return 0;
@@ -303,7 +304,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 
 		if (SpeakIndividualLetters(tr, word1, phonemes, spell_word, current_alphabet, word_phonemes) == NULL) {
 #if ESPEAK_STACK_HACK
-			free(tables);
+			espeak_free(tables);
 #endif
 			ESPK_LOG("-> TranslateWord3\n");
 			if (word_length > 1){
@@ -313,7 +314,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 		}
 		strcpy(word_phonemes, phonemes);
 #if ESPEAK_STACK_HACK
-		free(tables);
+		espeak_free(tables);
 #endif
 		ESPK_LOG("-> TranslateWord3\n");
 		if (wflags & FLAG_TRANSLATOR2){
@@ -353,13 +354,13 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 				strcpy(word_phonemes, unpron_phonemes);
 				if (strcmp(&unpron_phonemes[1], ESPEAKNG_DEFAULT_VOICE) == 0){
 #if ESPEAK_STACK_HACK
-					free(tables);
+					espeak_free(tables);
 #endif
 					ESPK_LOG("-> TranslateWord3\n");
 					return FLAG_SPELLWORD; // _^_en must have been set in TranslateLetter(), not *_rules which uses only _^_
 				}
 #if ESPEAK_STACK_HACK
-				free(tables);
+				espeak_free(tables);
 #endif
 				ESPK_LOG("-> TranslateWord3\n");
 				return 0;
@@ -384,7 +385,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 				// change to another language in order to translate this word
 				strcpy(word_phonemes, phonemes);
 #if ESPEAK_STACK_HACK
-				free(tables);
+				espeak_free(tables);
 #endif
 				ESPK_LOG("-> TranslateWord3\n");
 				return 0;
@@ -398,14 +399,14 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 				if ((word_length == 1) && (IsAlpha(wc) || IsSuperscript(wc))) {
 					if ((wordx = SpeakIndividualLetters(tr, wordx, phonemes, spell_word, current_alphabet, word_phonemes)) == NULL){
 #if ESPEAK_STACK_HACK
-						free(tables);
+						espeak_free(tables);
 #endif
 						ESPK_LOG("-> TranslateWord3\n");
 						return 0;
 					}	
 					strcpy(word_phonemes, phonemes);
 #if ESPEAK_STACK_HACK
-					free(tables);
+					espeak_free(tables);
 #endif
 					ESPK_LOG("-> TranslateWord3\n");
 					return 0;
@@ -514,7 +515,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 						wordx[-1] = c_temp;
 						strcpy(word_phonemes, phonemes);
 #if ESPEAK_STACK_HACK
-						free(tables);
+						espeak_free(tables);
 #endif
 						ESPK_LOG("-> TranslateWord3\n");
 						return 0;
@@ -544,7 +545,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 							memcpy(wordx, word_copy, strlen(word_copy));
 							strcpy(word_phonemes, phonemes);
 #if ESPEAK_STACK_HACK
-							free(tables);
+							espeak_free(tables);
 #endif
 							ESPK_LOG("-> TranslateWord3\n");
 							return 0;
@@ -566,7 +567,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 							memcpy(wordx, word_copy, strlen(word_copy));
 							strcpy(word_phonemes, phonemes);
 #if ESPEAK_STACK_HACK
-							free(tables);
+							espeak_free(tables);
 #endif
 							ESPK_LOG("-> TranslateWord3\n");
 							return 0;
@@ -610,7 +611,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 								memcpy(wordx, word_copy, strlen(word_copy));
 								wordx[-1] = c_temp;
 #if ESPEAK_STACK_HACK
-								free(tables);
+								espeak_free(tables);
 #endif
 								ESPK_LOG("-> TranslateWord3\n");
 								return 0;
@@ -766,7 +767,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 	dictionary_flags[0] |= was_unpronouncable;
 	memcpy(word_start, word_copy2, word_copy_length);
 #if ESPEAK_STACK_HACK
-	free(tables);
+	espeak_free(tables);
 #endif
 	ESPK_LOG("-> TranslateWord3\n");
 	return dictionary_flags[0];

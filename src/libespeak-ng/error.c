@@ -28,6 +28,7 @@
 
 #include "error.h"
 #include "common.h"           // for strncpy0
+#include "mem_alloc.h"
 
 espeak_ng_STATUS
 create_file_error_context(espeak_ng_ERROR_CONTEXT *context,
@@ -36,9 +37,9 @@ create_file_error_context(espeak_ng_ERROR_CONTEXT *context,
 {
 	if (context) {
 		if (*context) {
-			free((*context)->name);
+			espeak_free((*context)->name);
 		} else {
-			*context = malloc(sizeof(espeak_ng_ERROR_CONTEXT_));
+			*context = espeak_malloc(sizeof(espeak_ng_ERROR_CONTEXT_));
 			if (!*context)
 				return ENOMEM;
 		}
@@ -58,9 +59,9 @@ create_version_mismatch_error_context(espeak_ng_ERROR_CONTEXT *context,
 {
 	if (context) {
 		if (*context) {
-			free((*context)->name);
+			espeak_free((*context)->name);
 		} else {
-			*context = malloc(sizeof(espeak_ng_ERROR_CONTEXT_));
+			*context = espeak_malloc(sizeof(espeak_ng_ERROR_CONTEXT_));
 			if (!*context)
 				return ENOMEM;
 		}
@@ -78,8 +79,8 @@ ESPEAK_NG_API void
 espeak_ng_ClearErrorContext(espeak_ng_ERROR_CONTEXT *context)
 {
 	if (context && *context) {
-		free((*context)->name);
-		free(*context);
+		espeak_free((*context)->name);
+		espeak_free(*context);
 		*context = NULL;
 	}
 }

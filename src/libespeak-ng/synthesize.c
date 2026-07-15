@@ -44,6 +44,7 @@
 #include "voice.h"                // for voice_t, voice, LoadVoiceVariant
 #include "wavegen.h"              // for WcmdqInc, WcmdqFree, WcmdqStop
 #include "speech.h"               // for MAKE_MEM_UNDEFINED
+#include "mem_alloc.h"
 
 static void SmoothSpect(void);
 
@@ -88,7 +89,7 @@ const char *WordToString(char buf[5], unsigned int word)
 void SynthesizeInit(void)
 {
 	if (phoneme_list == NULL)
-		phoneme_list = (PHONEME_LIST *)calloc(N_PHONEME_LIST+1, sizeof(PHONEME_LIST));
+		phoneme_list = (PHONEME_LIST *)espeak_calloc(N_PHONEME_LIST+1, sizeof(PHONEME_LIST));
 
 	last_pitch_cmd = 0;
 	last_amp_cmd = 0;
@@ -390,7 +391,7 @@ static frame_t *AllocFrame(void)
 	static frame_t *frame_pool = NULL;
 
 	if (frame_pool == NULL)
-		frame_pool = (frame_t *)calloc(N_FRAME_POOL, sizeof(frame_t));
+		frame_pool = (frame_t *)espeak_calloc(N_FRAME_POOL, sizeof(frame_t));
 
 	ix++;
 	if (ix >= N_FRAME_POOL)
@@ -1060,7 +1061,7 @@ espeak_ng_STATUS DoVoiceChange(voice_t *v)
 {
 	// allocate memory for a copy of the voice data, and free it in wavegenfill()
 	voice_t *v2;
-	if ((v2 = (voice_t *)malloc(sizeof(voice_t))) == NULL)
+	if ((v2 = (voice_t *)espeak_malloc(sizeof(voice_t))) == NULL)
 		return ENOMEM;
 	memcpy(v2, v, sizeof(voice_t));
 	wcmdq[wcmdq_tail][0] = WCMD_VOICE;

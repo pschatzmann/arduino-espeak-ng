@@ -40,6 +40,7 @@
 #include "error.h"                // for create_file_error_context
 #include "speech.h"                   // for path_home, PATHSEP
 #include "synthesize.h"                   // for samplerate
+#include "mem_alloc.h"
 
 int n_soundicon_tab = 0;
 SOUND_ICON soundicon_tab[N_SOUNDICON_TAB];
@@ -119,7 +120,7 @@ static espeak_ng_STATUS LoadSoundFile(const char *fname, int index, espeak_ng_ER
 		fclose(f);
 		return create_file_error_context(context, error, fname);
 	}
-	if ((p = realloc(soundicon_tab[index].data, length)) == NULL) {
+	if ((p = espeak_realloc(soundicon_tab[index].data, length)) == NULL) {
 		fclose(f);
 		return ENOMEM;
 	}
@@ -128,7 +129,7 @@ static espeak_ng_STATUS LoadSoundFile(const char *fname, int index, espeak_ng_ER
 		fclose(f);
 		if (fname_temp[0])
 			remove(fname_temp);
-		free(p);
+		espeak_free(p);
 		return create_file_error_context(context, error, fname);
 	}
 	fclose(f);
@@ -181,7 +182,7 @@ int LoadSoundFile2(const char *fname)
 	if (LoadSoundFile(fname, n_soundicon_tab, NULL) != ENS_OK)
 		return -1;
 
-	soundicon_tab[n_soundicon_tab].filename = (char *)realloc(soundicon_tab[n_soundicon_tab].filename, strlen(fname)+1);
+	soundicon_tab[n_soundicon_tab].filename = (char *)espeak_realloc(soundicon_tab[n_soundicon_tab].filename, strlen(fname)+1);
 	strcpy(soundicon_tab[n_soundicon_tab].filename, fname);
 	n_soundicon_tab++;
 	return n_soundicon_tab - 1;
