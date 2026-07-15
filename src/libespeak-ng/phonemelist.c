@@ -49,7 +49,7 @@ static const unsigned char pause_phonemes[8] = {
 };
 
 extern int n_ph_list2;
-extern PHONEME_LIST2 ph_list2[N_PHONEME_LIST]; // first stage of text->phonemes
+extern PHONEME_LIST2 *ph_list2; // first stage of text->phonemes
 
 static int SubstitutePhonemes(PHONEME_LIST *plist_out)
 {
@@ -157,7 +157,7 @@ void MakePhonemeList(Translator *tr, int post_pause, bool start_sentence)
 	plist2 = ph_list2;
 	phlist = phoneme_list;
 	end_sourceix = plist2[n_ph_list2-1].sourceix;
-	MAKE_MEM_UNDEFINED(&phoneme_list, sizeof(phoneme_list));
+	MAKE_MEM_UNDEFINED(phoneme_list, (N_PHONEME_LIST+1) * sizeof(PHONEME_LIST));
 
 	// is the last word of the clause unstressed ?
 	max_stress = 0;

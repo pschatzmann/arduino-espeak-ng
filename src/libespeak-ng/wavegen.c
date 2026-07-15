@@ -70,7 +70,7 @@ static int peak_height[N_PEAKS];
 int echo_head;
 int echo_tail;
 int echo_amp = 0;
-short echo_buf[N_ECHO_BUF];
+short *echo_buf = NULL;
 static int echo_length = 0; // period (in sample\) to ensure completion of echo at the end of speech, set in WavegenSetEcho()
 
 static int voicing;
@@ -81,7 +81,7 @@ static RESONATOR rbreath[N_PEAKS];
 static int harm_inc[N_LOWHARM]; // only for these harmonics do we interpolate amplitude between steps
 static int *harmspect;
 static int hswitch = 0;
-static int hspect[2][MAX_HARMONIC]; // 2 copies, we interpolate between then
+static int (*hspect)[MAX_HARMONIC] = NULL; // 2 copies, we interpolate between then
 
 static int nsamples = 0; // number to do
 static int modulation_type = 0;
@@ -113,7 +113,7 @@ espeak_ng_OUTPUT_HOOKS* output_hooks = NULL;
 static int const_f0 = 0;
 
 // the queue of operations passed to wavegen from sythesize
-intptr_t wcmdq[N_WCMDQ][4];
+intptr_t (*wcmdq)[4] = NULL;
 int wcmdq_head = 0;
 int wcmdq_tail = 0;
 
@@ -326,6 +326,13 @@ void WavegenInit(int rate, int wavemult_fact)
 {
 	int ix;
 	double x;
+
+	if (echo_buf == NULL)
+		echo_buf = (short *)calloc(N_ECHO_BUF, sizeof(short));
+	if (hspect == NULL)
+		hspect = (int (*)[MAX_HARMONIC])calloc(2, sizeof(hspect[0]));
+	if (wcmdq == NULL)
+		wcmdq = (intptr_t (*)[4])calloc(N_WCMDQ, sizeof(wcmdq[0]));
 
 	if (wavemult_fact == 0)
 		wavemult_fact = 60; // default

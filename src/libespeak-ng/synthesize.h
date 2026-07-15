@@ -389,7 +389,7 @@ extern PHONEME_TAB *phoneme_tab[N_PHONEME_TAB];
 
 // list of phonemes in a clause
 extern int n_phoneme_list;
-extern PHONEME_LIST phoneme_list[N_PHONEME_LIST+1];
+extern PHONEME_LIST *phoneme_list;
 extern unsigned int embedded_list[];
 
 extern const unsigned char env_fall[128];
@@ -415,7 +415,7 @@ extern const unsigned char env_fall[128];
 #define N_WCMDQ   170
 #define MIN_WCMDQ  25   // need this many free entries before adding new phoneme
 
-extern intptr_t wcmdq[N_WCMDQ][4];
+extern intptr_t (*wcmdq)[4];
 extern int wcmdq_head;
 extern int wcmdq_tail;
 
@@ -428,7 +428,7 @@ extern int samplerate;
 extern int echo_head;
 extern int echo_tail;
 extern int echo_amp;
-extern short echo_buf[N_ECHO_BUF];
+extern short *echo_buf;
 
 void SynthesizeInit(void);
 int  Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume);

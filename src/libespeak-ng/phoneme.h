@@ -277,7 +277,7 @@ typedef struct {
 
 #define PhonemeCode2(c1, c2) PhonemeCode((c2<<8)+c1)
 
-extern PHONEME_TAB_LIST phoneme_tab_list[N_PHONEME_TABS];
+extern PHONEME_TAB_LIST *phoneme_tab_list;
 extern int phoneme_tab_number;
 
 #ifdef __cplusplus
