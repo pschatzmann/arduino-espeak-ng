@@ -277,7 +277,11 @@ typedef struct {
 
 #define PhonemeCode2(c1, c2) PhonemeCode((c2<<8)+c1)
 
+#if ESPEAK_HEAP_HACK
 extern PHONEME_TAB_LIST *phoneme_tab_list;
+#else
+extern PHONEME_TAB_LIST phoneme_tab_list[N_PHONEME_TABS];
+#endif
 extern int phoneme_tab_number;
 
 #ifdef __cplusplus

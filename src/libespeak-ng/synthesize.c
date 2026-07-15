@@ -50,7 +50,11 @@ static void SmoothSpect(void);
 
 // list of phonemes in a clause
 int n_phoneme_list = 0;
+#if ESPEAK_HEAP_HACK
 PHONEME_LIST *phoneme_list = NULL;
+#else
+PHONEME_LIST phoneme_list[N_PHONEME_LIST+1];
+#endif
 
 SPEED_FACTORS speed;
 
@@ -88,8 +92,10 @@ const char *WordToString(char buf[5], unsigned int word)
 
 void SynthesizeInit(void)
 {
+#if ESPEAK_HEAP_HACK
 	if (phoneme_list == NULL)
 		phoneme_list = (PHONEME_LIST *)espeak_calloc(N_PHONEME_LIST+1, sizeof(PHONEME_LIST));
+#endif
 
 	last_pitch_cmd = 0;
 	last_amp_cmd = 0;
@@ -388,10 +394,14 @@ static frame_t *AllocFrame(void)
 
 	#define N_FRAME_POOL N_WCMDQ
 	static int ix = 0;
+#if ESPEAK_HEAP_HACK
 	static frame_t *frame_pool = NULL;
 
 	if (frame_pool == NULL)
 		frame_pool = (frame_t *)espeak_calloc(N_FRAME_POOL, sizeof(frame_t));
+#else
+	static frame_t frame_pool[N_FRAME_POOL];
+#endif
 
 	ix++;
 	if (ix >= N_FRAME_POOL)

@@ -21,16 +21,21 @@ You could load the data from an SD drive, however this is using an excessive amo
 
 ### Memory Requirements
 
-With the miminum configuration we get the following on an ESP32:
+With the minimum configuration we get the following on an ESP32 (measured with the
+[espeak-arduino](examples/espeak-arduino/espeak-arduino.ino) example, board
+`esp32:esp32:esp32`, partition scheme Huge APP):
 
-- Sketch uses 1638633 bytes (52%) of program storage space. Maximum is 3145728 bytes.
-- Global variables use 120924 bytes (36%) of dynamic memory, leaving 206756 bytes 
+- Sketch uses 1457411 bytes (46%) of program storage space. Maximum is 3145728 bytes.
+- Global variables use 39616 bytes (12%) of dynamic memory, leaving 288064 bytes for
+  local variables. Maximum is 327680 bytes.
 
 If you use an ESP32, don't forget to select the partition scheme Huge APP!
 
 Large internal buffers (the phoneme list, wavegen queue, phoneme tables, etc.) are
 allocated on the heap rather than as fixed global arrays, which keeps the static
-RAM/DRAM footprint small and avoids linker overflows on constrained targets.
+RAM/DRAM footprint small and avoids linker overflows on constrained targets. This is
+controlled by the `ESPEAK_HEAP_HACK` setting in `arduino/config-espk.h` (enabled by
+default); set it to 0 to fall back to fixed-size global arrays instead.
 
 ### PSRAM Support
 

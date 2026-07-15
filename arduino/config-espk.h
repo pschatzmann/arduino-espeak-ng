@@ -241,7 +241,7 @@
 
 // Activate big heap allocations to be dynamic
 #ifndef ESPEAK_HEAP_HACK
-#  define ESPEAK_HEAP_HACK 0
+#  define ESPEAK_HEAP_HACK 1
 #endif
 
 // Activate some logging

@@ -59,7 +59,11 @@ unsigned char *wavefile_data = NULL;
 static unsigned char *phoneme_tab_data = NULL;
 
 static int n_phoneme_tables;
+#if ESPEAK_HEAP_HACK
 PHONEME_TAB_LIST *phoneme_tab_list = NULL;
+#else
+PHONEME_TAB_LIST phoneme_tab_list[N_PHONEME_TABS];
+#endif
 int phoneme_tab_number = 0;
 
 int seq_len_adjust;
@@ -154,8 +158,10 @@ espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context)
 		return create_version_mismatch_error_context(context, path_home, version, version_phdata);
 
 	// set up phoneme tables
+#if ESPEAK_HEAP_HACK
 	if (phoneme_tab_list == NULL)
 		phoneme_tab_list = (PHONEME_TAB_LIST *)espeak_calloc(N_PHONEME_TABS, sizeof(PHONEME_TAB_LIST));
+#endif
 	p = phoneme_tab_data;
 	n_phoneme_tables = p[0];
 	p += 4;

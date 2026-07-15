@@ -50,7 +50,11 @@ static const unsigned char pause_phonemes[8] = {
 };
 
 extern int n_ph_list2;
+#if ESPEAK_HEAP_HACK
 extern PHONEME_LIST2 *ph_list2; // first stage of text->phonemes
+#else
+extern PHONEME_LIST2 ph_list2[N_PHONEME_LIST]; // first stage of text->phonemes
+#endif
 
 static int SubstitutePhonemes(PHONEME_LIST *plist_out)
 {

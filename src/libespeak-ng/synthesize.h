@@ -389,7 +389,11 @@ extern PHONEME_TAB *phoneme_tab[N_PHONEME_TAB];
 
 // list of phonemes in a clause
 extern int n_phoneme_list;
+#if ESPEAK_HEAP_HACK
 extern PHONEME_LIST *phoneme_list;
+#else
+extern PHONEME_LIST phoneme_list[N_PHONEME_LIST+1];
+#endif
 extern unsigned int embedded_list[];
 
 extern const unsigned char env_fall[128];
@@ -415,7 +419,11 @@ extern const unsigned char env_fall[128];
 #define N_WCMDQ   170
 #define MIN_WCMDQ  25   // need this many free entries before adding new phoneme
 
+#if ESPEAK_HEAP_HACK
 extern intptr_t (*wcmdq)[4];
+#else
+extern intptr_t wcmdq[N_WCMDQ][4];
+#endif
 extern int wcmdq_head;
 extern int wcmdq_tail;
 
@@ -428,7 +436,11 @@ extern int samplerate;
 extern int echo_head;
 extern int echo_tail;
 extern int echo_amp;
+#if ESPEAK_HEAP_HACK
 extern short *echo_buf;
+#else
+extern short echo_buf[N_ECHO_BUF];
+#endif
 
 void SynthesizeInit(void);
 int  Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume);

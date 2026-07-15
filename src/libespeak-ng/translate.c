@@ -92,7 +92,11 @@ static ALPHABET *current_alphabet;
 
 char word_phonemes[N_WORD_PHONEMES]; // a word translated into phoneme codes
 int n_ph_list2;
+#if ESPEAK_HEAP_HACK
 PHONEME_LIST2 *ph_list2 = NULL; // first stage of text->phonemes
+#else
+PHONEME_LIST2 ph_list2[N_PHONEME_LIST]; // first stage of text->phonemes
+#endif
 
 wchar_t option_punctlist[N_PUNCTLIST] = { 0 };
 
@@ -1053,8 +1057,10 @@ void TranslateClauseWithTerminator(Translator *tr, int *tone_out, char **voice_c
 		}
 	}
 
+#if ESPEAK_HEAP_HACK
 	if (ph_list2 == NULL)
 		ph_list2 = (PHONEME_LIST2 *)espeak_calloc(N_PHONEME_LIST, sizeof(PHONEME_LIST2));
+#endif
 	MAKE_MEM_UNDEFINED(ph_list2, N_PHONEME_LIST * sizeof(PHONEME_LIST2));
 	memset(&ph_list2[0], 0, sizeof(ph_list2[0]));
 	ph_list2[0].phcode = phonPAUSE_SHORT;
