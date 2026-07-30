@@ -1,5 +1,7 @@
 #include "mem_alloc.h"
+#include "config-espk.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 // esp-idf (and therefore Arduino-ESP32, which is built on top of it)
 // defines ESP_PLATFORM. That gives us heap_caps_*(), which lets us request
@@ -56,6 +58,24 @@ int espeak_PsramAvailable(void)
 #endif
 }
 
+// Callers throughout the library (phonemelist.c, translateword.c, voices.c,
+// etc.) follow espeak_malloc()/espeak_calloc() with assert(ptr != NULL), so a
+// failed allocation crashes the board. Log heap state here -- the one place
+// every allocation funnels through -- so a crash report at least tells you
+// how much was requested and how much was actually free/fragmented.
+static void espeak_log_oom(const char *fn, size_t requested)
+{
+#if defined(ESPEAK_PSRAM_BACKEND_ESP32)
+	ESPK_LOG("%s: allocation of %u bytes failed (free_internal=%u largest_internal_block=%u free_psram=%u)\n",
+		fn, (unsigned)requested,
+		(unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT),
+		(unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT),
+		(unsigned)heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
+#else
+	ESPK_LOG("%s: allocation of %u bytes failed\n", fn, (unsigned)requested);
+#endif
+}
+
 void *espeak_malloc(size_t size)
 {
 	if (use_psram) {
@@ -70,7 +90,10 @@ void *espeak_malloc(size_t size)
 #endif
 		// PSRAM unavailable or exhausted: fall back to internal RAM.
 	}
-	return malloc(size);
+	void *p = malloc(size);
+	if (p == NULL)
+		espeak_log_oom("espeak_malloc", size);
+	return p;
 }
 
 void *espeak_calloc(size_t nmemb, size_t size)
@@ -86,7 +109,10 @@ void *espeak_calloc(size_t nmemb, size_t size)
 			return p;
 #endif
 	}
-	return calloc(nmemb, size);
+	void *p = calloc(nmemb, size);
+	if (p == NULL)
+		espeak_log_oom("espeak_calloc", nmemb * size);
+	return p;
 }
 
 void *espeak_realloc(void *ptr, size_t size)
