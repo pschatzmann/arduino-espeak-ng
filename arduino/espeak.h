@@ -147,6 +147,12 @@ public:
         return true;
     }
 
+    /// Converts a string to phonemes
+    const char* toPhonemes(const char* str, int charset=espeakCHARS_UTF8, int phonememode=espeakPHONEMES){
+        if (str==nullptr) return "";
+        return espeak_TextToPhonemes((const void**)&str, charset, phonememode);
+    }
+
 protected:
     const short memory_guard = GUARD_VALUE; // check that memory was not overwritten by stack overflow
     const espeak_AUDIO_OUTPUT output = AUDIO_OUTPUT_SYNCH_PLAYBACK;

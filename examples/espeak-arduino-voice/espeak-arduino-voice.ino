@@ -11,23 +11,24 @@
  */
 
 #include "AudioTools.h" // https://github.com/pschatzmann/arduino-audio-tools
-//#include "AudioLibs/AudioKit.h" // https://github.com/pschatzmann/arduino-audiokit
+//#include "AudioTools/AudioLibs/AudioBoardStream.h"
 #include "FileSystems.h" // https://github.com/pschatzmann/arduino-posix-fs
 #include "espeak.h"
 
-I2SStream i2s; // or replace with AudioKitStream for AudioKit
+I2SStream i2s; // or replace with AudioBoardStream i2s(AudioKitEs8388V1); // for AudioKit
 ESpeak espeak(i2s);
 
 void setup() {
   Serial.begin(115200);
   //file_systems::FSLogger.begin(file_systems::FSInfo, Serial); 
   // add voice option
-  espeak.add("/mem/data/voices/!v/Alicia", espeak_ng_data_voices__v_Alicia, espeak_ng_data_voices__v_Alicia_len);
+  espeak.add("/mem/data/vi_dict", espeak_ng_data_vi_dict, espeak_ng_data_vi_dict_len);
+  espeak.add("/mem/data/lang/vi", espeak_ng_data_lang_aav_vi, espeak_ng_data_lang_aav_vi_len);
 
   // setup espeak
   espeak.begin();
   // Set voice and voice option
-  espeak.setVoice("en+Alicia");
+  espeak.setVoice("vi");
 
   // setup output
   audio_info espeak_info = espeak.audioInfo();

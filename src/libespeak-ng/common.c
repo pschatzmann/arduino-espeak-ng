@@ -171,6 +171,9 @@ int utf8_in2(int *c, const char *buf, int backwards)
 
 int IsAlpha(unsigned int c)
 {
+#ifdef ARDUINO
+	return ucd_isalpha(c);
+#else
 	// Replacement for iswalph() which also checks for some in-word symbols
 
 	static const unsigned short extra_indic_alphas[] = {
@@ -221,6 +224,7 @@ int IsAlpha(unsigned int c)
 		return 1; // Chinese/Japanese.  Should never get here, but Mac OS 10.4's iswalpha seems to be broken, so just make sure
 
 	return 0;
+#endif
 }
 
 // brackets, also 0x2014 to 0x021f which don't need to be in this list

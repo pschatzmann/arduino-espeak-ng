@@ -11,7 +11,7 @@
  */
 
 #include "AudioTools.h" // https://github.com/pschatzmann/arduino-audio-tools
-//#include "AudioLibs/AudioKit.h" // https://github.com/pschatzmann/arduino-audiokit
+//#include "AudioTools/AudioLibs/AudioBoardStream.h"
 #include "FileSystems.h" // https://github.com/pschatzmann/arduino-posix-fs
 #include "espeak.h"
 

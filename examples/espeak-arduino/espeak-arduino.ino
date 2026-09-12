@@ -14,11 +14,11 @@
  */
 
 #include "AudioTools.h" // https://github.com/pschatzmann/arduino-audio-tools
-//#include "AudioLibs/AudioKit.h" // https://github.com/pschatzmann/arduino-audiokit
+//#include "AudioTools/AudioLibs/AudioBoardStream.h"
 #include "FileSystems.h" // https://github.com/pschatzmann/arduino-posix-fs
 #include "espeak.h"
 
-I2SStream i2s; // or replace with AudioKitStream for AudioKit
+I2SStream i2s; // or replace with AudioBoardStream i2s(AudioKitEs8388V1); // for AudioKit
 ESpeak espeak(i2s);
 
 void setup() {
