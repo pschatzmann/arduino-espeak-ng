@@ -252,8 +252,13 @@ int IsDigit09(unsigned int c)
 
 int IsDigit(unsigned int c)
 {
+#ifdef ARDUINO
+	if (ucd_isdigit(c))
+		return 1;
+#else
 	if (iswdigit(c))
 		return 1;
+#endif
 
 	if ((c >= 0x966) && (c <= 0x96f))
 		return 1;
@@ -269,7 +274,11 @@ int IsSpace(unsigned int c)
 		return 1; // box drawing characters
 	if ((c >= 0xfff9) && (c <= 0xffff))
 		return 1; // unicode specials
+#ifdef ARDUINO
+	return ucd_isspace(c);
+#else
 	return iswspace(c);
+#endif
 }
 
 int isspace2(unsigned int c)

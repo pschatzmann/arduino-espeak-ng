@@ -48,3 +48,17 @@ target_compile_definitions(arduino-posix-fs PUBLIC -DIS_DESKTOP )
 target_include_directories(arduino-espeak-ng PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src )
 
 target_link_libraries(arduino-espeak-ng arduino-posix-fs arduino_emulator)
+
+# Second copy of the library compiled with -DARDUINO, so the ARDUINO-only
+# code paths (e.g. the ucd_isalpha()/ucd_isdigit()/ucd_isspace() branches in
+# common.c, added because embedded libc's iswalpha()/iswdigit()/iswspace()
+# only recognise ASCII) can be exercised and tested on desktop, without
+# needing real embedded hardware.
+add_library(arduino-espeak-ng-arduinosim STATIC ${SRC_LIST_CPP} ${SRC_LIST_C})
+target_compile_definitions(arduino-espeak-ng-arduinosim PUBLIC -DIS_DESKTOP -DARDUINO=10812)
+target_compile_options(arduino-espeak-ng-arduinosim PRIVATE -Wno-format-overflow -Wno-format-truncation)
+target_include_directories(arduino-espeak-ng-arduinosim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src )
+target_link_libraries(arduino-espeak-ng-arduinosim arduino-posix-fs arduino_emulator)
+
+enable_testing()
+add_subdirectory(tests)
