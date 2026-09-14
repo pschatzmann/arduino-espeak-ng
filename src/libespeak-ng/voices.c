@@ -595,6 +595,11 @@ voice_t *LoadVoice(const char *vname, int control)
                     SelectPhonemeTableName(phonemes_name);
 
                     translator = SelectTranslator(translator_name);
+                    if (translator == NULL) {
+                        if (f_voice != NULL)
+                            fclose(f_voice);
+                        return NULL; // allocation failed
+                    }
                     strncpy0(voice->language_name, language_name, sizeof(voice->language_name));
                 }
             }
@@ -742,6 +747,8 @@ voice_t *LoadVoice(const char *vname, int control)
 	if ((translator == NULL) && (!tone_only)) {
 		// not set by language attribute
 		translator = SelectTranslator(translator_name);
+		if (translator == NULL)
+			return NULL; // allocation failed
 	}
 
 	if (!tone_only) {

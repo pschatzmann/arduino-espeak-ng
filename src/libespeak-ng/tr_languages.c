@@ -254,6 +254,7 @@ static Translator *NewTranslator(void)
 	tr->dict_min_size = 0;
 	tr->data_dictrules = NULL; // language_1   translation rules file
 	tr->data_dictlist = NULL;  // language_2   dictionary lookup file
+	tr->data_dictlist_mapped = false;
 
 	tr->transpose_min = 0x60;
 	tr->transpose_max = 0x17f;
@@ -485,6 +486,8 @@ Translator *SelectTranslator(const char *name)
 	static const unsigned char stress_amps_ta[8] = { 18, 18, 18, 18, 20, 20, 22, 22 };
 
 	tr = NewTranslator();
+	if (tr == NULL)
+		return NULL; // allocation failed, e.g. fragmented heap on a microcontroller
 	strcpy(tr->dictionary_name, name);
 
 	// convert name string into a word of up to 4 characters, for the switch()
