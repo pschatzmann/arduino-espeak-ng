@@ -24,3 +24,10 @@ add_test(NAME test_vietnamese_phonemes COMMAND test_vietnamese_phonemes)
 add_executable(test_voice_switch test_voice_switch.cpp)
 target_link_libraries(test_voice_switch arduino-espeak-ng-arduinosim arduino-posix-fs arduino_emulator)
 add_test(NAME test_voice_switch COMMAND test_voice_switch)
+
+# Regression test for github.com/pschatzmann/arduino-espeak-ng/issues/36
+# ("Setup failed on ESP32-S3 N16R8"): open() must not store a dangling
+# pointer to a caller's stack-local path buffer.
+add_executable(test_dangling_open_path test_dangling_open_path.cpp)
+target_link_libraries(test_dangling_open_path arduino-posix-fs arduino_emulator)
+add_test(NAME test_dangling_open_path COMMAND test_dangling_open_path)
