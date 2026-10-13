@@ -31,3 +31,11 @@ add_test(NAME test_voice_switch COMMAND test_voice_switch)
 add_executable(test_dangling_open_path test_dangling_open_path.cpp)
 target_link_libraries(test_dangling_open_path arduino-posix-fs arduino_emulator)
 add_test(NAME test_dangling_open_path COMMAND test_dangling_open_path)
+
+# Regression test for github.com/pschatzmann/arduino-espeak-ng/issues/37
+# ('Words containing "fi"/"st"/"ff"/"fl" are spoken as "letter FB0x" on
+# ESP32'): the .replace table must be found regardless of the alignment of
+# the memory-mapped dictionary data.
+add_executable(test_dict_alignment test_dict_alignment.cpp)
+target_link_libraries(test_dict_alignment arduino-espeak-ng-arduinosim arduino-posix-fs arduino_emulator)
+add_test(NAME test_dict_alignment COMMAND test_dict_alignment)

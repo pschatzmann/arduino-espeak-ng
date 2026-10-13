@@ -144,7 +144,10 @@ static void InitGroups(Translator *tr)
 		p++;
 
 		if (p[0] == RULE_REPLACEMENTS) {
-			p = (char *)(((intptr_t)p+4) & ~3); // advance to next word boundary
+			// advance to next word boundary, counted from the start of the dictionary
+			// data (that is how compiledict pads it). The absolute address isn't
+			// aligned when the data is memory-mapped from a PROGMEM byte array.
+			p = tr->data_dictlist + (((p - tr->data_dictlist) + 4) & ~3);
 			tr->langopts.replace_chars = (unsigned char *)p;
 
 			while ( !is_str_totally_null(p, 4) ) {

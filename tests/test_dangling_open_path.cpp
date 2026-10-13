@@ -22,6 +22,7 @@
 
 extern "C" {
 int open(const char *name, int flags, ...);
+int close(int fd);
 }
 
 static int open_with_stack_local_path(const char *name) {
@@ -57,6 +58,8 @@ int main() {
             strcmp(entry.file_name, "/mem/data/lang/en") == 0,
         "file_name should still be the real path, not stack garbage, after "
         "the caller's stack frame is reused");
+
+  if (fd >= 0) close(fd);
 
   TEST_EXIT();
 }
